@@ -9,7 +9,7 @@ function read(): Session | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? (JSON.parse(raw) as Session) : null;
   } catch {
     return null;
   }
@@ -38,18 +38,18 @@ export function useSession() {
   }, []);
 
   const updateSession = useCallback((partial: Partial<Session>) => {
-    const current = read() || {};
-    const merged = { ...current, ...partial, _savedAt: Date.now() } as Session;
+    const current: Session = read() ?? ({ q3: [] } as unknown as Session);
+    const merged: Session = { ...current, ...partial, _savedAt: Date.now() };
     write(merged);
     setSessionState(merged);
   }, []);
 
   const saveDiagnostico = useCallback((diag: DiagnosticoData) => {
-    const current = read() || {};
+    const current: Session = read() ?? ({ q3: [] } as unknown as Session);
     const merged: Session = {
       ...current,
       ...diag,
-      q3: (diag.q3 ?? current.q3 ?? []) as Objetivo[],
+      q3: (diag.q3 && diag.q3.length > 0 ? diag.q3 : current.q3 ?? []) as Objetivo[],
       _diagTimestamp: Date.now(),
       _savedAt: Date.now(),
     };
