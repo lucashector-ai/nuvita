@@ -39,9 +39,11 @@ export function useSession() {
 
   const updateSession = useCallback(
     (partial: Partial<Session>) => {
-      const current = read() || {};
-      const merged = { ...current, ...partial, _savedAt: Date.now() };
-      write(merged);
+const merged: Session = {
+  ...current,
+  ...diag,
+  q3: diag.q3
+write(merged);
       setSessionState(merged);
     },
     []
