@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { Session, DiagnosticoData, Plano } from "@/types";
+import type { Session, DiagnosticoData, Plano, Objetivo } from "@/types";
 
 const KEY = "nv_session";
 
@@ -37,23 +37,19 @@ export function useSession() {
     setSessionState(data);
   }, []);
 
-  const updateSession = useCallback(
-    (partial: Partial<Session>) => {
-const merged: Session = {
-  ...current,
-  ...diag,
-  q3: diag.q3
-write(merged);
-      setSessionState(merged);
-    },
-    []
-  );
+  const updateSession = useCallback((partial: Partial<Session>) => {
+    const current = read() || {};
+    const merged = { ...current, ...partial, _savedAt: Date.now() } as Session;
+    write(merged);
+    setSessionState(merged);
+  }, []);
 
   const saveDiagnostico = useCallback((diag: DiagnosticoData) => {
     const current = read() || {};
     const merged: Session = {
       ...current,
       ...diag,
+      q3: (diag.q3 ?? current.q3 ?? []) as Objetivo[],
       _diagTimestamp: Date.now(),
       _savedAt: Date.now(),
     };
@@ -61,12 +57,9 @@ write(merged);
     setSessionState(merged);
   }, []);
 
-  const setPlano = useCallback(
-    (plano: Plano) => {
-      updateSession({ plano, _activePlan: plano });
-    },
-    [updateSession]
-  );
+  const setPlano = useCallback((plano: Plano) => {
+    updateSession({ plano, _activePlan: plano });
+  }, [updateSession]);
 
   const logout = useCallback(() => {
     clear();
