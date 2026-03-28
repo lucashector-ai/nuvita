@@ -646,32 +646,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
   grid-column: 1 / -1 !important;
 }
 
-/* ── Mobile bottom nav ──────────────────────────────── */
-.mobile-nav-wrapper { display: none; }
 
-@media (max-width: 768px) {
-  .mobile-nav-wrapper { display: block; }
-
-  /* Sidebar escondido no mobile */
-  .sidebar { display: none !important; }
-
-  /* Remove margem do sidebar no mobile */
-  .d-body {
-    margin-left: 0 !important;
-    padding-bottom: 80px !important;
-  }
-
-  /* DashboardNav sem margem esquerda */
-  .dash-nav {
-    left: 0 !important;
-    margin-left: 0 !important;
-  }
-
-  /* Conteúdo principal sem margem do sidebar */
-  [style*="marginLeft"] {
-    margin-left: 0 !important;
-  }
-}
 
 /* ── Responsivo resultado diagnóstico ───────────── */
 .resultado-grid {
@@ -802,3 +777,79 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
   .dc, .d-banner, .pdot, .btn-d::before { animation: none !important; }
 }
 
+
+/* ══ MOBILE (max-width: 768px) ══════════════════════════════════ */
+.mobile-nav-wrapper { display: none; }
+
+@media (max-width: 768px) {
+  .mobile-nav-wrapper { display: block; }
+  .sidebar { display: none !important; }
+
+  /* Layout principal */
+  .d-body {
+    margin-left: 0 !important;
+    padding: 1rem 1rem 80px !important;
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Colunas — full width */
+  .d-col-l, .d-col-r {
+    grid-column: 1 / -1 !important;
+    min-width: 0 !important;
+  }
+
+  /* Nav */
+  .dash-nav { left: 0 !important; margin-left: 0 !important; }
+  [style*="marginLeft"] { margin-left: 0 !important; }
+
+  /* Banner — empilha vertical */
+  .d-banner {
+    flex-direction: column !important;
+    gap: 1rem !important;
+    overflow: hidden !important;
+  }
+  .d-banner h2 { font-size: 1.15rem !important; }
+  .d-banner > div:last-child { align-self: stretch !important; }
+  .d-banner > div:last-child > div {
+    justify-content: flex-start !important;
+    gap: 1.5rem !important;
+  }
+
+  /* CTA iniciar — empilha */
+  .start-cta {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .start-cta .sc-s { white-space: normal !important; }
+
+  /* Tarefas */
+  .t-cb {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    border-radius: 5px !important;
+  }
+
+  /* Check-in emojis — flex wrap */
+  .d-mets { display: block !important; }
+
+  /* Modal de boas-vindas */
+  .overlay { align-items: flex-end !important; padding: 0 !important; }
+  .overlay > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* Planos */
+  .planos-grid { grid-template-columns: 1fr !important; }
+
+  /* Resultado diagnóstico */
+  .resultado-grid { grid-template-columns: 1fr !important; }
+
+  /* SectionPlanos — tabela scroll horizontal */
+  .planos-modal-inner { padding: 1rem !important; }
+}

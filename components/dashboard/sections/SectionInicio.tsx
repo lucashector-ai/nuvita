@@ -237,10 +237,10 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
           {!checkInFeito ? (
             <>
               <div style={{ fontSize:13, fontWeight:500, marginBottom:'1rem' }}>Como você esta hoje?</div>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'1.25rem' }}>
+              <div style={{ display:'flex', gap:4, marginBottom:'1.25rem' }}>
                 {HUMOR_LABELS.map((emoji,i)=>(
                   <button key={i} onClick={()=>handleCheckIn(i+1)}
-                    style={{ width:44, height:44, borderRadius:12, border:'1.5px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', cursor:'pointer', fontSize:'1.4rem', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .15s', fontFamily:'inherit' }}>
+                    style={{ flex:1, height:42, borderRadius:10, border:'1.5px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', cursor:'pointer', fontSize:'1.3rem', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .15s', fontFamily:'inherit', minWidth:0 }}>
                     {emoji}
                   </button>
                 ))}
