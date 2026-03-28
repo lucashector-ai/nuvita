@@ -1,5 +1,6 @@
 // @ts-nocheck
 'use client';
+import PeptideTooltip from '@/components/ui/PeptideTooltip';
 
 import { useState } from 'react';
 import type { QuizAnswers, Peptide, ObjectiveKey } from '@/types';
@@ -99,7 +100,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
               {/* Cards dos peptídeos */}
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:10, paddingLeft:46 }}>
                 {peps.map(item => (
-                  <div key={item.n}
+                  <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip>
                     style={{ background:'var(--bg)', border:`1px solid var(--border)`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer' }}
                     onClick={() => toggle(item.n)}>
                     <div style={{ padding:'1rem' }}>
@@ -108,7 +109,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
                           {item.e}
                         </div>
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:2 }}>{item.n}</div>
+                          <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:2 }}><PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip></div>
                           <div style={{ fontSize:12, color:'var(--ts)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{item.m}</div>
                         </div>
                         <div style={{ textAlign:'right', flexShrink:0 }}>
@@ -151,14 +152,14 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
             <div style={{ fontSize:11, color:'var(--gm)', fontWeight:500 }}>{items.length} compostos</div>
           </div>
           {items.map((item, i) => (
-            <div key={item.n} style={{ borderBottom:i<items.length-1?'1px solid var(--border)':'none' }}>
+            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ borderBottom:i<items.length-1?'1px solid var(--border)':'none' }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, padding:'1rem 1.25rem', cursor:'pointer' }}
                 onClick={() => toggle(item.n)}>
                 <div style={{ width:40, height:40, background:'var(--gp)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 }}>
                   {item.e}
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:2 }}>{item.n}</div>
+                  <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:2 }}><PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip></div>
                   <div style={{ fontSize:12, color:'var(--ts)' }}>{item.timing} · {item.freq}</div>
                 </div>
                 <div style={{ textAlign:'right', flexShrink:0, marginRight:8 }}>
@@ -196,11 +197,11 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
       {modo === 'guia' && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:10 }}>
           {items.map(item => (
-            <div key={item.n} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:'.875rem' }}>
                 <span style={{ fontSize:'1.5rem' }}>{item.e}</span>
                 <div>
-                  <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)' }}>{item.n}</div>
+                  <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)' }}><PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip></div>
                   <div style={{ fontSize:10, color:'var(--ts)' }}>{classificarTurno(item.timing)}</div>
                 </div>
               </div>

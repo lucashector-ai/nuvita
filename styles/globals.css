@@ -716,3 +716,114 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
     max-height: 92vh !important;
   }
 }
+
+/* ── F5: Micro animações e identidade biotech ─── */
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes barFill {
+  from { width: 0 !important; }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .4; }
+}
+@keyframes float-number {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Cards animam ao entrar com delay escalonado */
+.dc { animation: fadeSlideUp .3s ease both; }
+.dc:nth-child(1) { animation-delay: .04s; }
+.dc:nth-child(2) { animation-delay: .09s; }
+.dc:nth-child(3) { animation-delay: .14s; }
+.dc:nth-child(4) { animation-delay: .19s; }
+.dc:nth-child(5) { animation-delay: .24s; }
+
+/* Banner anima */
+.d-banner { animation: fadeSlideUp .25s ease both; position: relative; overflow: hidden; }
+
+/* Padrão biotech sutil no banner */
+.d-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(29,158,117,.07) 1px, transparent 0);
+  background-size: 28px 28px;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Ponto pulsante no badge de status */
+.pdot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* Números do banner */
+.d-banner [class*="1.4rem"] {
+  animation: float-number .4s ease both;
+  animation-delay: .3s;
+}
+
+/* Barras de progresso animadas */
+[style*="background:var(--green)"][style*="height:'100%'"],
+[style*="background:'var(--green)'"][style*="height:'100%'"] {
+  animation: barFill .9s cubic-bezier(.4,0,.2,1) both;
+  animation-delay: .5s;
+}
+
+/* Check-in — emojis com hover */
+.d-mets button {
+  transition: transform .12s ease, background .12s ease !important;
+}
+.d-mets button:hover {
+  transform: scale(1.18) translateY(-2px) !important;
+}
+
+/* Overflow fix no d-mets */
+.d-mets { overflow: hidden; }
+
+/* Botão primário — shimmer sutil */
+.btn-d {
+  position: relative;
+  overflow: hidden;
+}
+.btn-d::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  animation: shimmer-btn 3s ease infinite;
+}
+@keyframes shimmer-btn {
+  0%   { left: -100%; }
+  40%, 100% { left: 150%; }
+}
+
+/* Task items — transição suave */
+.t-item { transition: background .15s ease; }
+.t-cb { transition: background .15s ease, transform .1s ease; }
+.t-cb.checked { transform: scale(1.05); }
+
+/* PlanLock overlay — fade in */
+[style*="position:'absolute'"][style*="inset:0"] {
+  animation: fadeSlideUp .2s ease;
+}
+
+/* Sidebar items */
+.sb-item { transition: background .12s ease, color .12s ease; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .dc, .d-banner, .pdot, .btn-d::before { animation: none !important; }
+}

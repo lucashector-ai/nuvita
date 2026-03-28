@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import type { Peptide, QuizAnswers, ObjectiveKey, DashSection } from '@/types';
 import { OBJECTIVE_LABELS, DURACAO_LABELS } from '@/types';
+import PeptideTooltip from '@/components/ui/PeptideTooltip';
 
 const FASES_CICLO = [
   { semana: [1,2],  nome: 'Adaptação celular',    desc: 'Seu corpo está se ajustando. Possível leve cansaço — é normal.', cor:'#EF9F27', bg:'#FAEEDA' },
@@ -145,8 +146,8 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
           <h2 style={{ fontSize:'1.4rem', fontWeight:500, letterSpacing:'-.04em', color:'var(--dark)', marginBottom:'.375rem', lineHeight:1.2 }}>
             {protoAtivo
               ? feitas === tarefasHoje.length && tarefasHoje.length > 0
-                ? `Parabéns, ${nome}! Todas as ações concluídas hoje.`
-                : `${nome}, você tem ${tarefasHoje.length - feitas} ação${tarefasHoje.length-feitas!==1?'ões':''} hoje`
+                ? `Parabéns, ${nome}! Todas as ações concluídas. 🎯`
+                : `${nome}, você tem ${tarefasHoje.length - feitas} ação${tarefasHoje.length-feitas!==1?'ões':''} hoje para manter o resultado`
               : `${nome}, seu protocolo está pronto`}
           </h2>
           <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
@@ -236,8 +237,11 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
                     </div>
                     <div style={{ flex:1, minWidth:0 }} onClick={() => toggleExpand(item.n)}>
                       <div className="t-name">
-                        <span style={{ marginRight:5 }}>{item.e}</span>
-                        {item.n}
+                        <PeptideTooltip nome={item.n} emoji={item.e}>
+                          <span style={{ borderBottom:'1px dashed var(--green)', cursor:'help' }}>
+                            <span style={{ marginRight:5 }}>{item.e}</span>{item.n}
+                          </span>
+                        </PeptideTooltip>
                       </div>
                       <div className="t-sub">{item.timing}</div>
                     </div>
@@ -333,11 +337,11 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
       <div className="d-col-r">
 
         {/* Check-in inteligente */}
-        <div className="d-mets" style={{ background:'var(--dark)', color:'white', marginBottom:'1rem' }}>
+        <div className="d-mets" style={{ background:'var(--dark)', color:'white', marginBottom:'1rem', overflow:'hidden', display:'flex', flexDirection:'column' }}>
           <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', opacity:.6, marginBottom:'1rem' }}>Check-in diário</div>
           {!checkInFeito ? (
             <>
-              <div style={{ fontSize:14, fontWeight:500, marginBottom:'1rem', lineHeight:1.4 }}>Como você está se sentindo hoje?</div>
+              <div style={{ fontSize:13, fontWeight:500, marginBottom:'.875rem', lineHeight:1.4 }}>Como você está hoje?</div>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'1.25rem' }}>
                 {HUMOR_LABELS.map((emoji, i) => (
                   <button key={i} onClick={() => handleCheckIn(i+1)}
@@ -409,15 +413,26 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
           </a>
         </div>
 
-        {/* Loop de retenção */}
-        {protoAtivo && (
-          <div className="dc">
-            <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)', marginBottom:8 }}>🔓 Próximo desbloqueio</div>
-            <div style={{ fontSize:12, color:'var(--tm)', lineHeight:1.65 }}>
-              Continue por <strong>{Math.max(1, 3 - semanas)}</strong> semana{Math.max(1,3-semanas)!==1?'s':''} para liberar a análise de resposta do seu corpo.
-            </div>
+        {/* Loop de retenção com streak */}
+        <div className="dc">
+          <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)', marginBottom:10 }}>
+            🔥 Streak de check-ins
           </div>
-        )}
+          <div style={{ display:'flex', gap:5, marginBottom:8 }}>
+            {Array.from({length:7}, (_,i) => (
+              <div key={i} style={{ flex:1, height:28, borderRadius:6, background: i < (checkInFeito?1:0) ? 'var(--green)' : 'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color: i < (checkInFeito?1:0) ? 'white' : 'var(--ts)', fontWeight:500 }}>
+                {['S','T','Q','Q','S','S','D'][i]}
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize:11, color:'var(--ts)', lineHeight:1.6 }}>
+            {checkInFeito
+              ? '✓ Check-in feito hoje! Continue amanhã para aumentar seu streak.'
+              : protoAtivo
+                ? 'Faça check-ins consecutivos para desbloquear insights avançados.'
+                : 'Inicie o protocolo para começar seu streak diário.'}
+          </div>
+        </div>
       </div>
     </>
   );

@@ -57,6 +57,7 @@ export default function DashboardShell() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [protoAtivo,      setProtoAtivo]      = useState(false);
   const [planAtivo,       setPlanAtivo]       = useState<string>('free');
+  const [showBoasVindas,  setShowBoasVindas]  = useState(false);
 
   useEffect(() => {
     const init = async () => {
