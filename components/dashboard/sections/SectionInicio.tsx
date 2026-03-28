@@ -121,26 +121,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, protoAt
           </div>
         </div>
 
-        {/* Adesão semanal */}
-        <div className="dc">
-          <div className="dc-h">
-            <div className="dc-t">Adesão semanal</div>
-            <div style={{ fontSize:12, fontWeight:500, color:'var(--gm)' }}>{weekDone.size} / 7 dias</div>
-          </div>
-          <div className="w-row">
-            {days.map((d, i) => (
-              <div className="w-b" key={d}>
-                <div className="w-n">{d}</div>
-                <div
-                  className={`w-c${i===todayIdx?' w-today':''}${weekDone.has(i)?' w-done':''}`}
-                  onClick={() => setWeekDone(prev => { const n = new Set(prev); n.has(i)?n.delete(i):n.add(i); return n; })}
-                >
-                  {weekDone.has(i) ? '✓' : ''}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        
 
         {/* Progresso do ciclo */}
         <div className="dc">

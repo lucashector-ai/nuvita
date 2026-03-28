@@ -98,7 +98,12 @@ export default function DashboardShell() {
   const dur   = answers.q9 ?? '8sem';
   const plan  = planAtivo;
   const nome  = answers.nome?.toString() ?? '—';
-  const { items } = buildProtocol(objs, peso, 999, true);
+  const { items: allItems } = buildProtocol(objs, peso, 999, true);
+  // Filtra peptídeos removidos na revisão
+  const aceitosRevisao = answers._aceitosRevisao as string[] | undefined;
+  const items = aceitosRevisao && aceitosRevisao.length > 0
+    ? allItems.filter(item => aceitosRevisao.includes(item.n))
+    : allItems;
 
   const nav      = (s: DashSection) => { setSection(s); setSidebarOpen(false); };
 

@@ -1,5 +1,6 @@
 // @ts-nocheck
 'use client';
+import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import type { DashSection } from './DashboardShell';
 
 interface Props {
@@ -72,7 +73,7 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
             <button className="sb-toggle" onClick={e=>{e.stopPropagation();onToggleExpand();onMobileClose();}}>
               <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
             </button>
-            <div className="sb-logo-full"><LOGO/></div>
+            <div className="sb-logo-full"><NuvitaLogo width={72} height={16}/></div>
           </div>
         </div>
         <nav className="sb-nav" style={{ overflowY:'auto', flex:1 }}>
