@@ -75,25 +75,47 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
   const HUMOR_LABELS = ['😫','😔','😐','😊','🤩'];
   const HUMOR_TEXTOS = ['Péssimo','Ruim','Neutro','Bem','Ótimo'];
 
+  const INSIGHTS_FALLBACK: Record<number, string[]> = {
+    1: ['Dias difíceis fazem parte da jornada. Seu corpo está trabalhando mesmo quando você não sente.', 'Tente descansar mais hoje e manter a hidratação.'],
+    2: ['É normal ter dias assim, especialmente na fase de adaptação.', 'Foque no básico: água, sono e manter o protocolo.'],
+    3: ['Dia neutro é dia consistente. A consistência é o que gera resultados.', 'Continue com sua rotina normal.'],
+    4: ['Ótimo! Energia positiva potencializa a ação dos peptídeos.', 'Aproveite para fazer check-in no tracker e registrar essa evolução.'],
+    5: ['Excelente! Esse nível de bem-estar é um sinal de que o protocolo está funcionando.', 'Registre no diário como você está se sentindo para acompanhar o padrão.'],
+  };
+
   const handleCheckIn = async (humor: number) => {
     setCheckInHumor(humor);
     setCheckInFeito(true);
     setLoadingInsight(true);
+
+    // Timeout de 8s — se a IA demorar, usa fallback
+    const timeoutId = setTimeout(() => {
+      const fallback = INSIGHTS_FALLBACK[humor] || INSIGHTS_FALLBACK[3];
+      setInsightIA(fallback.join(' '));
+      setLoadingInsight(false);
+    }, 8000);
+
     try {
       const res = await fetch('/api/ia', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          system: 'Você é o Coach IA da Nuvita. Com base no humor e fase do ciclo, dê um insight curto (2 frases) + 1 recomendação prática para hoje. Tom empático, direto.',
+          system: 'Você é o Coach IA da Nuvita. Dê um insight curto (2 frases máximo) + 1 recomendação prática. Tom empático, direto. Responda só o texto, sem formatação.',
           messages: [{
             role:'user',
-            content: `Humor hoje: ${HUMOR_TEXTOS[humor-1]} (${humor}/5). Semana ${semanas} do ciclo. Fase: ${fase.nome}. Objetivos: ${objs.join(', ')}. Dê um insight e recomendação.`
+            content: `Humor: ${HUMOR_TEXTOS[humor-1]} (${humor}/5). Semana ${semanas}. Fase: ${fase.nome}. Objetivos: ${objs.join(', ')}.`
           }]
         })
       });
+      clearTimeout(timeoutId);
       const data = await res.json();
-      setInsightIA(data.text || '');
-    } catch {}
-    finally { setLoadingInsight(false); }
+      setInsightIA(data.text || INSIGHTS_FALLBACK[humor]?.join(' ') || '');
+    } catch {
+      clearTimeout(timeoutId);
+      const fallback = INSIGHTS_FALLBACK[humor] || INSIGHTS_FALLBACK[3];
+      setInsightIA(fallback.join(' '));
+    } finally {
+      setLoadingInsight(false);
+    }
   };
 
   const handleStart = () => {
