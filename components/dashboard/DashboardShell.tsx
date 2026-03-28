@@ -168,10 +168,7 @@ export default function DashboardShell() {
           onClose={(temPeptideo) => {
             sessionStorage.setItem('nv_boas_vindas', '1');
             setShowBoasVindas(false);
-            if (temPeptideo) setTimeout(() => {
-              const el = document.querySelector('.start-cta button');
-              if (el) (el as HTMLButtonElement).click();
-            }, 300);
+            if (temPeptideo) setProtoAtivo(true);
           }}
         />
       )}
