@@ -41,14 +41,36 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
   const durLabel  = DURACAO_LABELS[dur] ?? dur;
   const totalSem  = parseInt(durLabel)||24;
 
-  const [checkInFeito, setCheckInFeito] = useState(false);
-  const [checkInHumor, setCheckInHumor] = useState(null);
-  const [insightIA,    setInsightIA]    = useState('');
+  const hoje = new Date().toDateString();
+  const [checkInFeito, setCheckInFeito] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const saved = sessionStorage.getItem('nv_checkin');
+    if (!saved) return false;
+    try { const d = JSON.parse(saved); return d.data === hoje; } catch { return false; }
+  });
+  const [checkInHumor, setCheckInHumor] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const saved = sessionStorage.getItem('nv_checkin');
+    if (!saved) return null;
+    try { const d = JSON.parse(saved); return d.data === hoje ? d.humor : null; } catch { return null; }
+  });
+  const [insightIA, setInsightIA] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    const saved = sessionStorage.getItem('nv_checkin');
+    if (!saved) return '';
+    try { const d = JSON.parse(saved); return d.data === hoje ? d.insight : ''; } catch { return ''; }
+  });
   const [tasksDone,    setTasksDone]    = useState(new Set());
   const [expandido,    setExpandido]    = useState(null);
   const [starting,     setStarting]     = useState(false);
 
-  const handleCheckIn = (h) => { setCheckInHumor(h); setCheckInFeito(true); setInsightIA(INSIGHTS[h]||INSIGHTS[3]); };
+  const handleCheckIn = (h) => {
+    const insight = INSIGHTS[h]||INSIGHTS[3];
+    setCheckInHumor(h); setCheckInFeito(true); setInsightIA(insight);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('nv_checkin', JSON.stringify({ data: hoje, humor: h, insight }));
+    }
+  };
   const handleStart   = () => { setStarting(true); setTimeout(()=>{onStartProto();setStarting(false);},500); };
   const toggleTask    = (id) => setTasksDone(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});
   const toggleExpand  = (id) => setExpandido(p=>p===id?null:id);
@@ -138,38 +160,82 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
               const done     = tasksDone.has(item.n);
               const expanded = expandido===item.n;
               return (
-                <div key={item.n} style={{ opacity:protoAtivo?1:.5 }}>
-                  <div className={'t-item'+(done?' done':'')}>
-                    <div className={'t-cb'+(done?' checked':'')} onClick={()=>protoAtivo&&toggleTask(item.n)}>
+                <div key={item.n}
+                  style={{
+                    opacity: protoAtivo ? 1 : 0.5,
+                    background: expanded ? 'var(--gp)' : 'transparent',
+                    borderRadius: 12,
+                    transition: 'background .2s ease',
+                    marginBottom: 2,
+                  }}
+                  onMouseEnter={e => { if (!expanded) e.currentTarget.style.background = 'var(--bg2)'; }}
+                  onMouseLeave={e => { if (!expanded) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {/* Linha principal */}
+                  <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', cursor:'pointer' }}>
+                    {/* Checkbox */}
+                    <div
+                      className={'t-cb'+(done?' checked':'')}
+                      onClick={e => { e.stopPropagation(); protoAtivo && toggleTask(item.n); }}
+                      style={{ flexShrink:0 }}
+                    >
                       {done && <svg width="10" height="10" fill="none" viewBox="0 0 10 10"><path d="M2 5l2 2 4-4" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
-                    <div style={{ flex:1, minWidth:0 }} onClick={()=>toggleExpand(item.n)}>
-                      <div className="t-name">
-                        <PeptideTooltip nome={item.n} emoji={item.e}>
-                          <span style={{ borderBottom:'1px dashed var(--green)', cursor:'help' }}>
-                            <span style={{ marginRight:5 }}>{item.e}</span>{item.n}
-                          </span>
-                        </PeptideTooltip>
+
+                    {/* Nome + timing */}
+                    <div style={{ flex:1, minWidth:0 }} onClick={() => toggleExpand(item.n)}>
+                      <div style={{ fontSize:13, fontWeight:500, color: done ? 'var(--ts)' : 'var(--tx)', textDecoration: done ? 'line-through' : 'none', display:'flex', alignItems:'center', gap:6 }}>
+                        <span>{item.e}</span>
+                        <span>{item.n}</span>
                       </div>
-                      <div className="t-sub">{item.timing}</div>
+                      <div style={{ fontSize:11, color:'var(--ts)', marginTop:2 }}>{item.timing}</div>
                     </div>
-                    <div style={{ fontSize:11, color:'var(--ts)', cursor:'pointer', padding:4, flexShrink:0 }} onClick={()=>toggleExpand(item.n)}>
-                      {expanded?'▲':'▼'}
+
+                    {/* Ícone info */}
+                    <div
+                      onClick={e => { e.stopPropagation(); toggleExpand(item.n); }}
+                      style={{
+                        width: 22, height: 22, borderRadius: '50%',
+                        background: expanded ? 'var(--green)' : 'var(--bg2)',
+                        border: '1px solid', borderColor: expanded ? 'var(--green)' : 'var(--border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', flexShrink: 0,
+                        transition: 'all .2s ease',
+                        fontSize: 11, fontWeight: 700,
+                        color: expanded ? 'white' : 'var(--ts)',
+                        userSelect: 'none',
+                      }}
+                    >
+                      i
                     </div>
                   </div>
-                  {expanded && (
-                    <div style={{ margin:'0 0 6px 32px', background:'var(--gp)', borderRadius:10, padding:'10px 12px', borderLeft:'3px solid var(--green)' }}>
-                      <div style={{ fontSize:11, fontWeight:600, color:'var(--gm)', marginBottom:4, textTransform:'uppercase', letterSpacing:'.05em' }}>Por que você esta tomando</div>
-                      <div style={{ fontSize:12, color:'var(--gm)', lineHeight:1.65, marginBottom:6 }}>{item.why||item.m}</div>
+
+                  {/* Painel de info — animado */}
+                  <div style={{
+                    overflow: 'hidden',
+                    maxHeight: expanded ? 200 : 0,
+                    transition: 'max-height .3s cubic-bezier(.4,0,.2,1)',
+                  }}>
+                    <div style={{ padding: '0 12px 12px 44px' }}>
+                      <div style={{ fontSize:11, fontWeight:600, color:'var(--gm)', marginBottom:4, textTransform:'uppercase', letterSpacing:'.05em' }}>
+                        Por que você está tomando
+                      </div>
+                      <div style={{ fontSize:12, color:'var(--gm)', lineHeight:1.65, marginBottom:8 }}>
+                        {item.why || item.m}
+                      </div>
                       <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                        <span style={{ fontSize:10, background:'rgba(29,158,117,.15)', color:'var(--gm)', borderRadius:100, padding:'2px 8px', fontWeight:500 }}>Dose: {item.doseStr(peso)}</span>
-                        <span style={{ fontSize:10, background:'rgba(29,158,117,.15)', color:'var(--gm)', borderRadius:100, padding:'2px 8px', fontWeight:500 }}>Via: {item.route}</span>
+                        <span style={{ fontSize:10, background:'rgba(29,158,117,.2)', color:'var(--gm)', borderRadius:100, padding:'2px 8px', fontWeight:500 }}>
+                          💊 {item.doseStr(peso)}
+                        </span>
+                        <span style={{ fontSize:10, background:'rgba(29,158,117,.2)', color:'var(--gm)', borderRadius:100, padding:'2px 8px', fontWeight:500 }}>
+                          📍 {item.route}
+                        </span>
                         <button onClick={()=>onNavigate('lib')} style={{ fontSize:10, background:'var(--dark)', color:'white', borderRadius:100, padding:'2px 8px', fontWeight:500, border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-                          Aprender mais
+                          Saber mais →
                         </button>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
