@@ -1,0 +1,157 @@
+// @ts-nocheck
+'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getSession, signOut, carregarDiagnostico } from '@/lib/auth';
+import { buildProtocol } from '@/lib/peptides';
+import type { QuizAnswers } from '@/types';
+import Sidebar             from './Sidebar';
+import DashboardNav        from './DashboardNav';
+import PlanosModal         from '@/components/modals/PlanosModal';
+import SectionInicio       from './sections/SectionInicio';
+import SectionProtocolo    from './sections/SectionProtocolo';
+import SectionIA           from './sections/SectionIA';
+import SectionCalc         from './sections/SectionCalc';
+import SectionLib          from './sections/SectionLib';
+import SectionConfig       from './sections/SectionConfig';
+import SectionMedico       from './sections/SectionMedico';
+import SectionCalendario   from './sections/SectionCalendario';
+import SectionPerfil       from './sections/SectionPerfil';
+import SectionTracker      from './sections/SectionTracker';
+import SectionDiario       from './sections/SectionDiario';
+import SectionHistorico    from './sections/SectionHistorico';
+import SectionConsistencia from './sections/SectionConsistencia';
+import SectionAnalise      from './sections/SectionAnalise';
+import SectionCoach        from './sections/SectionCoach';
+import SectionAjuste       from './sections/SectionAjuste';
+import SectionDetector     from './sections/SectionDetector';
+import SectionSimulador    from './sections/SectionSimulador';
+import SectionGeradorCiclo from './sections/SectionGeradorCiclo';
+import SectionFases        from './sections/SectionFases';
+import SectionRotina       from './sections/SectionRotina';
+import SectionEstoque      from './sections/SectionEstoque';
+import SectionExportacao   from './sections/SectionExportacao';
+import SectionPlanos       from './sections/SectionPlanos';
+import SectionConta        from './sections/SectionConta';
+import PlanLock          from '@/components/ui/PlanLock';
+
+export type DashSection =
+  'inicio'|'protocolo'|'ia'|'calc'|'lib'|'config'|
+  'medico'|'calendario'|'perfil'|
+  'tracker'|'diario'|'historico'|'consistencia'|'analise'|
+  'coach'|'ajuste'|'detector'|
+  'simulador'|'geradorciclo'|'fases'|'rotina'|
+  'estoque'|'exportacao'|'planos'|'conta';
+
+const PLAN_LABEL: Record<string,string> = { free:'Conta gratuita', essencial:'Essencial', pro:'Pro ✦' };
+
+export default function DashboardShell() {
+  const router = useRouter();
+  const [ready,           setReady]           = useState(false);
+  const [userId,          setUserId]          = useState<string|null>(null);
+  const [answers,         setAnswers]         = useState<QuizAnswers>({});
+  const [section,         setSection]         = useState<DashSection>('inicio');
+  const [sidebarOpen,     setSidebarOpen]     = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [protoAtivo,      setProtoAtivo]      = useState(false);
+  const [planAtivo,       setPlanAtivo]       = useState<string>('free');
+
+  useEffect(() => {
+    const init = async () => {
+      const session = await getSession();
+      if (!session) { router.replace('/login'); return; }
+      setUserId(session.user.id);
+
+      const perfil = await carregarDiagnostico(session.user.id);
+      if (perfil?.diagnostico) {
+        setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
+        setPlanAtivo(perfil.plano ?? 'free');
+      } else {
+        try {
+          const raw = sessionStorage.getItem('nv_quiz');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed?.q3?.length) { setAnswers(parsed); setPlanAtivo(parsed._activePlan ?? parsed.plano ?? 'free'); }
+            else router.replace('/diagnostico');
+          } else {
+            router.replace('/diagnostico');
+          }
+        } catch { router.replace('/diagnostico'); }
+      }
+      setReady(true);
+    };
+    init();
+  }, [router]);
+
+
+
+  if (!ready) return (
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ fontSize:13, color:'var(--ts)' }}>Carregando...</div>
+    </div>
+  );
+
+  const objs  = answers.q3 ?? ['gordura'];
+  const peso  = Number(answers.peso ?? 75);
+  const nivel = answers.q4 ?? 'iniciante';
+  const dur   = answers.q9 ?? '8sem';
+  const plan  = planAtivo;
+  const nome  = answers.nome?.toString() ?? '—';
+  const { items } = buildProtocol(objs, peso, 999, true);
+
+  const nav      = (s: DashSection) => { setSection(s); setSidebarOpen(false); };
+
+  const ml       = sidebarExpanded ? 'var(--sb-wx)' : 'var(--sb-w)';
+  const doLogout = async () => { await signOut(); router.replace('/login'); };
+
+  return (
+    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg2)' }}>
+      <Sidebar
+        active={section} onNavigate={nav}
+        mobileOpen={sidebarOpen} onMobileClose={()=>setSidebarOpen(false)}
+        expanded={sidebarExpanded} onToggleExpand={()=>setSidebarExpanded(v=>!v)}
+        nome={nome} planLabel={PLAN_LABEL[plan]??'Conta gratuita'} plan={plan}
+        onLogout={doLogout}
+      />
+      {sidebarOpen && <div className="sidebar-overlay show" onClick={()=>setSidebarOpen(false)}/>}
+
+      <div style={{ flex:1, minWidth:0, minHeight:'100vh', marginLeft:ml, transition:'margin-left .22s cubic-bezier(.4,0,.2,1)' }}>
+        <DashboardNav
+          planLabel={PLAN_LABEL[plan]??'Conta gratuita'}
+          section={section} nome={nome} planId={plan}
+          onMenuOpen={()=>setSidebarOpen(true)}
+          onNavigate={nav} onLogout={doLogout}
+          onOpenPerfil={()=>nav('perfil')} onOpenConfig={()=>nav('config')} onOpenPlanos={()=>nav('planos')}
+          userId={userId} answers={answers}
+        />
+        <div className="d-body">
+          {section==='inicio'       && <SectionInicio answers={answers} items={items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan} protoAtivo={protoAtivo} onStartProto={()=>setProtoAtivo(true)} onNavigate={nav}/>}
+          {section==='protocolo'    && <SectionProtocolo answers={answers} items={items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan}/>}
+          {section==='ia'           && <SectionIA answers={answers} objs={objs}/>}
+          {section==='calc'         && <SectionCalc peso={peso}/>}
+          {section==='lib'          && <SectionLib/>}
+          {section==='config'       && <SectionConfig answers={answers} plan={plan} userId={userId}/>}
+          {section==='medico'       && <SectionMedico plan={plan} nome={nome} userId={userId}/>}
+          {section==='calendario'   && <SectionCalendario items={items} peso={peso} protoAtivo={protoAtivo}/>}
+          {section==='perfil'       && <SectionPerfil answers={answers} plan={plan} onNavigate={nav} userId={userId} onPlanChange={setPlanAtivo}/>}
+          {section==='tracker'      && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Tracker de evolução' descricao='Registre peso, energia e sono ao longo do ciclo. Disponível a partir do Essencial.'><SectionTracker userId={userId}/></PlanLock>}
+          {section==='diario'       && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Diário de sintomas' descricao='Registre os efeitos percebidos em cada aplicação. Disponível a partir do Essencial.'><SectionDiario userId={userId}/></PlanLock>}
+          {section==='historico'    && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Histórico de ciclos' descricao='Veja todos os seus ciclos anteriores e evolução. Disponível a partir do Essencial.'><SectionHistorico/></PlanLock>}
+          {section==='consistencia' && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Pontuação de consistência' descricao='Acompanhe sua adesão semanal ao protocolo. Disponível a partir do Essencial.'><SectionConsistencia userId={userId}/></PlanLock>}
+          {section==='analise'      && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Análise de evolução' descricao='Insights e gráficos sobre sua evolução. Disponível a partir do Essencial.'><SectionAnalise answers={answers} objs={objs}/></PlanLock>}
+          {section==='coach'        && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Coach IA' descricao='Chat com IA especializada em peptídeos para tirar dúvidas do seu protocolo. Disponível a partir do Essencial.'><SectionCoach answers={answers} objs={objs}/></PlanLock>}
+          {section==='ajuste'       && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Ajuste automático' descricao='Solicite reajustes no protocolo com base na sua evolução. Disponível a partir do Essencial.'><SectionAjuste answers={answers} userId={userId}/></PlanLock>}
+          {section==='detector'     && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Detector de inconsistência' descricao='Identifica padrões de falha e ativa reativação automática. Disponível a partir do Essencial.'><SectionDetector userId={userId}/></PlanLock>}
+          {section==='simulador'    && <SectionSimulador answers={answers}/>}
+          {section==='geradorciclo' && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Gerador de ciclo' descricao='Crie ciclos personalizados com base nos seus objetivos. Disponível a partir do Essencial.'><SectionGeradorCiclo answers={answers}/></PlanLock>}
+          {section==='fases'        && <SectionFases/>}
+          {section==='rotina'       && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Rotina complementar' descricao='Planner semanal de sono, hidratação, alimentação e exercício. Disponível a partir do Essencial.'><SectionRotina answers={answers} userId={userId}/></PlanLock>}
+          {section==='estoque'      && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Controle de estoque' descricao='Cadastre seus frascos e a IA calcula quanto tempo vai durar. Disponível a partir do Essencial.'><SectionEstoque userId={userId}/></PlanLock>}
+          {section==='exportacao'   && <SectionExportacao answers={answers} items={items} plan={plan}/>}
+          {section==='planos'        && <SectionPlanos planoAtual={plan} userId={userId} onPlanChange={setPlanAtivo} onNavigate={nav}/>}
+          {section==='conta'         && <SectionConta planoAtual={plan} userId={userId} answers={answers} onNavigate={nav}/>}
+        </div>
+      </div>
+    </div>
+  );
+}
