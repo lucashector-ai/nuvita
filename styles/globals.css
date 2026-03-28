@@ -691,3 +691,28 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
     margin-left: 0 !important;
   }
 }
+
+/* ── Responsivo resultado diagnóstico ───────────── */
+.resultado-grid {
+  grid-template-columns: 1fr 340px !important;
+}
+@media (max-width: 700px) {
+  .resultado-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Responsivo planos ───────────────────────────── */
+.planos-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+@media (max-width: 700px) {
+  .planos-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .planos-modal-inner {
+    max-width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 92vh !important;
+  }
+}

@@ -118,7 +118,7 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
       )}
 
       {/* Cards de planos */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'1.25rem', marginBottom:'2rem' }}>
+      <div className='planos-grid' style={{ display:'grid', gap:'1.25rem', marginBottom:'2rem' }}>
         {PLANOS.map(p => {
           const isAtual   = p.id === planoAtual;
           const isAbaixo  = PLANO_ORDEM[p.id] < ordemAtual;

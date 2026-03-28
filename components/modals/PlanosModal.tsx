@@ -68,13 +68,13 @@ const PLANOS = [
 export default function PlanosModal({ onClose, onSelect, planoAtual = 'free' }: Props) {
   return (
     <div className="overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background:'var(--bg)', borderRadius:20, padding:'2rem', maxWidth:780, width:'calc(100% - 2rem)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
+      <div className='planos-modal-inner' style={{ background:'var(--bg)', borderRadius:20, padding:'1.5rem', maxWidth:780, width:'calc(100% - 2rem)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
         <div style={{ textAlign:'center', marginBottom:'1.5rem' }}>
           <h2 style={{ fontSize:'1.4rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.375rem' }}>Escolha seu plano</h2>
           <p style={{ fontSize:13, color:'var(--ts)' }}>Cancele a qualquer momento · Sem taxas ocultas</p>
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:'1.25rem' }}>
+        <div style={{ display:'grid', gap:12, marginBottom:'1.25rem' }}>
           {PLANOS.map(p => {
             const isAtual = p.id === planoAtual;
             return (

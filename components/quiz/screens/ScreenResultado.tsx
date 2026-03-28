@@ -121,7 +121,7 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
       </div>
 
       {/* Grid principal — peptídeos + CTA desbloqueio */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 340px', gap:'1.5rem', alignItems:'start', marginBottom:'1.5rem' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'min(100%, calc(100vw - 2rem)) > 600px ? "1fr 340px" : "1fr"', gap:'1.5rem', alignItems:'start', marginBottom:'1.5rem' }} className="resultado-grid">
 
         {/* Coluna esquerda — lista de peptídeos */}
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
