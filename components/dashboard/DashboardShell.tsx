@@ -31,6 +31,7 @@ import SectionFases        from './sections/SectionFases';
 import SectionRotina       from './sections/SectionRotina';
 import SectionEstoque      from './sections/SectionEstoque';
 import SectionExportacao   from './sections/SectionExportacao';
+import MobileNav           from './MobileNav';
 import SectionPlanos       from './sections/SectionPlanos';
 import SectionConta        from './sections/SectionConta';
 import PlanLock          from '@/components/ui/PlanLock';
@@ -151,6 +152,10 @@ export default function DashboardShell() {
           {section==='planos'        && <SectionPlanos planoAtual={plan} userId={userId} onPlanChange={setPlanAtivo} onNavigate={nav}/>}
           {section==='conta'         && <SectionConta planoAtual={plan} userId={userId} answers={answers} onNavigate={nav}/>}
         </div>
+      </div>
+      {/* Mobile bottom nav */}
+      <div className="mobile-nav-wrapper">
+        <MobileNav active={section} onNavigate={nav} plan={plan}/>
       </div>
     </div>
   );

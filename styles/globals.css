@@ -664,3 +664,30 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 .d-body > div:not(:has(.d-banner)):not(:has(.d-sec)):not(:has(.start-cta)):not(.d-col-l):not(.d-col-r) {
   grid-column: 1 / -1 !important;
 }
+
+/* ── Mobile bottom nav ──────────────────────────────── */
+.mobile-nav-wrapper { display: none; }
+
+@media (max-width: 768px) {
+  .mobile-nav-wrapper { display: block; }
+
+  /* Sidebar escondido no mobile */
+  .sidebar { display: none !important; }
+
+  /* Remove margem do sidebar no mobile */
+  .d-body {
+    margin-left: 0 !important;
+    padding-bottom: 80px !important;
+  }
+
+  /* DashboardNav sem margem esquerda */
+  .dash-nav {
+    left: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  /* Conteúdo principal sem margem do sidebar */
+  [style*="marginLeft"] {
+    margin-left: 0 !important;
+  }
+}
