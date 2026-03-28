@@ -90,30 +90,32 @@ export default function MobileNav({ active, onNavigate, plan }: Props) {
             style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.5)', zIndex:998 }}
           />
           <div style={{ position:'fixed', bottom:64, left:0, right:0, background:'var(--bg)', borderRadius:'20px 20px 0 0', zIndex:999, maxHeight:'70vh', overflowY:'auto', paddingBottom:16 }}>
-            <div style={{ width:36, height:4, background:'var(--border)', borderRadius:2, margin:'12px auto 16px' }}/>
-            {MAIS_ITEMS.map(grupo => (
-              <div key={grupo.grupo}>
-                <div style={{ fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', padding:'8px 20px 4px' }}>
-                  {grupo.grupo}
-                </div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:4, padding:'0 12px' }}>
+            <div style={{ width:36, height:4, background:'var(--border)', borderRadius:2, margin:'12px auto 8px' }}/>
+            <div style={{ padding:'0 0 8px' }}>
+              {MAIS_ITEMS.map(grupo => (
+                <div key={grupo.grupo}>
+                  <div style={{ fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', padding:'12px 20px 4px' }}>
+                    {grupo.grupo}
+                  </div>
                   {grupo.items.map(item => {
                     const bloqueado = (item as any).proOnly && plan !== 'pro';
                     const isActive = active === item.id;
                     return (
                       <div key={item.id}
                         onClick={() => handleNav(item.id as DashSection)}
-                        style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:'10px 4px', borderRadius:12, cursor:'pointer', background:isActive?'var(--gp)':'transparent', opacity:bloqueado?.6:1 }}>
-                        <span style={{ fontSize:20 }}>{item.ico}</span>
-                        <span style={{ fontSize:10, fontWeight:500, color:isActive?'var(--gm)':'var(--tm)', textAlign:'center', lineHeight:1.2 }}>
-                          {item.label}{bloqueado?' 🔒':''}
+                        style={{ display:'flex', alignItems:'center', gap:14, padding:'13px 20px', cursor:'pointer', background:isActive?'var(--gp)':'transparent', borderLeft:isActive?'3px solid var(--green)':'3px solid transparent', transition:'background .1s' }}>
+                        <span style={{ fontSize:18, flexShrink:0 }}>{item.ico}</span>
+                        <span style={{ fontSize:14, fontWeight:isActive?500:400, color:isActive?'var(--gm)':'var(--tx)', flex:1 }}>
+                          {item.label}
                         </span>
+                        {bloqueado && <span style={{ fontSize:10, color:'var(--ts)', background:'var(--bg2)', padding:'2px 7px', borderRadius:100 }}>🔒 Pro</span>}
+                        {isActive && <span style={{ fontSize:11, color:'var(--gm)' }}>✓</span>}
                       </div>
                     );
                   })}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </>
       )}
