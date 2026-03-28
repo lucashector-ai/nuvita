@@ -12,3 +12,4 @@ export const metadata = {
 export default function RevisaoPage() {
   return <RevisaoShell />;
 }
+export const dynamic = 'force-dynamic'

@@ -28,3 +28,4 @@ export default function DashboardPage() {
 
   return <DashboardShell/>;
 }
+export const dynamic = 'force-dynamic'
