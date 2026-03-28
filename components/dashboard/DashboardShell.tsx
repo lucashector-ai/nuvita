@@ -32,6 +32,7 @@ import SectionRotina       from './sections/SectionRotina';
 import SectionEstoque      from './sections/SectionEstoque';
 import SectionExportacao   from './sections/SectionExportacao';
 import MobileNav           from './MobileNav';
+import BoasVindasModal     from './modals/BoasVindasModal';
 import SectionPlanos       from './sections/SectionPlanos';
 import SectionConta        from './sections/SectionConta';
 import PlanLock          from '@/components/ui/PlanLock';
@@ -79,6 +80,9 @@ export default function DashboardShell() {
           }
         } catch { router.replace('/diagnostico'); }
       }
+      // Mostra modal de boas-vindas na primeira vez
+      const boasVindasVisto = sessionStorage.getItem('nv_boas_vindas');
+      if (!boasVindasVisto) setShowBoasVindas(true);
       setReady(true);
     };
     init();
@@ -158,6 +162,20 @@ export default function DashboardShell() {
           {section==='conta'         && <SectionConta planoAtual={plan} userId={userId} answers={answers} onNavigate={nav}/>}
         </div>
       </div>
+      {showBoasVindas && (
+        <BoasVindasModal
+          nome={nome}
+          onClose={(temPeptideo) => {
+            sessionStorage.setItem('nv_boas_vindas', '1');
+            setShowBoasVindas(false);
+            if (temPeptideo) setTimeout(() => {
+              const el = document.querySelector('.start-cta button');
+              if (el) (el as HTMLButtonElement).click();
+            }, 300);
+          }}
+        />
+      )}
+
       {/* Mobile bottom nav */}
       <div className="mobile-nav-wrapper">
         <MobileNav active={section} onNavigate={nav} plan={plan}/>
