@@ -19,7 +19,7 @@ export default function BoasVindasModal({ nome, onClose }: Props) {
 
   return (
     <div className="overlay" onClick={e => e.target === e.currentTarget && onClose(false)}>
-      <div style={{ background:'var(--bg)', borderRadius:20, padding:'2rem', maxWidth:520, width:'calc(100% - 2rem)', maxHeight:'90vh', overflowY:'auto' }}>
+      <div style={{ background:'var(--bg)', borderRadius:20, padding:'1.5rem', maxWidth:520, width:'calc(100% - 1.5rem)', maxHeight:'85vh', overflowY:'auto', WebkitOverflowScrolling:'touch' }}>
 
         {step === 'welcome' && (
           <>
@@ -39,7 +39,7 @@ export default function BoasVindasModal({ nome, onClose }: Props) {
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 <button onClick={() => onClose(true)}
-                  style={{ padding:'14px 20px', borderRadius:12, border:'2px solid var(--green)', background:'var(--gp)', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'var(--gm)', display:'flex', alignItems:'center', gap:10 }}>
+                  style={{ padding:'12px 16px', borderRadius:12, border:'2px solid var(--green)', background:'var(--gp)', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'var(--gm)', display:'flex', alignItems:'center', gap:10 }}>
                   <span style={{ fontSize:'1.3rem' }}>✅</span>
                   <div style={{ textAlign:'left' }}>
                     <div>Sim, já tenho os peptídeos</div>
@@ -47,7 +47,7 @@ export default function BoasVindasModal({ nome, onClose }: Props) {
                   </div>
                 </button>
                 <button onClick={() => setStep('nao_tem')}
-                  style={{ padding:'14px 20px', borderRadius:12, border:'1.5px solid var(--border)', background:'var(--bg)', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'var(--tx)', display:'flex', alignItems:'center', gap:10 }}>
+                  style={{ padding:'12px 16px', borderRadius:12, border:'1.5px solid var(--border)', background:'var(--bg)', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'var(--tx)', display:'flex', alignItems:'center', gap:10 }}>
                   <span style={{ fontSize:'1.3rem' }}>⏳</span>
                   <div style={{ textAlign:'left' }}>
                     <div>Ainda não tenho</div>

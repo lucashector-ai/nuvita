@@ -314,7 +314,14 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 .bdot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; animation: pu 2s ease-in-out infinite; }
 
 /* Tasks */
-.t-list { display: flex; flex-direction: column; gap: 7px; }
+.t-list { display: flex; flex-direction: column; gap: 0; }
+.t-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:0.5px solid var(--border); transition:background .15s ease; }
+.t-item:last-child { border-bottom:none; }
+.t-item.done .t-name { text-decoration:line-through; opacity:.5; }
+.t-cb { width:20px; height:20px; border-radius:6px; border:1.5px solid var(--border); flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s ease, border-color .15s ease; margin-top:1px; }
+.t-cb.checked { background:var(--green); border-color:var(--green); }
+.t-name { font-size:13px; font-weight:500; color:var(--tx); }
+.t-sub { font-size:11px; color:var(--ts); margin-top:2px; }
 .t-task { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg2); border-radius: 9px; cursor: pointer; transition: all .13s; }
 .t-task:hover { background: var(--bg3); }
 .t-task.t-locked { opacity: .55; }
@@ -489,34 +496,11 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 /* ── Animação spin para loading ── */
 @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
-/* ── Card base com cor ── */
-.dc {
-  background: var(--bg) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 14px !important;
-  padding: 1.25rem !important;
-  margin-bottom: 0 !important;
-}
-.dc-h {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  margin-bottom: 1rem !important;
-}
-.dc-t {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: .07em !important;
-  color: var(--ts) !important;
-}
+
 
 /* ── Layout 1216px universal para todas as seções ── */
 
-/* ── Cards com cor ── */
-.dc { background: var(--bg) !important; border: 1px solid var(--border) !important; border-radius: 14px !important; padding: 1.25rem !important; }
-.dc-h { display: flex !important; align-items: center !important; justify-content: space-between !important; margin-bottom: 1rem !important; }
-.dc-t { font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .07em !important; color: var(--ts) !important; }
+
 
 /* ── IA estilo Claude ── */
 .ia-page-wrap { max-width: 760px; margin: 0 auto; height: calc(100vh - 130px); display: flex; flex-direction: column; }
@@ -557,10 +541,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 .d-left > * + * { margin-top: 1rem; }
 
 /* ── Stats card — separação interna ── */
-.d-mets { row-gap: 1.25rem !important; }
-.d-mets > div { padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
-.d-mets > div:nth-child(3),
-.d-mets > div:nth-child(4) { padding-bottom: 0; border-bottom: none; }
+
 
 /* ── SectionInicio — espaçamento e fundos ── */
 .db-l { display: flex; flex-direction: column; gap: 1rem; }
@@ -598,7 +579,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 }
 
 /* ── Espaçamento entre todos os dc cards ── */
-.dc { margin-bottom: 1rem !important; }
+
 .dc:last-child { margin-bottom: 0 !important; }
 
 /* ── Sidebar grupos ── */
@@ -735,13 +716,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Cards animam ao entrar com delay escalonado */
-.dc { animation: fadeSlideUp .3s ease both; }
-.dc:nth-child(1) { animation-delay: .04s; }
-.dc:nth-child(2) { animation-delay: .09s; }
-.dc:nth-child(3) { animation-delay: .14s; }
-.dc:nth-child(4) { animation-delay: .19s; }
-.dc:nth-child(5) { animation-delay: .24s; }
+
+
 
 /* Banner anima */
 .d-banner { animation: fadeSlideUp .25s ease both; position: relative; overflow: hidden; }
@@ -774,12 +750,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
   animation-delay: .3s;
 }
 
-/* Barras de progresso animadas */
-[style*="background:var(--green)"][style*="height:'100%'"],
-[style*="background:'var(--green)'"][style*="height:'100%'"] {
-  animation: barFill .9s cubic-bezier(.4,0,.2,1) both;
-  animation-delay: .5s;
-}
+/* barras — sem animação CSS para evitar conflito com inline styles */
 
 /* Check-in — emojis com hover */
 .d-mets button {
@@ -789,8 +760,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
   transform: scale(1.18) translateY(-2px) !important;
 }
 
-/* Overflow fix no d-mets */
-.d-mets { overflow: hidden; }
+
 
 /* Botão primário — shimmer sutil */
 .btn-d {
@@ -811,9 +781,13 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 }
 
 /* Task items — transição suave */
-.t-item { transition: background .15s ease; }
-.t-cb { transition: background .15s ease, transform .1s ease; }
-.t-cb.checked { transform: scale(1.05); }
+.t-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:0.5px solid var(--border); transition:background .15s ease; }
+.t-item:last-child { border-bottom:none; }
+.t-item.done .t-name { text-decoration:line-through; opacity:.5; }
+.t-cb { width:20px; height:20px; border-radius:6px; border:1.5px solid var(--border); flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s ease, border-color .15s ease; margin-top:1px; }
+.t-cb.checked { background:var(--green); border-color:var(--green); }
+.t-name { font-size:13px; font-weight:500; color:var(--tx); }
+.t-sub { font-size:11px; color:var(--ts); margin-top:2px; }
 
 /* PlanLock overlay — fade in */
 [style*="position:'absolute'"][style*="inset:0"] {
@@ -827,3 +801,4 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 @media (prefers-reduced-motion: reduce) {
   .dc, .d-banner, .pdot, .btn-d::before { animation: none !important; }
 }
+
