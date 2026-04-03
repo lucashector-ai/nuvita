@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useQuiz } from '@/lib/useQuiz';
 import { loadQuizPartial, clearSession } from '@/lib/session';
-import { getSession } from '@/lib/auth';
+import { getSession, salvarDiagnostico } from '@/lib/auth';
 
 import QuizNav        from './QuizNav';
 import ScreenWelcome  from './screens/ScreenWelcome';
@@ -33,17 +33,18 @@ export default function QuizShell() {
   const router = useRouter();
   const [sessionChecked, setSessionChecked] = useState(false);
   const [initialAnswers, setInitialAnswers] = useState({});
+  const [hasSession,    setHasSession]    = useState(false);
 
   useEffect(() => {
     getSession().then(session => {
       if (!session) {
-        // Sem sessão ativa — limpa tudo para diagnóstico limpo
         clearSession();
         setInitialAnswers({});
+        setHasSession(false);
       } else {
-        // Com sessão — pode ter dados parciais do quiz em andamento
         const saved = loadQuizPartial();
         setInitialAnswers(saved ?? {});
+        setHasSession(true);
       }
       setSessionChecked(true);
     });
@@ -60,8 +61,18 @@ export default function QuizShell() {
     router.push('/dashboard');
   };
 
-  // Callback para iniciar revisão
-  const handleGoToRevisao = () => {
+  // Callback para finalizar diagnóstico
+  // Se já tem conta: salva e vai direto ao dashboard (sem pricing)
+  // Se não tem conta: vai para revisão/pricing
+  const handleGoToRevisao = async () => {
+    if (hasSession) {
+      const session = await getSession();
+      if (session) {
+        await salvarDiagnostico(session.user.id, answers);
+        router.push('/dashboard');
+        return;
+      }
+    }
     router.push('/revisao');
   };
 
