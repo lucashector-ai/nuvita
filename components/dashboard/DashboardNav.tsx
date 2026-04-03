@@ -58,7 +58,7 @@ function gerarNotificacoes(userId: string, answers: any): Promise<Notif[]> {
   });
 }
 
-export default function DashboardNav({ section = 'inicio', section = 'inicio', section, planLabel, section, nome, planId, onMenuOpen, onNavigate, onLogout, onOpenPerfil, onOpenConfig, userId, answers, onOpenPlanos }) {
+export default function DashboardNav({ section = 'inicio', planLabel, nome, planId, onMenuOpen, onNavigate, onLogout, onOpenPerfil, onOpenConfig, userId, answers, onOpenPlanos }) {
   const isHome = section === 'inicio';
   const [notifs,       setNotifs]       = useState<Notif[]>([]);
   const [showNotifs,   setShowNotifs]   = useState(false);
