@@ -39,6 +39,27 @@ export default function SectionEstoque({ userId }: { userId: string | null }) {
     carregarFrascos();
   }, [userId]);
 
+  const DOSES_AUTO_CALC: Record<string, number> = {
+    'tirzepatide': 0.714, 'semaglutide': 0.071, 'retatrutide': 0.571,
+    'aod': 0.214, 'aod9604': 0.214, 'ipamorelin': 0.25,
+    'cjc': 0.1, 'bpc': 0.25, 'bpc157': 0.25, 'tb500': 0.714,
+    'tb-500': 0.714, 'mk677': 0.015, 'ghk': 1.0, 'semax': 0.214,
+    'epitalon': 5.0, 'nad': 0.25, 'pt141': 2.0, 'pt-141': 2.0,
+    'tesamorelin': 2.0, 'kpv': 0.3, 'motsc': 0.005,
+  };
+
+  const calcDoseDia = (nome: string, doseDiaMg?: number): number | null => {
+    if (doseDiaMg) return doseDiaMg;
+    const k = nome.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const match = Object.entries(DOSES_AUTO_CALC).find(([key]) =>
+      k.includes(key.replace(/-/g, '')) || key.replace(/-/g, '').startsWith(k.substring(0, 5))
+    );
+    return match ? match[1] : null;
+  };
+
+  const calcStatus = (dias: number): 'ok'|'atencao'|'critico' =>
+    dias < 15 ? 'critico' : dias < 30 ? 'atencao' : 'ok';
+
   const carregarFrascos = async () => {
     setLoading(true);
     const { data } = await supabase
@@ -46,7 +67,22 @@ export default function SectionEstoque({ userId }: { userId: string | null }) {
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    setFrascos(data || []);
+
+    const frascos = data || [];
+
+    // Calcula duração automaticamente ao carregar
+    const comAnalise = frascos.map(f => {
+      const doseDia = calcDoseDia(f.nome, f.dose_dia_mg);
+      if (!doseDia) return f;
+      const inicio = new Date(f.inicio_uso || f.data_compra);
+      const diasUsados = Math.max(0, Math.floor((Date.now() - inicio.getTime()) / 86400000));
+      const restante = Math.max(0, f.quantidade_mg - (doseDia * diasUsados));
+      const dias = Math.floor(restante / doseDia);
+      return { ...f, analise: { diasRestantes: dias, doseDia, status: calcStatus(dias) } };
+    });
+
+    setFrascos(comAnalise);
+    setAnalisado(comAnalise.some(f => !!f.analise));
     setLoading(false);
   };
 
@@ -74,19 +110,6 @@ export default function SectionEstoque({ userId }: { userId: string | null }) {
     setFrascos(p => p.filter(f=>f.id!==id));
   };
 
-  // Cálculo automático local por nome do peptídeo
-  const DOSES_AUTO: Record<string, number> = {
-    'semaglutide': 0.071, 'tirzepatide': 0.714, 'aod': 0.214,
-    'ipamorelin': 0.25, 'cjc': 0.1, 'bpc': 0.25, 'tb500': 0.714,
-    'tb-500': 0.714, 'mk677': 0.015, 'mk-677': 0.015,
-    'ghk': 1.0, 'semax': 0.214, 'epitalon': 5.0,
-  };
-  const getDoseDia = (nome: string) => {
-    const k = nome.toLowerCase().replace(/[^a-z0-9]/g,'');
-    const match = Object.entries(DOSES_AUTO).find(([key]) => k.includes(key.replace(/-/g,'')) || key.replace(/-/g,'').includes(k.substring(0,5)));
-    return match ? match[1] : null;
-  };
-  const calcStatus = (dias: number): 'ok'|'atencao'|'critico' => dias < 15 ? 'critico' : dias < 30 ? 'atencao' : 'ok';
 
   const analisarComIA = async () => {
     if (frascos.length === 0) return;

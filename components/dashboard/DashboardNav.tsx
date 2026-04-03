@@ -70,8 +70,12 @@ export default function DashboardNav({ planLabel, section, nome, planId, onMenuO
 
   useEffect(() => {
     if (!userId) return;
-    gerarNotificacoes(userId, answers).then(setNotifs);
-  }, [userId]);
+    // Sempre recarrega notificações frescas do banco
+    setNotifs([]);
+    gerarNotificacoes(userId, answers).then(notifs => {
+      setNotifs(notifs);
+    });
+  }, [userId, section]); // Recarrega ao mudar de seção também
 
   const marcarLidas = () => setNotifs(p => p.map(n => ({ ...n, read:true })));
 
