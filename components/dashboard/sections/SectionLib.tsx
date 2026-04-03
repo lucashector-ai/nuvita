@@ -185,7 +185,7 @@ const PEPTIDEOS = [
   {
     id:'ghk', nome:'GHK-Cu', emoji:'✨', categoria:'Peptídeo Anti-aging / Pele', tagline:'Regeneração cutânea e estimulação de colágeno',
     nivel:'iniciante', cor:'#BA7517', bg:'#FAEEDA',
-    classificacao:'Peptídeo de Cobre', evidencia:'Estudos Clínicos / In Vitro', meia-vida:'~30 min (SC)', reconstituicao:'Fácil', nomes_alt:['Copper Peptide GHK','GHK Copper'],
+    classificacao:'Peptídeo de Cobre', evidencia:'Estudos Clínicos / In Vitro', meia_vida:'~30 min (SC)', reconstituicao:'Fácil', nomes_alt:['Copper Peptide GHK','GHK Copper'],
     mecanismo:'GHK-Cu estimula síntese de colágeno e elastina, ativa genes de reparação celular (mais de 4.000 genes regulados), tem potente ação antioxidante e promove angiogênese local.',
     beneficios:['Regeneração e firmeza da pele','Redução de rugas e melhora da textura','Cicatrização de feridas acelerada','Estimulação do crescimento capilar','Ação antioxidante sistêmica'],
     timeline:[
