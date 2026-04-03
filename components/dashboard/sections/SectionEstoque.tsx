@@ -39,25 +39,33 @@ export default function SectionEstoque({ userId }: { userId: string | null }) {
     carregarFrascos();
   }, [userId]);
 
-  const DOSES_AUTO_CALC: Record<string, number> = {
+  const DOSES_PADRAO: Record<string, number> = {
     'tirzepatide': 0.714, 'semaglutide': 0.071, 'retatrutide': 0.571,
-    'aod': 0.214, 'aod9604': 0.214, 'ipamorelin': 0.25,
-    'cjc': 0.1, 'bpc': 0.25, 'bpc157': 0.25, 'tb500': 0.714,
-    'tb-500': 0.714, 'mk677': 0.015, 'ghk': 1.0, 'semax': 0.214,
-    'epitalon': 5.0, 'nad': 0.25, 'pt141': 2.0, 'pt-141': 2.0,
-    'tesamorelin': 2.0, 'kpv': 0.3, 'motsc': 0.005,
+    'aod9604': 0.214, 'aod-9604': 0.214, 'aod': 0.214,
+    'ipamorelin': 0.25, 'cjc1295': 0.1, 'cjc-1295': 0.1, 'cjc': 0.1,
+    'bpc157': 0.25, 'bpc-157': 0.25, 'bpc': 0.25,
+    'tb500': 0.714, 'tb-500': 0.714,
+    'mk677': 0.015, 'mk-677': 0.015,
+    'ghkcu': 1.0, 'ghk-cu': 1.0, 'ghk': 1.0,
+    'semax': 0.214, 'epitalon': 5.0, 'nad': 0.25,
+    'pt141': 2.0, 'pt-141': 2.0,
+    'tesamorelin': 2.0, 'kpv': 0.3,
+    'motsc': 0.005, 'mots-c': 0.005,
+    'hghfragment': 0.214, 'hgh': 0.214,
+    'ss31': 0.0005, 'ss-31': 0.0005,
   };
 
-  const calcDoseDia = (nome: string, doseDiaMg?: number): number | null => {
-    if (doseDiaMg) return doseDiaMg;
+  const getDoseDiaMg = (nome: string, salva?: number): number | null => {
+    if (salva && salva > 0) return salva;
     const k = nome.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const match = Object.entries(DOSES_AUTO_CALC).find(([key]) =>
-      k.includes(key.replace(/-/g, '')) || key.replace(/-/g, '').startsWith(k.substring(0, 5))
-    );
-    return match ? match[1] : null;
+    for (const [key, val] of Object.entries(DOSES_PADRAO)) {
+      const kk = key.replace(/[^a-z0-9]/g, '');
+      if (k === kk || k.includes(kk) || (kk.length >= 3 && k.startsWith(kk.substring(0, 3)))) return val;
+    }
+    return null;
   };
 
-  const calcStatus = (dias: number): 'ok'|'atencao'|'critico' =>
+  const getStatusEstoque = (dias: number): 'ok'|'atencao'|'critico' =>
     dias < 15 ? 'critico' : dias < 30 ? 'atencao' : 'ok';
 
   const carregarFrascos = async () => {
@@ -68,21 +76,27 @@ export default function SectionEstoque({ userId }: { userId: string | null }) {
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    const frascos = data || [];
-
-    // Calcula duração automaticamente ao carregar
-    const comAnalise = frascos.map(f => {
-      const doseDia = calcDoseDia(f.nome, f.dose_dia_mg);
+    const lista = (data || []).map((f: any) => {
+      const doseDia = getDoseDiaMg(f.nome, f.dose_dia_mg);
       if (!doseDia) return f;
       const inicio = new Date(f.inicio_uso || f.data_compra);
       const diasUsados = Math.max(0, Math.floor((Date.now() - inicio.getTime()) / 86400000));
       const restante = Math.max(0, f.quantidade_mg - (doseDia * diasUsados));
       const dias = Math.floor(restante / doseDia);
-      return { ...f, analise: { diasRestantes: dias, doseDia, status: calcStatus(dias) } };
+      return { ...f, analise: { diasRestantes: dias, doseDia, status: getStatusEstoque(dias) } };
     });
 
-    setFrascos(comAnalise);
-    setAnalisado(comAnalise.some(f => !!f.analise));
+    // Persiste dose_dia_mg nos que ainda não têm
+    for (const f of lista) {
+      if (f.analise && f.id && !f.dose_dia_mg) {
+        supabase.from('estoque_items')
+          .update({ dose_dia_mg: f.analise.doseDia, inicio_uso: f.inicio_uso || f.data_compra })
+          .eq('id', f.id).then(() => {});
+      }
+    }
+
+    setFrascos(lista);
+    setAnalisado(lista.some((f: any) => !!f.analise));
     setLoading(false);
   };
 
@@ -212,7 +226,7 @@ export default function SectionEstoque({ userId }: { userId: string | null }) {
         <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden' }}>
           <div style={{ padding:'.875rem 1.25rem', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)' }}>Frascos cadastrados</div>
-            {!analisado && <div style={{ fontSize:11, color:'var(--am)' }}>⚠️ Clique "Analisar com IA" para calcular duração</div>}
+            {!analisado && <div style={{ fontSize:11, color:'var(--am)' }}>✓ Duração calculada automaticamente pelo protocolo</div>}
           </div>
           {frascos.map((f,i) => {
             const st = f.analise ? STATUS_INFO[f.analise.status] : null;

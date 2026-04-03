@@ -143,7 +143,7 @@ export default function DashboardShell() {
       {sidebarOpen && <div className="sidebar-overlay show" onClick={()=>setSidebarOpen(false)}/>}
 
       <div style={{ flex:1, minWidth:0, minHeight:'100vh', marginLeft:ml, transition:'margin-left .22s cubic-bezier(.4,0,.2,1)' }}>
-        <DashboardNav
+        <DashboardNav section={section}
           planLabel={PLAN_LABEL[plan]??'Conta gratuita'}
           section={section} nome={nome} planId={plan}
           onMenuOpen={()=>setSidebarOpen(true)}

@@ -1,5 +1,12 @@
 // @ts-nocheck
 'use client';
+// CSS animation injected at runtime
+if (typeof document !== 'undefined' && !document.getElementById('nv-fade')) {
+  const s = document.createElement('style');
+  s.id = 'nv-fade';
+  s.textContent = '@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }';
+  document.head.appendChild(s);
+}
 import PeptideTooltip from '@/components/ui/PeptideTooltip';
 
 import { useState } from 'react';
@@ -30,7 +37,29 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
   const [expanded, setExpanded] = useState(new Set<string>());
   const nome = answers.nome?.toString() ?? '';
 
-  const toggle = (n: string) => setExpanded(p => { const s = new Set(p); s.has(n)?s.delete(n):s.add(n); return s; });
+  // Toggle: fecha todos os outros ao abrir um novo card
+  const toggle = (key: string) => {
+    setExpanded(p => {
+      const s = new Set(p);
+      if (s.has(key)) {
+        s.delete(key);
+      } else {
+        s.clear(); // fecha todos
+        s.add(key);
+      }
+      return s;
+    });
+  };
+
+  // Cria um índice global único para cada peptídeo
+  const allItems: Array<{item: any, turno: string, globalIdx: number}> = [];
+  let gIdx = 0;
+  for (const turno of ['Manhã', 'Tarde', 'Noite', 'Qualquer horário']) {
+    const peps = items.filter(item => classificarTurno(item.timing) === turno);
+    for (const item of peps) {
+      allItems.push({ item, turno, globalIdx: gIdx++ });
+    }
+  }
 
   const porTurno = TURNO_ORDER.reduce((acc, turno) => {
     const peps = items.filter(item => classificarTurno(item.timing) === turno);
@@ -102,9 +131,9 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
                 {peps.map(item => (
                   <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip>
                     style={{ background:'var(--bg)', border:`1px solid var(--border)`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer' }}
-                    onClick={() => toggle(item.n)}>
+                    onClick={() => toggle(`${turno}_${item.n}`)}>
                     <div style={{ padding:'1rem' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:expanded.has(item.n)?'.875rem':0 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:expanded.has(`${turno}_${item.n}`)?'.875rem':0 }}>
                         <div style={{ width:40, height:40, background:TURNO_BG[turno], borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 }}>
                           {item.e}
                         </div>
@@ -118,7 +147,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
                         </div>
                       </div>
 
-                      {expanded.has(item.n) && (
+                      {(expanded.has(`${turno}_${item.n}`) || expanded.has(`lista_${item.n}`)) && (
                         <div style={{ borderTop:'1px solid var(--border)', paddingTop:'.875rem' }}>
                           {item.why && (
                             <div style={{ background:TURNO_BG[turno], borderRadius:8, padding:'8px 10px', marginBottom:'.75rem', fontSize:12, color:TURNO_COLOR[turno], lineHeight:1.55 }}>
@@ -154,7 +183,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
           {items.map((item, i) => (
             <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ borderBottom:i<items.length-1?'1px solid var(--border)':'none' }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, padding:'1rem 1.25rem', cursor:'pointer' }}
-                onClick={() => toggle(item.n)}>
+                onClick={() => toggle(`lista_${item.n}`)}>
                 <div style={{ width:40, height:40, background:'var(--gp)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 }}>
                   {item.e}
                 </div>
@@ -166,11 +195,11 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
                   <div style={{ fontSize:13, fontWeight:600, color:'var(--tx)' }}>{item.doseStr(peso)}</div>
                   <div style={{ fontSize:10, color:'var(--ts)', marginTop:1 }}>{item.route}</div>
                 </div>
-                <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style={{ color:'var(--ts)', transition:'transform .2s', transform:expanded.has(item.n)?'rotate(180deg)':'none', flexShrink:0 }}>
+                <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style={{ color:'var(--ts)', transition:'transform .2s', transform:expanded.has(`lista_${item.n}`)?'rotate(180deg)':'none', flexShrink:0 }}>
                   <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              {expanded.has(item.n) && (
+              {expanded.has(`lista_${item.n}`) && (
                 <div style={{ padding:'0 1.25rem 1.25rem', borderTop:'1px solid var(--border)' }}>
                   {item.why && (
                     <div style={{ background:'var(--gp)', borderRadius:10, padding:'.875rem 1rem', margin:'1rem 0 .875rem' }}>
