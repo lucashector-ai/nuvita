@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect } from 'react';
 import type { QuizAnswers } from '@/types';
 import { buildProtocol } from '@/lib/peptides';
 import { saveSession } from '@/lib/session';
+import { getSession, salvarDiagnostico } from '@/lib/auth';
 import { gerarProtocoloComIA } from '@/lib/gerarProtocolo';
 import type { ProtocoloIA } from '@/lib/gerarProtocolo';
 import EmailModal from '@/components/modals/EmailModal';
@@ -40,6 +41,7 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
   const [emailOpen,   setEmailOpen]   = useState(false);
   const [pendingPlan, setPendingPlan] = useState<'free'|'essencial'|'pro'>('free');
   const [protIA,      setProtIA]      = useState<ProtocoloIA|null>(null);
+  const [hasSession,  setHasSession]  = useState(false);
 
   const peso = Number(answers.peso ?? 75);
   const objs = answers.q3 ?? ['gordura'];
@@ -47,6 +49,9 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
   const { items } = useMemo(() => buildProtocol(objs, peso, 1, false), [objs, peso]);
 
   useEffect(() => {
+    // Verifica sessão ativa ao carregar
+    getSession().then(session => { if (session) setHasSession(true); });
+
     let i = 0;
     const iv = setInterval(() => { i++; if (i < PHASES.length) setPhaseIdx(i); else clearInterval(iv); }, 900);
 
@@ -166,14 +171,24 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
               {(peptideos?.length||0) - 1} peptídeos bloqueados
             </div>
             <p style={{ fontSize:13, opacity:.8, lineHeight:1.65, marginBottom:'1.5rem' }}>
-              Crie sua conta para ver o protocolo completo — doses exatas, timing, justificativa da IA e acesso ao dashboard.
+              {hasSession ? 'Seu protocolo foi atualizado. Clique para acessar o dashboard.' : 'Crie sua conta para ver o protocolo completo — doses exatas, timing, justificativa da IA e acesso ao dashboard.'}
             </p>
             <button
-              onClick={() => setPlanosOpen(true)}
+              onClick={async () => {
+                if (hasSession) {
+                  const session = await getSession();
+                  if (session) {
+                    await salvarDiagnostico(session.user.id, { ...answers, _protocoloIA: protIA ? JSON.stringify(protIA) : answers._protocoloIA });
+                    onLogin(); // vai para o dashboard
+                    return;
+                  }
+                }
+                setPlanosOpen(true);
+              }}
               style={{ width:'100%', padding:'14px', background:'var(--green)', border:'none', borderRadius:12, color:'white', fontFamily:'inherit', fontSize:15, fontWeight:500, cursor:'pointer', transition:'opacity .15s', marginBottom:8 }}
               onMouseEnter={e=>e.currentTarget.style.opacity='.9'}
               onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-              🚀 Desbloquear protocolo
+              {hasSession ? '→ Acessar meu protocolo' : '🚀 Desbloquear protocolo'}
             </button>
             <div style={{ fontSize:11, opacity:.5 }}>Gratuito, Essencial R$39 ou Pro R$79/mês</div>
           </div>
