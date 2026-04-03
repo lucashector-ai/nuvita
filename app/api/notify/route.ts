@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     if (!t) return NextResponse.json({ error: 'template not found' }, { status: 400 });
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { 'Authorization': \`Bearer \${process.env.RESEND_API_KEY}\`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: 'Nuvita <noreply@nuvita.app>', to: [email], subject: t.subject, html: t.html }),
     });
     return NextResponse.json(await res.json());
