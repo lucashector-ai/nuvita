@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { signOut, updateEmail } from '@/lib/auth';
 import type { QuizAnswers } from '@/types';
@@ -13,6 +13,13 @@ export default function SectionConfig({ answers, plan, userId }: Props) {
   const [notifEmail, setNotifEmail] = useState(false);
   const [notifPush,  setNotifPush]  = useState(true);
   const [saved,      setSaved]      = useState(false);
+  const [savingNotif, setSavingNotif] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase.from('notificacoes_config').select('email_ativo,push_ativo').eq('user_id', userId).maybeSingle()
+      .then(({ data }) => { if (data) { setNotifEmail(data.email_ativo); setNotifPush(data.push_ativo); } });
+  }, [userId]);
   const [showEmailFlow, setShowEmailFlow] = useState(false);
   const [emailStep, setEmailStep]   = useState<1|2>(1);
   const [novoEmail, setNovoEmail]   = useState('');
@@ -23,7 +30,18 @@ export default function SectionConfig({ answers, plan, userId }: Props) {
   const [deletando, setDeletando]   = useState(false);
   const emailAtual = answers.email || '—';
 
-  const salvar = () => { setSaved(true); setTimeout(()=>setSaved(false),2000); };
+  const salvar = async () => {
+    if (userId) {
+      setSavingNotif(true);
+      await supabase.from('notificacoes_config').upsert(
+        { user_id: userId, email_ativo: notifEmail, push_ativo: notifPush, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+      );
+      setSavingNotif(false);
+    }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   const enviarCodigo = async () => {
     if (!novoEmail.includes('@')) return;
@@ -69,7 +87,7 @@ export default function SectionConfig({ answers, plan, userId }: Props) {
           <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Configurações</h2>
           <p style={{ fontSize:13, color:'var(--tm)' }}>Personalize sua experiência</p>
         </div>
-        <button className="btn btn-d" onClick={salvar}>{saved?'✓ Salvo!':'Salvar'}</button>
+        <button className="btn btn-d" onClick={salvar}>{saved?'✓ Salvo!':savingNotif?'Salvando...':'Salvar'}</button>
       </div>
 
       {/* Conta */}

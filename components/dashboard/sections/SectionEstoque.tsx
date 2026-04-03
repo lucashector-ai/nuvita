@@ -74,6 +74,20 @@ export default function SectionEstoque({ userId }: { userId: string | null }) {
     setFrascos(p => p.filter(f=>f.id!==id));
   };
 
+  // Cálculo automático local por nome do peptídeo
+  const DOSES_AUTO: Record<string, number> = {
+    'semaglutide': 0.071, 'tirzepatide': 0.714, 'aod': 0.214,
+    'ipamorelin': 0.25, 'cjc': 0.1, 'bpc': 0.25, 'tb500': 0.714,
+    'tb-500': 0.714, 'mk677': 0.015, 'mk-677': 0.015,
+    'ghk': 1.0, 'semax': 0.214, 'epitalon': 5.0,
+  };
+  const getDoseDia = (nome: string) => {
+    const k = nome.toLowerCase().replace(/[^a-z0-9]/g,'');
+    const match = Object.entries(DOSES_AUTO).find(([key]) => k.includes(key.replace(/-/g,'')) || key.replace(/-/g,'').includes(k.substring(0,5)));
+    return match ? match[1] : null;
+  };
+  const calcStatus = (dias: number): 'ok'|'atencao'|'critico' => dias < 15 ? 'critico' : dias < 30 ? 'atencao' : 'ok';
+
   const analisarComIA = async () => {
     if (frascos.length === 0) return;
     setLoadingIA(true);
@@ -114,7 +128,7 @@ export default function SectionEstoque({ userId }: { userId: string | null }) {
         <div style={{ display:'flex', gap:8 }}>
           {frascos.length > 0 && (
             <button className="btn btn-o" onClick={analisarComIA} disabled={loadingIA} style={{ fontSize:12 }}>
-              {loadingIA ? '⏳ Analisando...' : '🤖 Analisar com IA'}
+              {loadingIA ? '⏳ Analisando...' : '🤖 Calcular duração'}
             </button>
           )}
           <button className="btn btn-d" onClick={() => setShowForm(v=>!v)} style={{ fontSize:12 }}>+ Adicionar frasco</button>

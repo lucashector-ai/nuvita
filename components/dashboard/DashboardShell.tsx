@@ -37,6 +37,7 @@ import MobileNav           from './MobileNav';
 import BoasVindasModal     from './modals/BoasVindasModal';
 import SectionPlanos       from './sections/SectionPlanos';
 import SectionConta        from './sections/SectionConta';
+import { useNotificacoes } from '@/lib/useNotificacoes';
 import PlanLock          from '@/components/ui/PlanLock';
 
 export type DashSection =
@@ -60,6 +61,19 @@ export default function DashboardShell() {
   const [protoAtivo,      setProtoAtivo]      = useState(false);
   const [planAtivo,       setPlanAtivo]       = useState<string>('free');
   const [showBoasVindas,  setShowBoasVindas]  = useState(false);
+
+  // Preferências de notificação do banco
+  const [notifEmailAtivo, setNotifEmailAtivo] = useState(true);
+  const [notifPushAtivo,  setNotifPushAtivo]  = useState(true);
+
+  // Hook de notificações automáticas
+  useNotificacoes({
+    userId,
+    email: answers.email || '',
+    nome: answers.nome?.toString().split(' ')[0] || '',
+    emailAtivo: notifEmailAtivo,
+    pushAtivo: notifPushAtivo,
+  });
 
   useEffect(() => {
     const init = async () => {
