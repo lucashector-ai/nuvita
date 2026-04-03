@@ -12,6 +12,7 @@ import SectionInicio       from './sections/SectionInicio';
 import SectionProtocolo    from './sections/SectionProtocolo';
 import SectionIA           from './sections/SectionIA';
 import SectionCalc         from './sections/SectionCalc';
+import SectionComparativo from '@/components/dashboard/sections/SectionComparativo';
 import SectionMapa from '@/components/dashboard/sections/SectionMapa';
 import SectionLib          from './sections/SectionLib';
 import SectionConfig       from './sections/SectionConfig';
@@ -141,6 +142,7 @@ export default function DashboardShell() {
           {section==='protocolo'    && <SectionProtocolo answers={answers} items={items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan}/>}
           {section==='ia'           && <SectionIA answers={answers} objs={objs}/>}
           {section==='calc'         && <SectionCalc peso={peso}/>}
+          {section==='comparativo'  && <SectionComparativo onNavigate={nav}/>}
           {section==='mapa'         && <SectionMapa/>}
           {section==='lib'          && <SectionLib/>}
           {section==='config'       && <SectionConfig answers={answers} plan={plan} userId={userId}/>}
