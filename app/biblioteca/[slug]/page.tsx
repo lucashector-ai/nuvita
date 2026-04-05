@@ -1,9 +1,8 @@
-import { Metadata } from 'next';
 import PeptideoDetalhe from '@/components/biblioteca/PeptideoDetalhe';
 
 interface Props { params: { slug: string } }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Props) {
   return { title: `${params.slug} — Biblioteca Nuvita` };
 }
 
