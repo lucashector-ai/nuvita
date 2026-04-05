@@ -70,7 +70,7 @@ const PLANS = [
   },
 ];
 
-export default function ScreenPricing({ setAnswer, onLogin, onBack }: Props) {
+export default function ScreenPricing({ setAnswer, onLogin, onRevisao, onBack }: Props) {
   const [emailOpen, setEmailOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'free' | 'essencial' | 'pro'>('essencial');
 
@@ -82,7 +82,7 @@ export default function ScreenPricing({ setAnswer, onLogin, onBack }: Props) {
   const handleEmailSubmit = (email: string) => {
     setAnswer({ email, plano: selectedPlan, _activePlan: selectedPlan });
     setEmailOpen(false);
-    setTimeout(() => onLogin(), 400);
+    setTimeout(() => onRevisao ? onRevisao() : onLogin(), 400);
   };
 
   return (

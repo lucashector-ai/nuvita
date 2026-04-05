@@ -113,7 +113,7 @@ export default function QuizShell() {
             {cur === 7    && <ScreenEstresse  answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === 8    && <ScreenDuracao   answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === 9   && <ScreenSaude     answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-            {cur === 10   && <ScreenBiometria answers={answers} setAnswer={setAnswer} onNext={handleGoToRevisao} onPrev={prev} />}
+            {cur === 10   && <ScreenBiometria answers={answers} setAnswer={setAnswer} onNext={() => goTo("result")} onPrev={prev} />}
           </div>
         </div>
       )}
@@ -138,6 +138,7 @@ export default function QuizShell() {
             answers={answers}
             setAnswer={setAnswer}
             onLogin={handleGoToDashboard}
+            onRevisao={handleGoToRevisao}
             onBack={() => goTo('result')}
           />
         </div>

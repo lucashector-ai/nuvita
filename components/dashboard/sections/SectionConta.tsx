@@ -95,15 +95,16 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
               <button disabled={confirma!=='EXCLUIR'}
                 onClick={async()=>{
                   if(confirma==='EXCLUIR'){
-                    // Limpa todos os dados do usuário
+                    // Deleta dados e depois auth user via API
                   await Promise.all([
-                    supabase.from('usuarios').update({ 
-                      diagnostico: null, nome: null, avatar_url: null 
-                    }).eq('id', userId),
                     supabase.from('rotina_personalizada').delete().eq('user_id', userId),
                     supabase.from('tracker_entries').delete().eq('user_id', userId),
                     supabase.from('adesao_diaria').delete().eq('user_id', userId),
+                    supabase.from('estoque_usuario').delete().eq('user_id', userId),
+                    supabase.from('usuarios').delete().eq('id', userId),
                   ]);
+                  // Deleta o auth user via endpoint
+                  await fetch('/api/delete-account', { method:'DELETE' });
                   await supabase.auth.signOut();
                   window.location.href='/login';
                   }
