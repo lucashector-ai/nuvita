@@ -175,7 +175,7 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
                     }}>{dia}</div>
 
                     {/* Eventos — peptídeos do dia */}
-                    {!inf.isFut && inf.pDia.slice(0,2).map((p,idx)=>{
+                    {inf.pDia.slice(0,2).map((p,idx)=>{
                       const cor = CAT_COLOR[p.categoria]||'#6B7280';
                       const bg  = CAT_BG[p.categoria]||'#F3F4F6';
                       return (
@@ -190,7 +190,7 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
                         </div>
                       );
                     })}
-                    {!inf.isFut && inf.pDia.length>2 && (
+                    {inf.pDia.length>2 && (
                       <div style={{fontSize:9,color:'var(--ts)',paddingLeft:2}}>+{inf.pDia.length-2} mais</div>
                     )}
 
