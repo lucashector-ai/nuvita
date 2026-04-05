@@ -116,7 +116,9 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 {peps.map((item, i) => (
                   <div key={`${turno}_${item.n}_${i}`}
-                    style={{ background:'var(--bg)', border:`1px solid ${expanded.has(`${turno}_${item.n}`) ? TURNO_COLOR[turno] : 'var(--border)'}`, borderRadius:14, overflow:'hidden', borderLeft:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer', transition:'border-color .2s ease' }}
+                    style={{ background:'var(--bg)', border:`1px solid ${expanded.has(`${turno}_${item.n}`) ? TURNO_COLOR[turno] : 'var(--border)'}`, borderRadius:14, overflow:'hidden', borderLeft:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer', transition:'all .18s ease' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)'; e.currentTarget.style.transform = 'translateX(2px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg)'; e.currentTarget.style.transform = 'none'; }}
                     onClick={() => toggle(`${turno}_${item.n}`)}>
                     <div style={{ padding:'1rem' }}>
                       {/* Header do card — sempre visível */}
@@ -128,7 +130,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
                           <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:2 }}><PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip></div>
                           <div style={{ fontSize:12, color:'var(--ts)', lineHeight:1.5 }}>{item.m}</div>
                         </div>
-                        <div style={{ textAlign:'right', flexShrink:0 }}>
+                        <div style={{ textAlign:'right', flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
                           <div style={{ fontSize:13, fontWeight:600, color:'var(--tx)' }}>{item.doseStr(peso)}</div>
                           <div style={{ fontSize:10, color:'var(--ts)', marginTop:1 }}>{item.route}</div>
                         </div>
@@ -211,7 +213,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
 
       {/* MODO GUIA RÁPIDO */}
       {modo === 'guia' && (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:10 }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {items.map(item => (
             <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:'.875rem' }}>
