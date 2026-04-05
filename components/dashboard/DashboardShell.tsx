@@ -165,6 +165,10 @@ export default function DashboardShell() {
             setProtocoloIA(JSON.parse(perfil.diagnostico._protocoloIA));
           } catch(e) {}
         }
+      } else if (!sessionStorage.getItem('nv_quiz')) {
+        // Usuário novo sem diagnóstico e sem quiz em andamento → vai para o diagnóstico
+        router.replace('/cadastro');
+        return;
       } else {
         try {
           const raw = sessionStorage.getItem('nv_quiz');
