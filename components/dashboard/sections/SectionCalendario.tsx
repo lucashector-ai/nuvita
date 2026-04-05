@@ -256,68 +256,68 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
 
         {/* ── VIEW SEMANA ── */}
         {view==='semana' && (
-          <div style={{ border:'1px solid var(--border)',borderRadius:12,overflow:'hidden' }}>
-            {/* Cabeçalho */}
-            <div style={{ display:'grid',gridTemplateColumns:'52px repeat(7,1fr)',background:'var(--bg2)',borderBottom:'1px solid var(--border)' }}>
-              <div/>
-              {semana.map((d,i)=>{
-                const str = d.toISOString().split('T')[0];
-                const isH = str===hojeStr;
-                const isSel = d.getDate()===diaAtivo && d.getMonth()===mes;
-                return (
-                  <div key={i} onClick={()=>{ setMes(d.getMonth()); setAno(d.getFullYear()); setDia(d.getDate()); }}
-                    style={{ textAlign:'center',padding:'10px 4px',cursor:'pointer' }}>
-                    <div style={{fontSize:10,color:'var(--ts)',fontWeight:600}}>{DS[d.getDay()]}</div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:8 }}>
+            {semana.map((d,i) => {
+              const dataStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+              const dow     = d.getDay();
+              const isH     = dataStr === hojeStr;
+              const isFut   = dataStr > hojeStr;
+              const isSel   = d.getDate()===diaAtivo && d.getMonth()===mes && d.getFullYear()===ano;
+              const fds     = dow===0 || dow===6;
+              const pDia    = peps.filter(p => {
+                if (dataInicio && dataStr < dataInicio) return false;
+                if (dataFim    && dataStr > dataFim)   return false;
+                return calcDias(p).includes(dow);
+              });
+              const t = tracker.find((x:any) => x.data === dataStr);
+              const a = adesao.find((x:any) => x.data === dataStr);
+              return (
+                <div key={i}
+                  onClick={() => { setMes(d.getMonth()); setAno(d.getFullYear()); setDia(d.getDate()); }}
+                  style={{
+                    borderRadius:12, padding:'10px 8px', cursor:'pointer', minHeight:180,
+                    display:'flex', flexDirection:'column', gap:4, transition:'all .1s',
+                    background: isH?'#F0FDF4' : isSel?'#F8FAFF' : fds?'#FAFAFA':'var(--bg)',
+                    border:`1.5px solid ${isSel?'#111':isH?'#0F6E56':fds?'#E5E7EB':'var(--border)'}`,
+                  }}>
+                  {/* Cabeçalho */}
+                  <div style={{ textAlign:'center', marginBottom:6 }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:fds?'#D85A30':'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>
+                      {DS[dow]}
+                    </div>
                     <div style={{
-                      width:30,height:30,borderRadius:'50%',margin:'4px auto 0',
-                      display:'flex',alignItems:'center',justifyContent:'center',
-                      background:isH?'#0F6E56':isSel?'#111':'transparent',
-                      fontSize:14,fontWeight:700,color:isH||isSel?'white':'var(--tx)',
+                      width:28, height:28, borderRadius:'50%', margin:'0 auto',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      background: isH?'#0F6E56' : isSel?'#111' : 'transparent',
+                      fontSize:14, fontWeight:700,
+                      color: isH||isSel ? 'white' : fds?'#D85A30':'var(--tx)',
                     }}>{d.getDate()}</div>
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Linhas por turno */}
-            {[
-              { label:'Manhã',  check:(t:string)=>!t||t.includes('manhã')||t.includes('manha')||t.includes('jejum')||t.includes('acordar') },
-              { label:'Treino', check:(t:string)=>t.includes('pré')||t.includes('pre')||t.includes('treino')||t.includes('pós')||t.includes('pos') },
-              { label:'Tarde',  check:(t:string)=>t.includes('tarde') },
-              { label:'Noite',  check:(t:string)=>t.includes('dormir')||t.includes('noite') },
-            ].map(turno=>(
-              <div key={turno.label} style={{ display:'grid',gridTemplateColumns:'52px repeat(7,1fr)',borderBottom:'1px solid var(--border)' }}>
-                <div style={{ fontSize:10,color:'var(--ts)',padding:'12px 8px',textAlign:'right',paddingTop:14,fontWeight:500 }}>{turno.label}</div>
-                {semana.map((d,i)=>{
-                  const dow  = d.getDay();
-                  const isH  = d.toISOString().split('T')[0]===hojeStr;
-                  const pDia = peps.filter(p => calcDias(p).includes(dow)).filter(() => {
-      if (!dataInicio) return true; // sem data, mostra tudo
-      if (data < dataInicio) return false; // antes do início
-      if (dataFim && data > dataFim) return false; // depois do fim
-      return true;
-    });
-                  const pT   = pDia.filter(p => turno.check((p.timing||'').toLowerCase()));
-                  return (
-                    <div key={i} onClick={()=>{ setMes(d.getMonth()); setAno(d.getFullYear()); setDia(d.getDate()); }}
-                      style={{ borderLeft:'1px solid var(--border)',minHeight:68,padding:4,
-                        background:isH?'rgba(15,110,86,.04)':'transparent',cursor:'pointer' }}>
-                      {pT.map((p,idx)=>{
-                        const cor = CAT_COLOR[p.categoria]||'#6B7280';
-                        const bg  = CAT_BG[p.categoria]||'#F3F4F6';
-                        return (
-                          <div key={idx} style={{ fontSize:9,padding:'2px 5px',borderRadius:4,marginBottom:2,
-                            background:bg,color:cor,fontWeight:600,
-                            overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>
-                            {p.emoji} {p.nome}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
+                  {/* Peptídeos */}
+                  <div style={{ display:'flex', flexDirection:'column', gap:3, flex:1 }}>
+                    {pDia.map((p:any, idx:number) => {
+                      const cor = CAT_COLOR[p.categoria]||'#6B7280';
+                      const bg  = CAT_BG[p.categoria]||'#F3F4F6';
+                      return (
+                        <div key={idx} style={{
+                          fontSize:9, padding:'2px 5px', borderRadius:4,
+                          background:bg, color:cor, fontWeight:600,
+                          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                          opacity: isFut ? 0.7 : 1,
+                        }}>
+                          {p.emoji} {p.nome}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* Status */}
+                  <div style={{ display:'flex', gap:3, flexWrap:'wrap' }}>
+                    {a?.completo && <div style={{ fontSize:9, background:'#DCFCE7', color:'#059669', padding:'1px 5px', borderRadius:100, fontWeight:600 }}>✓</div>}
+                    {t && <div style={{ fontSize:9, background:'#FEF3C7', color:'#D97706', padding:'1px 5px', borderRadius:100 }}>📊</div>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
