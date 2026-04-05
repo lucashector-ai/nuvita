@@ -82,9 +82,9 @@ export default function QuizShell() {
         if (k.startsWith('_')) merged[k] = diagAtual[k];
       }
       // Preserva nome, sexo e email se não respondidos agora
-      if (!answers.nome && diagAtual.nome) merged.nome = diagAtual.nome;
-      if (!answers.sexo && diagAtual.sexo) merged.sexo = diagAtual.sexo;
-      if (!answers.email && diagAtual.email) merged.email = diagAtual.email;
+      if (!(answers as any).nome && diagAtual.nome) merged.nome = diagAtual.nome;
+      if (!(answers as any).sexo && diagAtual.sexo) merged.sexo = diagAtual.sexo;
+      if (!(answers as any).email && diagAtual.email) merged.email = diagAtual.email;
       await salvarDiagnostico(session.user.id, merged);
       sessionStorage.removeItem('nv_quiz');
       sessionStorage.setItem('nv_diagnostico_atualizado', '1');
