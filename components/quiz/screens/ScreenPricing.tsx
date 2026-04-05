@@ -8,7 +8,6 @@
 
 import { useState } from 'react';
 import type { QuizAnswers } from '@/types';
-import EmailModal from '@/components/modals/EmailModal';
 
 interface Props {
   answers:   QuizAnswers;
