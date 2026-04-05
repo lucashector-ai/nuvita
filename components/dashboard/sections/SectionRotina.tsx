@@ -97,13 +97,13 @@ export default function SectionRotina({ answers, userId }: Props) {
     setDragDia(null);
   };
 
+  const hoje = new Date().toLocaleDateString('pt-BR', { weekday:'long' }).toLowerCase();
+
   if (loading) return (
     <div style={{ padding:'3rem', textAlign:'center', color:'var(--ts)', fontSize:13 }}>
       Carregando...
     </div>
   );
-
-  const hoje = new Date().toLocaleDateString('pt-BR', { weekday:'long' }).toLowerCase();
 
   return (
     <div>
