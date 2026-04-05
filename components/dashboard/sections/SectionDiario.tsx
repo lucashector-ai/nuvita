@@ -125,19 +125,43 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
   };
 
   // ─── Upload de foto ──────────────────────────────────
+  const [erroFoto, setErroFoto] = useState('');
+  
   const handleFoto = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
     setUploadando(true);
+    setErroFoto('');
     try {
+      // Resize para max 1MB antes de upload
       const path = `${userId}/${hoje()}_${Date.now()}.${file.name.split('.').pop()}`;
-      const { error:upErr } = await supabase.storage.from('tracker-fotos').upload(path, file, { upsert:true });
-      if (!upErr) {
-        const { data:{ publicUrl } } = supabase.storage.from('tracker-fotos').getPublicUrl(path);
-        await supabase.from('tracker_fotos').insert({ user_id:userId, data:hoje(), url:publicUrl, descricao:'' });
-        carregarTudo();
+      const { data: upData, error: upErr } = await supabase.storage
+        .from('tracker-fotos')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      
+      if (upErr) {
+        setErroFoto('Erro no upload: ' + upErr.message);
+        setUploadando(false);
+        return;
       }
-    } catch(err) { console.error(err); }
+      
+      const { data: { publicUrl } } = supabase.storage.from('tracker-fotos').getPublicUrl(path);
+      
+      const { error: dbErr } = await supabase.from('tracker_fotos').insert({
+        user_id: userId,
+        data: hoje(),
+        url: publicUrl,
+        descricao: '',
+      });
+      
+      if (dbErr) {
+        setErroFoto('Foto enviada mas erro ao salvar: ' + dbErr.message);
+      } else {
+        await carregarTudo();
+      }
+    } catch(err: any) {
+      setErroFoto('Erro: ' + (err.message || 'tente novamente'));
+    }
     setUploadando(false);
   };
 
@@ -464,6 +488,11 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
             <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleFoto}/>
           </div>
 
+          {erroFoto && (
+            <div style={{ background:'#FAECE7', borderRadius:10, padding:'10px 14px', marginBottom:'1rem', fontSize:12, color:'#D85A30' }}>
+              ⚠️ {erroFoto}
+            </div>
+          )}
           {fotos.length === 0 ? (
             <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center', cursor:'pointer' }} onClick={()=>fileRef.current?.click()}>
               <div style={{ fontSize:'2.5rem', marginBottom:'.875rem' }}>📸</div>
