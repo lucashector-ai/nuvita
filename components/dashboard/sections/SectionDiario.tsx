@@ -126,6 +126,9 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
 
   // ─── Upload de foto ──────────────────────────────────
   const [erroFoto,    setErroFoto]    = useState('');
+  const [fotoViewer,  setFotoViewer]  = useState<any>(null);
+  const [comparar,    setComparar]    = useState<any[]>([]);
+  const [modoCompar,  setModoCompar]  = useState(false);
   const [fotoViewer,  setFotoViewer]  = useState<any>(null);   // foto aberta no lightbox
   const [comparar,    setComparar]    = useState<any[]>([]);    // max 2 fotos selecionadas
   const [modoCompar,  setModoCompar]  = useState(false);       // modo comparação ativo
@@ -483,11 +486,28 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
       {/* ─── ABA FOTOS ───────────────────────────────── */}
       {aba === 'fotos' && (
         <div>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.25rem' }}>
-            <div style={{ fontSize:13, color:'var(--ts)' }}>Compare sua evolução visual ao longo do ciclo</div>
-            <button className="btn btn-d" onClick={()=>fileRef.current?.click()} disabled={uploadando} style={{ fontSize:12 }}>
-              {uploadando?'Enviando...':'📷 Adicionar foto'}
-            </button>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.25rem', flexWrap:'wrap', gap:8 }}>
+            <div style={{ fontSize:13, color:'var(--ts)' }}>
+              {modoCompar ? `${comparar.length}/2 selecionadas — clique para marcar` : 'Clique para ampliar · Selecione 2 para comparar'}
+            </div>
+            <div style={{ display:'flex', gap:8 }}>
+              {fotos.length >= 2 && (
+                <button className="btn btn-o" style={{ fontSize:12 }}
+                  onClick={()=>{ setModoCompar(v=>!v); setComparar([]); }}>
+                  {modoCompar ? '✕ Cancelar' : '⬜ Comparar'}
+                </button>
+              )}
+              {modoCompar && comparar.length === 2 && (
+                <button className="btn btn-d" style={{ fontSize:12 }}
+                  onClick={()=>setFotoViewer({ comparacao:true })}>
+                  Ver comparação →
+                </button>
+              )}
+              <button className="btn btn-d" style={{ fontSize:12 }}
+                onClick={()=>fileRef.current?.click()} disabled={uploadando}>
+                {uploadando ? 'Enviando...' : '📷 Adicionar foto'}
+              </button>
+            </div>
             <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleFoto}/>
           </div>
 
@@ -496,26 +516,101 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
               ⚠️ {erroFoto}
             </div>
           )}
+
           {fotos.length === 0 ? (
-            <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center', cursor:'pointer' }} onClick={()=>fileRef.current?.click()}>
+            <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center', cursor:'pointer' }}
+              onClick={()=>fileRef.current?.click()}>
               <div style={{ fontSize:'2.5rem', marginBottom:'.875rem' }}>📸</div>
               <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'.375rem' }}>Adicione sua primeira foto</div>
-              <div style={{ fontSize:13, color:'var(--ts)' }}>Clique para fazer upload · Compare a evolução ao longo do ciclo</div>
+              <div style={{ fontSize:13, color:'var(--ts)' }}>Clique para fazer upload · Compare sua evolução ao longo do ciclo</div>
             </div>
           ) : (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:12 }}>
-              {fotos.map((f,i)=>(
-                <div key={f.id||i} style={{ borderRadius:12, overflow:'hidden', border:'1px solid var(--border)', background:'var(--bg)' }}>
-                  <img src={f.url} alt="" style={{ width:'100%', aspectRatio:'1', objectFit:'cover', display:'block' }}/>
-                  <div style={{ padding:'8px 10px', fontSize:11, color:'var(--ts)' }}>
-                    {new Date(f.created_at).toLocaleDateString('pt-BR')}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))', gap:12 }}>
+              {fotos.map((f: any, i: number) => {
+                const sel = comparar.some((x:any) => x.id === f.id);
+                return (
+                  <div key={f.id||i}
+                    style={{ borderRadius:12, overflow:'hidden', border:`2px solid ${sel ? 'var(--green)' : 'var(--border)'}`, background:'var(--bg)', cursor:'pointer', position:'relative', transition:'all .15s', transform: sel ? 'scale(1.02)' : 'none' }}
+                    onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.opacity = '0.92'; }}
+                    onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+                    onClick={()=>{
+                      if (modoCompar) {
+                        if (sel) { setComparar((p:any[])=>p.filter((x:any)=>x.id!==f.id)); }
+                        else if (comparar.length < 2) { setComparar((p:any[])=>[...p, f]); }
+                      } else {
+                        setFotoViewer(f);
+                      }
+                    }}>
+                    {sel && (
+                      <div style={{ position:'absolute', top:8, right:8, width:24, height:24, borderRadius:'50%', background:'var(--green)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, color:'white', fontWeight:700, zIndex:2 }}>
+                        {comparar.findIndex((x:any)=>x.id===f.id)+1}
+                      </div>
+                    )}
+                    <img src={f.url} alt="" style={{ width:'100%', aspectRatio:'1/1', objectFit:'cover', display:'block' }}/>
+                    <div style={{ padding:'7px 10px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:11, color:'var(--ts)' }}>{new Date(f.created_at).toLocaleDateString('pt-BR')}</span>
+                      {!modoCompar && <span style={{ fontSize:11, color:'var(--ts)' }}>🔍</span>}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       )}
+
+      {/* ─── LIGHTBOX ─────────────────────────────────── */}
+      {fotoViewer && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.88)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'1.5rem' }}
+          onClick={e=>{ if(e.target===e.currentTarget){ setFotoViewer(null); setComparar([]); setModoCompar(false); }}}>
+
+          <button style={{ position:'absolute', top:20, right:20, background:'rgba(255,255,255,.15)', border:'none', color:'white', width:40, height:40, borderRadius:'50%', fontSize:18, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:10000 }}
+            onClick={()=>{ setFotoViewer(null); setComparar([]); setModoCompar(false); }}>
+            ✕
+          </button>
+
+          {fotoViewer.comparacao ? (
+            <div style={{ width:'100%', maxWidth:1000 }}>
+              <div style={{ textAlign:'center', color:'rgba(255,255,255,.7)', fontSize:13, marginBottom:'1rem' }}>
+                Comparação de evolução
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+                {comparar.map((f:any, i:number)=>(
+                  <div key={f.id} style={{ borderRadius:12, overflow:'hidden', background:'rgba(255,255,255,.05)' }}>
+                    <img src={f.url} alt="" style={{ width:'100%', maxHeight:'65vh', objectFit:'contain', display:'block' }}/>
+                    <div style={{ padding:'10px', textAlign:'center', color:'rgba(255,255,255,.6)', fontSize:12 }}>
+                      {i===0 ? '📅 Antes' : '📅 Depois'} · {new Date(f.created_at).toLocaleDateString('pt-BR')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ maxWidth:700, width:'100%' }}>
+              <img src={fotoViewer.url} alt="" style={{ width:'100%', maxHeight:'78vh', objectFit:'contain', borderRadius:12, display:'block' }}/>
+              <div style={{ textAlign:'center', color:'rgba(255,255,255,.6)', fontSize:12, marginTop:12 }}>
+                {new Date(fotoViewer.created_at).toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' })}
+              </div>
+              {fotos.length > 1 && (
+                <div style={{ display:'flex', justifyContent:'center', gap:12, marginTop:16 }}>
+                  <button style={{ background:'rgba(255,255,255,.15)', border:'none', color:'white', padding:'8px 20px', borderRadius:100, cursor:'pointer', fontSize:13, fontFamily:'inherit' }}
+                    onClick={e=>{ e.stopPropagation(); const i=fotos.findIndex((f:any)=>f.id===fotoViewer.id); setFotoViewer(fotos[(i-1+fotos.length)%fotos.length]); }}>
+                    ← Anterior
+                  </button>
+                  <span style={{ color:'rgba(255,255,255,.4)', fontSize:12, display:'flex', alignItems:'center' }}>
+                    {fotos.findIndex((f:any)=>f.id===fotoViewer.id)+1} / {fotos.length}
+                  </span>
+                  <button style={{ background:'rgba(255,255,255,.15)', border:'none', color:'white', padding:'8px 20px', borderRadius:100, cursor:'pointer', fontSize:13, fontFamily:'inherit' }}
+                    onClick={e=>{ e.stopPropagation(); const i=fotos.findIndex((f:any)=>f.id===fotoViewer.id); setFotoViewer(fotos[(i+1)%fotos.length]); }}>
+                    Próxima →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }
