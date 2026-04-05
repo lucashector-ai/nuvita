@@ -5,7 +5,6 @@ export {
   ScreenObjetivos,
   ScreenPeleSub,
   ScreenNivel,
-  ScreenJaUsou,
   ScreenAtividade,
   ScreenSono,
   ScreenEstresse,
