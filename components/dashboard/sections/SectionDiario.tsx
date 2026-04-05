@@ -129,9 +129,6 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
   const [fotoViewer,  setFotoViewer]  = useState<any>(null);
   const [comparar,    setComparar]    = useState<any[]>([]);
   const [modoCompar,  setModoCompar]  = useState(false);
-  const [fotoViewer,  setFotoViewer]  = useState<any>(null);   // foto aberta no lightbox
-  const [comparar,    setComparar]    = useState<any[]>([]);    // max 2 fotos selecionadas
-  const [modoCompar,  setModoCompar]  = useState(false);       // modo comparação ativo
   
   const handleFoto = async (e: any) => {
     const file = e.target.files?.[0];
