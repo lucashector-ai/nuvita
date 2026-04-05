@@ -57,7 +57,7 @@ export default function SectionRotina({ answers, userId }: Props) {
         user_id: userId,
         itens: novos,
         updated_at: new Date().toISOString(),
-      });
+      }, { onConflict: 'user_id' });
     }, 800);
   };
 
@@ -89,7 +89,7 @@ export default function SectionRotina({ answers, userId }: Props) {
     if (!drag) return;
     const novos = cards.map(c =>
       c.id === drag
-        ? { ...c, dias: Array.from(new Set([...c.dias, diaId])) }
+        ? { ...c, dias: [diaId] }
         : c
     );
     atualizar(novos);

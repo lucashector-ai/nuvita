@@ -29,11 +29,12 @@ function calcDias(p: any): number[] {
 }
 
 export default function SectionCalendario({ items, peso, protoAtivo }: any) {
-  const peps  = (items||[]);
+  const peps  = ((items&&items.length>0) ? items : protoPeps);
   const hoje  = new Date();
   const [mes,  setMes]    = useState(hoje.getMonth());
   const [ano,  setAno]    = useState(hoje.getFullYear());
   const [view, setView]   = useState<'mes'|'semana'>('mes');
+  const [protoPeps, setProtoPeps] = useState<any[]>([]);
   const [diaAtivo, setDia]= useState(hoje.getDate());
   const [tracker, setT]   = useState<any[]>([]);
   const [adesao,  setA]   = useState<any[]>([]);
@@ -44,11 +45,17 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
       try {
         const { data:{user} } = await supabase.auth.getUser();
         if (!user) return;
-        const [{ data:t },{ data:a }] = await Promise.all([
+        const [{ data:t },{ data:a },{ data:u }] = await Promise.all([
           supabase.from('tracker_entries').select('data,energia,sono,peso').eq('user_id',user.id),
           supabase.from('adesao_diaria').select('data,completo').eq('user_id',user.id),
+          supabase.from('usuarios').select('diagnostico').eq('id',user.id).single(),
         ]);
         setT(t||[]); setA(a||[]);
+        // Carrega peptídeos do protocolo IA
+        try {
+          const proto = JSON.parse(u?.diagnostico?._protocoloIA || '{}');
+          setProtoPeps(proto.peptideos || []);
+        } catch {}
       } catch {}
     })();
   }, []);
