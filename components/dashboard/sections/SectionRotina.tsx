@@ -1,138 +1,152 @@
 // @ts-nocheck
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
-const HORARIOS = [
-  'Ao acordar','Manhã em jejum','Café da manhã','Pré-treino',
-  'Pós-treino','Almoço','Tarde','Jantar','Antes de dormir','Madrugada'
-];
+const HORARIOS = ['Ao acordar','Manhã em jejum','Café da manhã','Pré-treino','Pós-treino','Tarde','Jantar','Antes de dormir'];
 
-type Item = { id: string; nome: string; emoji: string; horario: string; dose: string; via: string };
+interface Props { answers: any; userId: string; }
 
-export default function SectionRotina() {
-  const [itens, setItens] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [salvando, setSalvando] = useState(false);
-  const [salvo, setSalvo] = useState(false);
-  const [drag, setDrag] = useState<string|null>(null);
-  const [dragOver, setDragOver] = useState<string|null>(null);
+export default function SectionRotina({ answers, userId }: Props) {
+  const [itens,     setItens]    = useState<any[]>([]);
+  const [loading,   setLoading]  = useState(true);
+  const [salvando,  setSalvando] = useState(false);
+  const [salvo,     setSalvo]    = useState(false);
+  const [drag,      setDrag]     = useState<string|null>(null);
+  const [dragOver,  setDragOver] = useState<string|null>(null);
 
-  useEffect(() => { carregar(); }, []);
+  useEffect(() => { if (userId) carregar(); }, [userId]);
 
   const carregar = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const [{ data: u }, { data: r }] = await Promise.all([
-      supabase.from('usuarios').select('protocolo_gerado').eq('id', user.id).single(),
-      supabase.from('rotina_personalizada').select('*').eq('user_id', user.id).maybeSingle(),
-    ]);
-
-    if (r?.itens) {
+    setLoading(true);
+    // Tenta carregar rotina salva
+    const { data: r } = await supabase.from('rotina_personalizada').select('itens').eq('user_id', userId).maybeSingle();
+    if (r?.itens?.length > 0) {
       setItens(r.itens);
-    } else if (u?.protocolo_gerado?.peptideos) {
-      // Gera rotina padrão a partir do protocolo
-      const defaults = u.protocolo_gerado.peptideos.map((p: any, i: number) => ({
-        id: `p${i}`,
-        nome: p.nome,
-        emoji: p.emoji || '💊',
-        horario: p.timing?.split(',')[0]?.trim() || 'Manhã em jejum',
-        dose: p.dose_calculada || `${p.dose_min || ''}${p.unidade || 'mcg'}`,
-        via: p.via || 'SC',
-      }));
-      setItens(defaults);
+      setLoading(false);
+      return;
     }
+    // Cria rotina padrão do protocolo IA
+    const { data: u } = await supabase.from('usuarios').select('diagnostico').eq('id', userId).single();
+    let peps: any[] = [];
+    try {
+      const proto = JSON.parse(u?.diagnostico?._protocoloIA || '{}');
+      peps = proto.peptideos || [];
+    } catch {}
+    const defaults = peps.map((p: any, i: number) => ({
+      id: `p${i}`,
+      nome: p.nome,
+      emoji: p.emoji || '💊',
+      horario: inferirHorario(p.timing || p.frequencia || ''),
+      dose: p.dose_calculada || `${p.dose_min||''}${p.unidade||'mcg'}`,
+      via: p.via || 'SC',
+    }));
+    setItens(defaults);
     setLoading(false);
+  };
+
+  const inferirHorario = (timing: string) => {
+    const t = timing.toLowerCase();
+    if (t.includes('acordar')) return 'Ao acordar';
+    if (t.includes('jejum')) return 'Manhã em jejum';
+    if (t.includes('café') || t.includes('manha') || t.includes('manhã')) return 'Café da manhã';
+    if (t.includes('pré-treino') || t.includes('pre-treino') || t.includes('treino')) return 'Pré-treino';
+    if (t.includes('pós') || t.includes('pos-treino')) return 'Pós-treino';
+    if (t.includes('dormir') || t.includes('noite')) return 'Antes de dormir';
+    return 'Manhã em jejum';
   };
 
   const salvar = async () => {
     setSalvando(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from('rotina_personalizada').upsert({ user_id: user.id, itens, updated_at: new Date().toISOString() });
+    await supabase.from('rotina_personalizada').upsert({ user_id: userId, itens, updated_at: new Date().toISOString() });
     setSalvando(false);
     setSalvo(true);
     setTimeout(() => setSalvo(false), 2000);
   };
 
-  const moverHorario = (id: string, horario: string) => {
+  const moverHorario = (id: string, horario: string) =>
     setItens(prev => prev.map(it => it.id === id ? { ...it, horario } : it));
-  };
 
   const onDragStart = (id: string) => setDrag(id);
-  const onDragEnd = () => { setDrag(null); setDragOver(null); };
-  const onDrop = (targetHorario: string) => {
-    if (!drag) return;
-    moverHorario(drag, targetHorario);
-    setDrag(null);
-    setDragOver(null);
-  };
+  const onDragEnd   = () => { setDrag(null); setDragOver(null); };
+  const onDrop      = (h: string) => { if (drag) moverHorario(drag, h); setDrag(null); setDragOver(null); };
 
-  // Agrupa por horário
-  const grupos = HORARIOS.map(h => ({
-    horario: h,
-    itens: itens.filter(it => it.horario === h),
-  })).filter(g => g.itens.length > 0 || ['Ao acordar','Manhã em jejum','Pré-treino','Antes de dormir'].includes(g.horario));
+  const grupos = HORARIOS.map(h => ({ horario: h, itens: itens.filter(it => it.horario === h) }));
 
   if (loading) return <div style={{ padding:'3rem', textAlign:'center', color:'var(--ts)', fontSize:13 }}>Carregando rotina...</div>;
+
+  if (itens.length === 0) return (
+    <div style={{ textAlign:'center', padding:'3rem', color:'var(--ts)' }}>
+      <div style={{ fontSize:'2rem', marginBottom:'1rem' }}>📋</div>
+      <div style={{ fontSize:13 }}>Gere seu protocolo para montar sua rotina de aplicações.</div>
+    </div>
+  );
 
   return (
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'1.5rem' }}>
         <div>
-          <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Rotina diária</h2>
-          <p style={{ fontSize:13, color:'var(--ts)' }}>Arraste os peptídeos para reorganizar os horários</p>
+          <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.2rem' }}>Rotina diária</h2>
+          <p style={{ fontSize:13, color:'var(--ts)' }}>Arraste os peptídeos entre os horários para personalizar</p>
         </div>
-        <button onClick={salvar} disabled={salvando}
-          className="btn btn-d" style={{ fontSize:12 }}>
+        <button onClick={salvar} disabled={salvando} className="btn btn-d" style={{ fontSize:12 }}>
           {salvando ? 'Salvando...' : salvo ? '✓ Salvo' : 'Salvar rotina'}
         </button>
       </div>
 
-      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
         {grupos.map(g => (
           <div key={g.horario}
             onDragOver={e => { e.preventDefault(); setDragOver(g.horario); }}
             onDrop={() => onDrop(g.horario)}
             onDragLeave={() => setDragOver(null)}
             style={{
-              borderRadius:14,
-              border:`2px dashed ${dragOver === g.horario ? 'var(--dark)' : 'var(--border)'}`,
-              background: dragOver === g.horario ? 'var(--bg2)' : 'var(--bg)',
-              padding:'1rem', transition:'all .15s',
+              borderRadius:14, padding:'1rem',
+              border:`2px ${dragOver===g.horario?'solid var(--dark)':'dashed var(--border)'}`,
+              background: dragOver===g.horario ? 'var(--bg2)' : g.itens.length ? 'var(--bg)' : 'transparent',
+              transition:'all .12s',
             }}>
-            <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom: g.itens.length ? '0.75rem' : 0 }}>
+            {/* Título do horário */}
+            <div style={{ fontSize:12, fontWeight:700, color:'var(--tm)', marginBottom: g.itens.length ? 10 : 0, display:'flex', alignItems:'center', gap:6 }}>
+              <span>{['Ao acordar','Manhã em jejum','Café da manhã'].includes(g.horario) ? '🌅' : ['Pré-treino','Pós-treino'].includes(g.horario) ? '🏋️' : g.horario==='Antes de dormir' ? '🌙' : '☀️'}</span>
               {g.horario}
+              {g.itens.length > 0 && (
+                <span style={{ fontSize:10, color:'var(--ts)', fontWeight:400, marginLeft:'auto' }}>
+                  {g.itens.length} peptídeo{g.itens.length>1?'s':''}
+                </span>
+              )}
             </div>
+
             {g.itens.length === 0 && (
-              <div style={{ fontSize:12, color:'var(--ts)', opacity:0.5, fontStyle:'italic' }}>
+              <div style={{ fontSize:12, color:'var(--ts)', opacity:0.5, fontStyle:'italic', paddingTop:4 }}>
                 Arraste um peptídeo aqui
               </div>
             )}
-            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
               {g.itens.map(it => (
                 <div key={it.id}
                   draggable
                   onDragStart={() => onDragStart(it.id)}
                   onDragEnd={onDragEnd}
                   style={{
-                    display:'flex', alignItems:'center', gap:12,
-                    background:'var(--bg2)', borderRadius:10, padding:'10px 14px',
-                    cursor:'grab', opacity: drag === it.id ? 0.4 : 1,
+                    display:'flex', alignItems:'center', gap:10,
+                    background:'var(--bg2)', borderRadius:10, padding:'10px 12px',
+                    cursor:'grab', opacity:drag===it.id ? 0.35 : 1,
                     border:'1px solid var(--border)', transition:'opacity .15s',
+                    userSelect:'none',
                   }}>
-                  <span style={{ fontSize:18, userSelect:'none' }}>⠿</span>
+                  <span style={{ fontSize:14, color:'var(--ts)' }}>⠿</span>
                   <span style={{ fontSize:'1.2rem' }}>{it.emoji}</span>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, fontWeight:500 }}>{it.nome}</div>
                     <div style={{ fontSize:11, color:'var(--ts)' }}>{it.dose} · {it.via}</div>
                   </div>
-                  {/* Selector rápido de horário */}
                   <select
                     value={it.horario}
                     onChange={e => moverHorario(it.id, e.target.value)}
-                    style={{ fontSize:11, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:6, padding:'3px 6px', color:'var(--tm)', cursor:'pointer', fontFamily:'inherit' }}
-                    onClick={e => e.stopPropagation()}>
+                    onClick={e => e.stopPropagation()}
+                    style={{ fontSize:11, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:6, padding:'3px 6px', color:'var(--tm)', cursor:'pointer', fontFamily:'inherit', maxWidth:130 }}>
                     {HORARIOS.map(h => <option key={h} value={h}>{h}</option>)}
                   </select>
                 </div>
@@ -141,13 +155,6 @@ export default function SectionRotina() {
           </div>
         ))}
       </div>
-
-      {itens.length === 0 && (
-        <div style={{ textAlign:'center', padding:'3rem', color:'var(--ts)', fontSize:13 }}>
-          <div style={{ fontSize:'2rem', marginBottom:'1rem' }}>📋</div>
-          <div>Nenhum protocolo ativo. Gere seu protocolo primeiro.</div>
-        </div>
-      )}
     </div>
   );
 }
