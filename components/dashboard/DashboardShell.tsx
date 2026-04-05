@@ -233,7 +233,7 @@ export default function DashboardShell() {
     setSection(s);
     setSidebarOpen(false);
     const url = SECTION_TO_URL[s] || '/dashboard';
-    router.push(url);
+    window.history.pushState(null, '', url);
   };
 
 
