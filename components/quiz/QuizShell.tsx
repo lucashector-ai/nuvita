@@ -77,10 +77,14 @@ export default function QuizShell() {
         .from('usuarios').select('diagnostico').eq('id', session.user.id).single();
       const diagAtual = usuarioAtual?.diagnostico || {};
       const merged: Record<string,any> = { ...diagAtual, ...answers };
-      // Preserva campos especiais do banco (_protocoloIA, _protocoloAtivo, etc.)
+      // Preserva campos especiais do banco
       for (const k of Object.keys(diagAtual)) {
         if (k.startsWith('_')) merged[k] = diagAtual[k];
       }
+      // Preserva nome, sexo e email se não respondidos agora
+      if (!answers.nome && diagAtual.nome) merged.nome = diagAtual.nome;
+      if (!answers.sexo && diagAtual.sexo) merged.sexo = diagAtual.sexo;
+      if (!answers.email && diagAtual.email) merged.email = diagAtual.email;
       await salvarDiagnostico(session.user.id, merged);
       sessionStorage.removeItem('nv_quiz');
       sessionStorage.setItem('nv_diagnostico_atualizado', '1');
