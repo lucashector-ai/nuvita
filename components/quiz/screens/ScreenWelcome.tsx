@@ -26,7 +26,7 @@ export default function ScreenWelcome({ onNext, isRediag = false }: Props) {
               {isRediag ? 'Atualize seu protocolo.' : 'Protocolos com clareza e método para todos.'}
             </h1>
             <p style={{ fontSize: 16, color: 'var(--tm)', lineHeight: 1.7, marginBottom: '2rem', letterSpacing: '-.02em', maxWidth: 440 }}>
-              {isRediag ? 'Responda apenas sobre seus objetivos atuais — nome e perfil já estão salvos.' : '10 perguntas para montar um protocolo real de peptídeos adaptado ao seu perfil e objetivos.'}
+              {isRediag ? 'Responda apenas sobre seus objetivos atuais — nome e perfil já estão salvos.' : '9 perguntas para montar um protocolo real de peptídeos adaptado ao seu perfil e objetivos.'}
             </p>
             <div style={{ display: 'flex', gap: '.875rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: 'var(--ts)' }}>
@@ -42,7 +42,7 @@ export default function ScreenWelcome({ onNext, isRediag = false }: Props) {
           </div>
           <div>
             <div className="w-stat-row">
-              <div className="w-stat"><div className="wsv">10</div><div className="wsl">Perguntas</div></div>
+              <div className="w-stat"><div className="wsv">9</div><div className="wsl">Perguntas</div></div>
               <div className="w-stat"><div className="wsv">4min</div><div className="wsl">Duração</div></div>
               <div className="w-stat"><div className="wsv">100%</div><div className="wsl">Seu perfil</div></div>
             </div>
