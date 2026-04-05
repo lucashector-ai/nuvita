@@ -68,9 +68,11 @@ export default function EmailModal({ plan, answers, onSubmit, onClose }: Props) 
   };
 
   const handleGoogle = async () => {
+    // Salva o plano no sessionStorage antes de redirecionar
+    sessionStorage.setItem('nv_plano_pendente', JSON.stringify({ plan }));
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?revisao=1` },
     });
   };
 
