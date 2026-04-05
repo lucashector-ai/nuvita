@@ -72,7 +72,21 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
       sessionStorage.setItem('nv_checkin', JSON.stringify({ data: hoje, humor: h, insight }));
     }
   };
-  const handleStart   = () => { setStarting(true); setTimeout(()=>{onStartProto();setStarting(false);},500); };
+  const handleStart   = () => {
+    setStarting(true);
+    // Salva data_inicio no banco
+    (async () => {
+      const { supabase } = await import('@/lib/supabase');
+      const { data:{ user } } = await supabase.auth.getUser();
+      if (user) {
+        const hoje = new Date().toISOString().split('T')[0];
+        await supabase.from('usuarios').update({
+          diagnostico: { ...answers, _dataInicioProtocolo: hoje }
+        }).eq('id', user.id);
+      }
+    })();
+    setTimeout(()=>{ onStartProto(); setStarting(false); }, 500);
+  };
   const toggleTask    = (id) => setTasksDone(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});
   const toggleExpand  = (id) => setExpandido(p=>p===id?null:id);
 

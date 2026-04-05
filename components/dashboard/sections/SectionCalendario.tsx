@@ -71,16 +71,36 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
     })();
   }, [items]);
 
+  const [dataInicio, setDataInicio] = useState<string|null>(null);
+  const [dataFim,    setDataFim]    = useState<string|null>(null);
+
   useEffect(() => {
     (async () => {
       try {
         const { data:{user} } = await supabase.auth.getUser();
         if (!user) return;
-        const [{ data:t },{ data:a }] = await Promise.all([
+        const [{ data:t },{ data:a },{ data:u }] = await Promise.all([
           supabase.from('tracker_entries').select('data,energia,sono,peso').eq('user_id',user.id),
           supabase.from('adesao_diaria').select('data,completo').eq('user_id',user.id),
+          supabase.from('usuarios').select('diagnostico').eq('id',user.id).single(),
         ]);
         setTracker(t||[]); setAdesao(a||[]);
+
+        // Calcula data_inicio e data_fim
+        const diag = u?.diagnostico || {};
+        const inicio = diag._dataInicioProtocolo || null;
+        setDataInicio(inicio);
+
+        if (inicio) {
+          const DUR: Record<string,number> = {
+            '4sem':4,'6sem':6,'8sem':8,'12sem':12,'16sem':16,'24sem':24,'6m':24,'3m':12
+          };
+          const dur = diag.q9 || '8sem';
+          const semanas = DUR[dur] || 8;
+          const fim = new Date(inicio);
+          fim.setDate(fim.getDate() + semanas * 7);
+          setDataFim(fim.toISOString().split('T')[0]);
+        }
       } catch {}
     })();
   }, []);
@@ -91,7 +111,12 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
   const infoDia = (dia: number) => {
     const data = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
     const dow  = new Date(ano, mes, dia).getDay();
-    const pDia = peps.filter(p => calcDias(p).includes(dow));
+    const pDia = peps.filter(p => calcDias(p).includes(dow)).filter(() => {
+      if (!dataInicio) return true; // sem data, mostra tudo
+      if (data < dataInicio) return false; // antes do início
+      if (dataFim && data > dataFim) return false; // depois do fim
+      return true;
+    });
     const t    = tracker.find(x => x.data === data);
     const a    = adesao.find(x => x.data === data);
     return { data, dow, pDia, t, a, isFut: data > hojeStr, isHoj: data === hojeStr };
@@ -137,6 +162,23 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
           </div>
         </div>
 
+        {/* Badge de período do protocolo */}
+        {dataInicio && (
+          <div style={{ display:'flex', gap:12, marginBottom:12, fontSize:12, color:'var(--ts)', alignItems:'center' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+              <div style={{ width:8, height:8, borderRadius:'50%', background:'#0F6E56' }}/>
+              Início: <strong style={{ color:'var(--tx)' }}>{new Date(dataInicio+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}</strong>
+            </div>
+            {dataFim && <>
+              <span style={{ color:'var(--border)' }}>→</span>
+              <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+                <div style={{ width:8, height:8, borderRadius:'50%', background:'#D85A30' }}/>
+                Fim: <strong style={{ color:'var(--tx)' }}>{new Date(dataFim+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}</strong>
+              </div>
+            </>}
+          </div>
+        )}
+
         {/* ── VIEW MÊS ── */}
         {view==='mes' && <>
           <div style={{ display:'grid',gridTemplateColumns:'repeat(7,1fr)',marginBottom:2 }}>
@@ -166,6 +208,13 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
                       outline: sel?'2px solid #111':'none', outlineOffset:-1, zIndex:sel?1:0,
                       transition:'background .1s',
                     }}>
+                    {/* Marcador de início/fim do protocolo */}
+                    {dataInicio && inf.data === dataInicio && (
+                      <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'#0F6E56', borderRadius:'12px 12px 0 0' }}/>
+                    )}
+                    {dataFim && inf.data === dataFim && (
+                      <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'#D85A30', borderRadius:'12px 12px 0 0' }}/>
+                    )}
                     {/* Número do dia */}
                     <div style={{
                       width:24,height:24,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',
@@ -242,7 +291,12 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
                 {semana.map((d,i)=>{
                   const dow  = d.getDay();
                   const isH  = d.toISOString().split('T')[0]===hojeStr;
-                  const pDia = peps.filter(p => calcDias(p).includes(dow));
+                  const pDia = peps.filter(p => calcDias(p).includes(dow)).filter(() => {
+      if (!dataInicio) return true; // sem data, mostra tudo
+      if (data < dataInicio) return false; // antes do início
+      if (dataFim && data > dataFim) return false; // depois do fim
+      return true;
+    });
                   const pT   = pDia.filter(p => turno.check((p.timing||'').toLowerCase()));
                   return (
                     <div key={i} onClick={()=>{ setMes(d.getMonth()); setAno(d.getFullYear()); setDia(d.getDate()); }}
