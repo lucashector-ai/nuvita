@@ -62,11 +62,11 @@ export default function DashboardShell() {
       '/dashboard':'inicio', '/protocolo':'protocolo', '/diario':'diario',
       '/analise':'analise', '/historico':'historico', '/detector':'detector',
       '/consistencia':'consistencia', '/coach':'coach', '/ajuste':'ajuste',
-      '/simulador':'simulador', '/biblioteca':'biblioteca', '/estoque':'estoque',
+      '/simulador':'simulador', '/biblioteca':'lib', '/estoque':'estoque',
       '/rotina':'rotina', '/calendario':'calendario', '/exportacao':'exportacao',
       '/configuracoes':'config', '/planos':'planos', '/perfil':'perfil',
       '/mapa':'mapa', '/medico':'medico', '/conta':'conta',
-      '/calculadora':'calculadora',
+      '/ia':'ia', '/calculadora':'calc',
     };
     return URL_MAP[window.location.pathname] || 'inicio';
   });
@@ -221,21 +221,21 @@ export default function DashboardShell() {
     inicio:'/dashboard', protocolo:'/protocolo', diario:'/diario',
     analise:'/analise', historico:'/historico', detector:'/detector',
     consistencia:'/consistencia', coach:'/coach', ajuste:'/ajuste',
-    simulador:'/simulador', biblioteca:'/biblioteca', estoque:'/estoque',
+    simulador:'/simulador', lib:'/biblioteca', estoque:'/estoque',
     rotina:'/rotina', calendario:'/calendario', exportacao:'/exportacao',
     config:'/configuracoes', planos:'/planos', perfil:'/perfil',
     mapa:'/mapa', medico:'/medico', conta:'/conta',
-    calculadora:'/calculadora',
+    ia:'/ia', calc:'/calculadora',
   };
   const URL_TO_SECTION: Record<string,DashSection> = {
     '/dashboard':'inicio', '/protocolo':'protocolo', '/diario':'diario',
     '/analise':'analise', '/historico':'historico', '/detector':'detector',
     '/consistencia':'consistencia', '/coach':'coach', '/ajuste':'ajuste',
-    '/simulador':'simulador', '/biblioteca':'biblioteca', '/estoque':'estoque',
+    '/simulador':'simulador', '/biblioteca':'lib', '/estoque':'estoque',
     '/rotina':'rotina', '/calendario':'calendario', '/exportacao':'exportacao',
     '/configuracoes':'config', '/planos':'planos', '/perfil':'perfil',
     '/mapa':'mapa', '/medico':'medico', '/conta':'conta',
-    '/calculadora':'calculadora',
+    '/ia':'ia', '/calculadora':'calc',
   };
 
   const nav      = (s: DashSection) => {
