@@ -111,7 +111,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
               <div style={{ display:'flex', flexDirection:'column', gap:'1.5rem' }}>
                 <div className="dc">
                   <h2 style={{ fontSize:16, fontWeight:600, marginBottom:'1rem', display:'flex', alignItems:'center', gap:8 }}>🧬 O que é {p.nome}</h2>
-                  <p style={{ fontSize:13, color:'var(--tm)', lineHeight:1.85 }}>{p.mecanismo}</p>
+                  <p style={{ fontSize:13, color:'var(--tm)', lineHeight:1.85 }}>{p.descricao_longa || p.mecanismo}</p>
                 </div>
 
                 {p.beneficios?.length > 0 && (
