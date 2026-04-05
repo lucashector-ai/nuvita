@@ -14,6 +14,7 @@ interface Props {
   answers:   QuizAnswers;
   setAnswer: (p: Partial<QuizAnswers>) => void;
   onLogin:   () => void;
+  onRevisao?: () => void;
   onBack:    () => void;
 }
 
