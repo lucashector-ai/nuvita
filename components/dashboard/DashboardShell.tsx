@@ -174,7 +174,9 @@ export default function DashboardShell() {
 
   // Lê seção da URL ao carregar
   useEffect(() => {
-    const seg = window.location.pathname.split('/dashboard/')[1]?.split('?')[0] || '';
+    // Lê slug do pathname — pode ser /biblioteca, /protocolo etc.
+    const path = window.location.pathname;
+    const seg = path === '/dashboard' ? 'inicio' : path.replace(/^\//, '').split('?')[0];
     const REV: Record<string,string> = {
       inicio:'inicio', protocolo:'protocolo', diario:'diario', analise:'analise',
       historico:'historico', detector:'detector', biblioteca:'biblioteca',
@@ -224,7 +226,11 @@ export default function DashboardShell() {
   const nav      = (s: DashSection) => {
     setSection(s);
     setSidebarOpen(false);
-    window.history.replaceState(null, '', `/dashboard/${SLUG[s] || s}`);
+    // Atualiza URL com slug próprio da seção
+    const slugUrl = SLUG[s] || s;
+    // biblioteca fica em /biblioteca, não /dashboard/biblioteca
+    const url = slugUrl === 'inicio' ? '/dashboard' : `/${slugUrl}`;
+    window.history.replaceState(null, '', url);
   };
 
 

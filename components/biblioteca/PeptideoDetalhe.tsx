@@ -32,7 +32,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
       <div style={{ textAlign:'center' }}>
         <div style={{ fontSize:'2rem', marginBottom:'1rem' }}>🔬</div>
         <div style={{ fontSize:14, color:'var(--tx)' }}>Peptídeo não encontrado</div>
-        <button onClick={() => router.back()} style={{ marginTop:'1rem', padding:'8px 20px', borderRadius:100, border:'1px solid var(--border)', background:'var(--bg2)', cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>← Voltar</button>
+        <button onClick={() => router.push('/dashboard/biblioteca')} style={{ marginTop:'1rem', padding:'8px 20px', borderRadius:100, border:'1px solid var(--border)', background:'var(--bg2)', cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>← Voltar</button>
       </div>
     </div>
   );
@@ -42,7 +42,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
       {/* Hero escuro */}
       <div style={{ background:'linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 60%, #16213e 100%)', padding:'0 0 0', position:'relative' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'2rem 2rem 0' }}>
-          <button onClick={() => router.back()}
+          <button onClick={() => router.push('/dashboard/biblioteca')}
             style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.12)', color:'rgba(255,255,255,.7)', padding:'6px 14px', borderRadius:100, fontSize:12, cursor:'pointer', fontFamily:'inherit', marginBottom:'1.5rem' }}>
             ← Biblioteca
           </button>
