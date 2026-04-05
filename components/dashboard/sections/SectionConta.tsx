@@ -95,14 +95,19 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
               <button disabled={confirma!=='EXCLUIR'}
                 onClick={async()=>{
                   if(confirma==='EXCLUIR'){
-                    // Chama função SQL que deleta tudo incluindo auth user
-                  const { error } = await supabase.rpc('delete_own_account');
-                  if (error) {
-                    alert('Erro ao excluir conta: ' + error.message);
-                  } else {
-                    await supabase.auth.signOut();
-                    window.location.href = '/login';
+                    // Apaga todos os dados via RPC
+                  const { data: rpcData, error: rpcError } = await supabase.rpc('delete_own_account');
+                  if (rpcError) {
+                    alert('Erro ao excluir: ' + rpcError.message);
+                    return;
                   }
+                  if (rpcData?.error) {
+                    alert('Erro: ' + rpcData.error);
+                    return;
+                  }
+                  // Faz logout e redireciona
+                  await supabase.auth.signOut();
+                  window.location.href = '/login';
                   }
                 }}
                 style={{ padding:'8px 16px', borderRadius:8, border:'none', background:confirma==='EXCLUIR'?'#D85A30':'#FECACA', color:'white', fontSize:12, cursor:confirma==='EXCLUIR'?'pointer':'default', fontFamily:'inherit', fontWeight:500 }}>
