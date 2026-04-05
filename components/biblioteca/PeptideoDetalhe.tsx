@@ -92,7 +92,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
 
           {/* Abas */}
           <div style={{ display:'flex', gap:0, borderBottom:'1px solid rgba(255,255,255,.1)', marginTop:'2rem' }}>
-            {[['visao','📋 Visão Geral'],['protocolo','💉 Protocolo'],['pesquisa','🔬 Pesquisa'],['sinergia','🔗 Sinergia']].map(([v,l]) => (
+            {[['visao','📋 Visão Geral'],['pesquisa','🔬 Pesquisa'],['sinergia','🔗 Sinergia']].map(([v,l]) => (
               <button key={v} onClick={() => setAba(v as any)}
                 style={{ padding:'12px 20px', background:'none', border:'none', color:aba===v?'white':'rgba(255,255,255,.4)', fontSize:13, fontWeight:aba===v?600:400, cursor:'pointer', fontFamily:'inherit', borderBottom:aba===v?'2px solid #4ade80':'2px solid transparent', transition:'all .15s' }}>
                 {l}
