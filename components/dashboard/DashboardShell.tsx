@@ -203,7 +203,31 @@ export default function DashboardShell() {
     ? allItems.filter(item => aceitosRevisao.includes(item.n))
     : allItems;
 
-  const nav      = (s: DashSection) => { setSection(s); setSidebarOpen(false); };
+  const SLUG: Record<string,string> = {
+    inicio:'inicio', protocolo:'protocolo', diario:'diario', analise:'analise',
+    historico:'historico', detector:'detector', biblioteca:'biblioteca',
+    estoque:'estoque', rotina:'rotina', calendario:'calendario',
+    exportacao:'exportacao', config:'configuracoes', planos:'planos', perfil:'perfil',
+  };
+
+  const nav      = (s: DashSection) => {
+    setSection(s);
+    setSidebarOpen(false);
+    window.history.replaceState(null, '', `/dashboard/${SLUG[s] || s}`);
+  };
+
+  // Carrega seção da URL ao montar
+  useEffect(() => {
+    const seg = window.location.pathname.split('/dashboard/')[1]?.split('?')[0] || '';
+    const REV: Record<string,string> = {
+      inicio:'inicio', protocolo:'protocolo', diario:'diario', analise:'analise',
+      historico:'historico', detector:'detector', biblioteca:'biblioteca',
+      estoque:'estoque', rotina:'rotina', calendario:'calendario',
+      configuracoes:'config', planos:'planos', perfil:'perfil',
+    };
+    if (seg && REV[seg]) setSection(REV[seg] as DashSection);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const ml       = sidebarExpanded ? 'var(--sb-wx)' : 'var(--sb-w)';
   const doLogout = async () => { await signOut(); router.replace('/login'); };
