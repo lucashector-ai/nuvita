@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation';
-
+import DashboardShell from '@/components/dashboard/DashboardShell';
 export default function BibliotecaPage() {
-  redirect('/dashboard#biblioteca');
+  return <DashboardShell />;
 }
