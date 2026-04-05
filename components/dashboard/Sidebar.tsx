@@ -121,15 +121,14 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
         overflow: 'hidden',
       }}>
         {/* Logo */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 10px', minHeight:56, borderBottom:'1px solid rgba(255,255,255,.06)', flexShrink:0 }}>
-          <div style={{ width:32, height:32, borderRadius:8, background:'linear-gradient(135deg,#22C55E,#15803D)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'pointer' }}
-            onClick={() => nav('inicio')}>
-            <span style={{ color:'white', fontWeight:800, fontSize:13, letterSpacing:'-.05em' }}>N</span>
-          </div>
-          {expanded && (
-            <div style={{ flex:1, overflow:'hidden', cursor:'pointer' }} onClick={() => nav('inicio')}>
-              <div style={{ fontSize:14, fontWeight:700, color:'white', letterSpacing:'-.04em' }}>Nuvita</div>
-              <div style={{ fontSize:10, color:'rgba(255,255,255,.35)', marginTop:1 }}>Protocolo ativo</div>
+        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 12px', minHeight:56, borderBottom:'1px solid rgba(255,255,255,.06)', flexShrink:0, cursor:'pointer' }}
+          onClick={() => nav('inicio')}>
+          {/* Logo Nuvita completa quando expandido, só ícone quando colapsado */}
+          {expanded ? (
+            <NuvitaLogo width={80} height={18} white/>
+          ) : (
+            <div style={{ width:28, height:28, borderRadius:7, background:'linear-gradient(135deg,#22C55E,#15803D)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <span style={{ color:'white', fontWeight:800, fontSize:12, letterSpacing:'-.05em' }}>N</span>
             </div>
           )}
           {expanded && (

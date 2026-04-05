@@ -261,7 +261,7 @@ export default function DashboardShell() {
   const doLogout = async () => { await signOut(); router.replace('/login'); };
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg2)' }}>
+    <div style={{ display:'flex', minHeight:'100vh', background:'#FFFFFF' }}>
       <Sidebar
         active={section} onNavigate={nav}
         mobileOpen={sidebarOpen} onMobileClose={()=>setSidebarOpen(false)}
