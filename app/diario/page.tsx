@@ -1,5 +1,2 @@
-import { redirect } from 'next/navigation';
-
-export default function DiarioPage() {
-  redirect('/dashboard#diario');
-}
+import DashboardShell from '@/components/dashboard/DashboardShell';
+export default function Page() {{ return <DashboardShell />; }}

@@ -1,5 +1,2 @@
-import { redirect } from 'next/navigation';
-
-export default function ProtocoloPage() {
-  redirect('/dashboard#protocolo');
-}
+import DashboardShell from '@/components/dashboard/DashboardShell';
+export default function Page() {{ return <DashboardShell />; }}

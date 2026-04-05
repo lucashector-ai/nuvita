@@ -1,5 +1,2 @@
-import { redirect } from 'next/navigation';
-
-export default function PerfilPage() {
-  redirect('/dashboard#perfil');
-}
+import DashboardShell from '@/components/dashboard/DashboardShell';
+export default function Page() {{ return <DashboardShell />; }}

@@ -56,7 +56,17 @@ export default function DashboardShell() {
   const [ready,           setReady]           = useState(false);
   const [userId,          setUserId]          = useState<string|null>(null);
   const [answers,         setAnswers]         = useState<QuizAnswers>({});
-  const [section,         setSection]         = useState<DashSection>('inicio');
+  const [section,         setSection]         = useState<DashSection>(() => {
+    if (typeof window === 'undefined') return 'inicio';
+    const URL_MAP: Record<string,DashSection> = {
+      '/dashboard':'inicio', '/protocolo':'protocolo', '/diario':'diario',
+      '/analise':'analise', '/historico':'historico', '/detector':'detector',
+      '/biblioteca':'biblioteca', '/estoque':'estoque', '/rotina':'rotina',
+      '/calendario':'calendario', '/exportacao':'exportacao',
+      '/configuracoes':'config', '/planos':'planos', '/perfil':'perfil',
+    };
+    return URL_MAP[window.location.pathname] || 'inicio';
+  });
   const [sidebarOpen,     setSidebarOpen]     = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [protoAtivo,      setProtoAtivo]      = useState(false);
@@ -172,20 +182,7 @@ export default function DashboardShell() {
     init();
   }, [router]);
 
-  // Lê seção da URL ao carregar
-  useEffect(() => {
-    // Lê slug do pathname — pode ser /biblioteca, /protocolo etc.
-    const path = window.location.pathname;
-    const seg = path === '/dashboard' ? 'inicio' : path.replace(/^\//, '').split('?')[0];
-    const REV: Record<string,string> = {
-      inicio:'inicio', protocolo:'protocolo', diario:'diario', analise:'analise',
-      historico:'historico', detector:'detector', biblioteca:'biblioteca',
-      estoque:'estoque', rotina:'rotina', calendario:'calendario',
-      configuracoes:'config', planos:'planos', perfil:'perfil',
-    };
-    if (seg && REV[seg]) setSection(REV[seg] as DashSection);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
 
   if (!ready) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -216,21 +213,27 @@ export default function DashboardShell() {
     ? allItems.filter(item => aceitosRevisao.includes(item.n))
     : allItems;
 
-  const SLUG: Record<string,string> = {
-    inicio:'inicio', protocolo:'protocolo', diario:'diario', analise:'analise',
-    historico:'historico', detector:'detector', biblioteca:'biblioteca',
-    estoque:'estoque', rotina:'rotina', calendario:'calendario',
-    exportacao:'exportacao', config:'configuracoes', planos:'planos', perfil:'perfil',
+  // Mapa seção → URL e URL → seção
+  const SECTION_TO_URL: Record<string,string> = {
+    inicio:'/dashboard', protocolo:'/protocolo', diario:'/diario',
+    analise:'/analise', historico:'/historico', detector:'/detector',
+    biblioteca:'/biblioteca', estoque:'/estoque', rotina:'/rotina',
+    calendario:'/calendario', exportacao:'/exportacao',
+    config:'/configuracoes', planos:'/planos', perfil:'/perfil',
+  };
+  const URL_TO_SECTION: Record<string,DashSection> = {
+    '/dashboard':'inicio', '/protocolo':'protocolo', '/diario':'diario',
+    '/analise':'analise', '/historico':'historico', '/detector':'detector',
+    '/biblioteca':'biblioteca', '/estoque':'estoque', '/rotina':'rotina',
+    '/calendario':'calendario', '/exportacao':'exportacao',
+    '/configuracoes':'config', '/planos':'planos', '/perfil':'perfil',
   };
 
   const nav      = (s: DashSection) => {
     setSection(s);
     setSidebarOpen(false);
-    // Atualiza URL com slug próprio da seção
-    const slugUrl = SLUG[s] || s;
-    // biblioteca fica em /biblioteca, não /dashboard/biblioteca
-    const url = slugUrl === 'inicio' ? '/dashboard' : `/${slugUrl}`;
-    window.history.replaceState(null, '', url);
+    const url = SECTION_TO_URL[s] || '/dashboard';
+    router.push(url);
   };
 
 

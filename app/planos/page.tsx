@@ -1,5 +1,2 @@
-import { redirect } from 'next/navigation';
-
-export default function PlanosPage() {
-  redirect('/dashboard#planos');
-}
+import DashboardShell from '@/components/dashboard/DashboardShell';
+export default function Page() {{ return <DashboardShell />; }}

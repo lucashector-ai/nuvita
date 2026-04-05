@@ -1,5 +1,2 @@
-import { redirect } from 'next/navigation';
-
-export default function RotinaPage() {
-  redirect('/dashboard#rotina');
-}
+import DashboardShell from '@/components/dashboard/DashboardShell';
+export default function Page() {{ return <DashboardShell />; }}
