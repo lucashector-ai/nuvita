@@ -46,7 +46,7 @@ export default function ScreenWelcome({ onNext }: Props) {
               <div className="w-stat"><div className="wsv">100%</div><div className="wsl">Seu perfil</div></div>
             </div>
             <div className="w-steps">
-              {['Responda sobre seu perfil e objetivos','Veja seu protocolo real personalizado','Escolha um plano e acesse a plataforma','Acompanhe cada dia do ciclo com IA'].map((s, i) => (
+              {['Responda sobre seu perfil e objetivos','Veja seu protocolo real personalizado','Veja seu protocolo atualizado','Continue acompanhando seu ciclo com IA'].map((s, i) => (
                 <div className="wsi" key={i}><div className="wsin">{i + 1}</div>{s}</div>
               ))}
             </div>

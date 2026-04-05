@@ -81,6 +81,13 @@ export default function DashboardShell() {
       if (!session) { router.replace('/login'); return; }
       setUserId(session.user.id);
 
+      // Verifica se voltou de um diagnóstico atualizado — força reler do banco
+      const diagnosticoAtualizado = sessionStorage.getItem('nv_diagnostico_atualizado');
+      if (diagnosticoAtualizado) {
+        sessionStorage.removeItem('nv_diagnostico_atualizado');
+        sessionStorage.removeItem('nv_quiz');
+      }
+
       const perfil = await carregarDiagnostico(session.user.id);
       if (perfil?.diagnostico) {
         setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });

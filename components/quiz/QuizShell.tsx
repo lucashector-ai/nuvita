@@ -69,6 +69,9 @@ export default function QuizShell() {
       const session = await getSession();
       if (session) {
         await salvarDiagnostico(session.user.id, answers);
+        // Limpa cache para DashboardShell reler do banco
+        sessionStorage.removeItem('nv_quiz');
+        sessionStorage.setItem('nv_diagnostico_atualizado', '1');
         router.push('/dashboard');
         return;
       }

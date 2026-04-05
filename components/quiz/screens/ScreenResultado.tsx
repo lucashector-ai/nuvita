@@ -179,6 +179,9 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
                   const session = await getSession();
                   if (session) {
                     await salvarDiagnostico(session.user.id, { ...answers, _protocoloIA: protIA ? JSON.stringify(protIA) : answers._protocoloIA });
+                    // Limpa session cache para forçar DashboardShell reler do banco
+                    sessionStorage.removeItem('nv_quiz');
+                    sessionStorage.setItem('nv_diagnostico_atualizado', '1');
                     onLogin(); // vai para o dashboard
                     return;
                   }
