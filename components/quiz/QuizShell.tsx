@@ -69,30 +69,23 @@ export default function QuizShell() {
   // Se já tem conta: salva e vai direto ao dashboard (sem pricing)
   // Se não tem conta: vai para revisão/pricing
   const handleGoToRevisao = async () => {
-    if (hasSession) {
-      const session = await getSession();
-      if (session) {
-        // Carrega diagnóstico atual do banco e faz merge
-        // Só atualiza os campos que foram respondidos no quiz atual
-        const { supabase } = await import('@/lib/supabase');
-        const { data: usuarioAtual } = await supabase
-          .from('usuarios').select('diagnostico').eq('id', session.user.id).single();
-        const diagAtual = usuarioAtual?.diagnostico || {};
-        // Merge: mantém campos do banco, sobrescreve com respostas novas
-        // Preserva campos especiais (_protocoloIA, _protocoloAtivo, _dataInicioProtocolo)
-        const campos_especiais: Record<string,any> = {};
-        for (const k of Object.keys(diagAtual)) {
-          if (k.startsWith('_')) campos_especiais[k] = diagAtual[k];
-        }
-        const merged = { ...diagAtual, ...answers, ...campos_especiais };
-        await salvarDiagnostico(session.user.id, merged);
-        // Limpa cache para DashboardShell reler do banco
-        sessionStorage.removeItem('nv_quiz');
-        sessionStorage.setItem('nv_diagnostico_atualizado', '1');
-        router.push('/dashboard');
-        return;
+    const session = await getSession();
+    if (session) {
+      // Merge com dados existentes — preserva campos especiais
+      const { supabase } = await import('@/lib/supabase');
+      const { data: usuarioAtual } = await supabase
+        .from('usuarios').select('diagnostico').eq('id', session.user.id).single();
+      const diagAtual = usuarioAtual?.diagnostico || {};
+      const merged: Record<string,any> = { ...diagAtual, ...answers };
+      // Preserva campos especiais do banco (_protocoloIA, _protocoloAtivo, etc.)
+      for (const k of Object.keys(diagAtual)) {
+        if (k.startsWith('_')) merged[k] = diagAtual[k];
       }
+      await salvarDiagnostico(session.user.id, merged);
+      sessionStorage.removeItem('nv_quiz');
+      sessionStorage.setItem('nv_diagnostico_atualizado', '1');
     }
+    // Sempre vai para revisão — usuário novo ou refazendo
     router.push('/revisao');
   };
 

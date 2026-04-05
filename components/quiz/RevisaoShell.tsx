@@ -24,11 +24,24 @@ export default function RevisaoShell() {
   const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
-    const s = loadSession();
+    (async () => {
+    // Tenta carregar do banco primeiro (usuário logado refazendo diagnóstico)
+    const { getSession, carregarDiagnostico } = await import('@/lib/auth');
+    const session = await getSession();
+    let s: any = loadSession();
+
+    if (session) {
+      const perfil = await carregarDiagnostico(session.user.id);
+      if (perfil?.diagnostico) {
+        // Merge: sessionStorage tem prioridade (respostas mais recentes)
+        s = { ...perfil.diagnostico, ...(s || {}) };
+      }
+    }
+
     if (!s || !s.q3) { router.replace('/diagnostico'); return; }
     setAnswers(s);
 
-    // Se tem protocolo gerado pela IA, usa ele; senão usa buildProtocol
+    // Se tem protocolo gerado pela IA, usa ele; senão buildProtocol
     if (s._protocoloIA) {
       try {
         const protIA = JSON.parse(s._protocoloIA);
@@ -47,6 +60,7 @@ export default function RevisaoShell() {
       setItems(proto);
     }
     setReady(true);
+    })();
   }, [router]);
 
   if (!ready) return null;
