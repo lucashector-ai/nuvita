@@ -14,7 +14,6 @@ const NIVEL_LABEL: Record<string,string> = { iniciante:'Iniciante', intermediari
 export default function SectionPerfil({ answers, plan, onNavigate, userId, onPlanChange }: any) {
   const [nome,     setNome]     = useState(answers?.nome || '');
   const [email,    setEmail]    = useState('');
-  const [avatar,   setAvatar]   = useState<string|null>(null);
   const [salvando, setSalvando] = useState(false);
   const [salvo,    setSalvo]    = useState(false);
   const [stats,    setStats]    = useState({ checkins:0, dias:0, semana:0 });
@@ -25,9 +24,9 @@ export default function SectionPerfil({ answers, plan, onNavigate, userId, onPla
     (async () => {
       const { data:{ user } } = await supabase.auth.getUser();
       setEmail(user?.email || '');
-      const { data:u } = await supabase.from('usuarios').select('nome,avatar_url').eq('id',userId).single();
+      const { data:u } = await supabase.from('usuarios').select('nome,foto_url').eq('id',userId).single();
       if (u?.nome) setNome(u.nome);
-      if (u?.avatar_url) setAvatar(u.avatar_url);
+      if (u?.foto_url) setAvatar(u.foto_url);
       // Stats
       const { data:t } = await supabase.from('tracker_entries').select('data').eq('user_id',userId);
       const { data:a } = await supabase.from('adesao_diaria').select('data,completo').eq('user_id',userId);
@@ -44,16 +43,6 @@ export default function SectionPerfil({ answers, plan, onNavigate, userId, onPla
     setTimeout(()=>setSalvo(false), 2000);
   };
 
-  const uploadAvatar = async (file: File) => {
-    const ext = file.name.split('.').pop();
-    const path = `${userId}/avatar.${ext}`;
-    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert:true });
-    if (!error) {
-      const { data:{ publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
-      setAvatar(publicUrl);
-      await supabase.from('usuarios').update({ avatar_url: publicUrl }).eq('id', userId);
-    }
-  };
 
   const objs = (answers?.objetivo || answers?.q1 || []) as string[];
   const nivel = answers?.q4 || answers?.nivel || '';
