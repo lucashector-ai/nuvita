@@ -144,12 +144,12 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <button onClick={()=>{ const d=new Date(ano,mes-1); setMes(d.getMonth()); setAno(d.getFullYear()); }}
-              style={{ width:28,height:28,borderRadius:6,border:'none',background:'#FFFFFF',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 }}>‹</button>
+              style={{ width:28,height:28,borderRadius:6,border:'none',background:'#FFFFFF',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>‹</button>
             <span style={{ fontSize:15,fontWeight:600,minWidth:140,textAlign:'center' }}>{MESES[mes]} {ano}</span>
             <button onClick={()=>{ const d=new Date(ano,mes+1); setMes(d.getMonth()); setAno(d.getFullYear()); }}
-              style={{ width:28,height:28,borderRadius:6,border:'none',background:'#FFFFFF',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 }}>›</button>
+              style={{ width:28,height:28,borderRadius:6,border:'none',background:'#FFFFFF',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>›</button>
             <button onClick={()=>{ setMes(hoje.getMonth()); setAno(hoje.getFullYear()); setDia(hoje.getDate()); }}
-              style={{ padding:'4px 10px',borderRadius:6,border:'none',background:'#FFFFFF',cursor:'pointer',fontSize:12,fontFamily:'inherit',color:'var(--tm)' }}>Hoje</button>
+              style={{ padding:'4px 10px',borderRadius:6,border:'none',background:'#FFFFFF',cursor:'pointer',fontSize:12,fontFamily:'inherit',color:'var(--tm)' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>Hoje</button>
           </div>
           <div style={{ display:'flex',background:'#FFFFFF',borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)',padding:3,gap:2 }}>
             {(['mes','semana'] as const).map(v=>(

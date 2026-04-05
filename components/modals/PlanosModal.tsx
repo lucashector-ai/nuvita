@@ -68,7 +68,7 @@ const PLANOS = [
 export default function PlanosModal({ onClose, onSelect, planoAtual = 'free' }: Props) {
   return (
     <div className="overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className='planos-modal-inner' style={{ background:'var(--bg)', borderRadius:20, padding:'1.5rem', maxWidth:780, width:'calc(100% - 2rem)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
+      <div className='planos-modal-inner' style={{ background:'#F7F7F7', borderRadius:20, padding:'1.5rem', maxWidth:780, width:'calc(100% - 2rem)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
         <div style={{ textAlign:'center', marginBottom:'1.5rem' }}>
           <h2 style={{ fontSize:'1.4rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.375rem' }}>Escolha seu plano</h2>
           <p style={{ fontSize:13, color:'var(--ts)' }}>Cancele a qualquer momento · Sem taxas ocultas</p>

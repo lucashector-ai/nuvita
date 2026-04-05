@@ -134,7 +134,7 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
             const ps = PRIO_STYLE[p.prioridade as keyof typeof PRIO_STYLE] || PRIO_STYLE.recomendado;
             const borrado = hasSession ? false : i > 0; // sem blur para quem já tem conta
             return (
-              <div key={i} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem', borderLeft:`4px solid ${borrado?'var(--border)':ps.cor}`, filter:borrado?'blur(5px)':'none', userSelect:borrado?'none':'auto', pointerEvents:borrado?'none':'auto' }}>
+              <div key={i} style={{ background:'#F7F7F7', borderRadius:14, padding:'1.25rem', borderLeft:`4px solid ${borrado?'var(--border)':ps.cor}`, filter:borrado?'blur(5px)':'none', userSelect:borrado?'none':'auto', pointerEvents:borrado?'none':'auto' }}>
                 <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, marginBottom:'.75rem' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                     <span style={{ fontSize:'1.5rem' }}>{borrado?'🔒':p.emoji}</span>
@@ -153,7 +153,7 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
                 </p>
                 <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                   {[['Timing', borrado?'•••':p.timing],['Freq.', borrado?'•••':p.frequencia],['Ciclo', borrado?'•••':p.ciclo]].map(([l,v]) => (
-                    <div key={l} style={{ fontSize:11, background:'var(--bg2)', borderRadius:6, padding:'3px 9px', color:'var(--tm)' }}>
+                    <div key={l} style={{ fontSize:11, background:'#FFFFFF', borderRadius:6, padding:'3px 9px', color:'var(--tm)' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
                       <span style={{ color:'var(--ts)' }}>{l}:</span> {v}
                     </div>
                   ))}
@@ -207,7 +207,7 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
       </div>
 
       {/* Aviso médico */}
-      <div style={{ fontSize:12, color:'var(--ts)', textAlign:'center', lineHeight:1.6, padding:'1rem', background:'var(--bg2)', borderRadius:10 }}>
+      <div style={{ fontSize:12, color:'var(--ts)', textAlign:'center', lineHeight:1.6, padding:'1rem', background:'#FFFFFF', borderRadius:10 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
         ⚠️ {protIA?.avisoMedico || 'Este protocolo tem fins educacionais. Não substitui avaliação médica profissional.'}
       </div>
 

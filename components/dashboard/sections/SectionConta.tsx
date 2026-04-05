@@ -80,7 +80,7 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'#D85A30', marginBottom:'1rem' }}>Zona de perigo</div>
         {!excluindo ? (
           <button onClick={()=>setExcluindo(true)}
-            style={{ padding:'8px 16px', borderRadius:8, border:'1.5px solid #FECACA', background:'white', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'#D85A30', fontWeight:500 }}>
+            style={{ padding:'8px 16px', borderRadius:8, border:'1.5px solid #FECACA', background:'white', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'#D85A30', fontWeight:500 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
             Excluir minha conta
           </button>
         ) : (
@@ -90,7 +90,7 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
             </p>
             <input value={confirma} onChange={e=>setConfirma(e.target.value)}
               placeholder="Digite EXCLUIR para confirmar"
-              style={{ width:'100%', padding:'8px 12px', borderRadius:8, border:'1.5px solid #FECACA', background:'white', fontSize:12, fontFamily:'inherit', color:'var(--tx)', marginBottom:10, outline:'none' }}/>
+              style={{ width:'100%', padding:'8px 12px', borderRadius:8, border:'1.5px solid #FECACA', background:'white', fontSize:12, fontFamily:'inherit', color:'var(--tx)', marginBottom:10, outline:'none' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}/>
             <div style={{ display:'flex', gap:8 }}>
               <button disabled={confirma!=='EXCLUIR'}
                 onClick={async()=>{
@@ -114,7 +114,7 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
                 Excluir conta
               </button>
               <button onClick={()=>{setExcluindo(false);setConfirma('');}}
-                style={{ padding:'8px 16px', borderRadius:8, border:'none', background:'white', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}>
+                style={{ padding:'8px 16px', borderRadius:8, border:'none', background:'white', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
                 Cancelar
               </button>
             </div>

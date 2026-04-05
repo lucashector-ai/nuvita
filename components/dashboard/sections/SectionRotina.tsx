@@ -233,7 +233,7 @@ export default function SectionRotina({ answers, userId }: Props) {
                   width:44, height:44, borderRadius:10, border:'none',
                   background:'#FFFFFF', cursor:'pointer', fontSize:'1.3rem',
                   display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
-                }}>
+                , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
                 {novoEmoji}
               </button>
               {/* Input texto */}
@@ -248,7 +248,7 @@ export default function SectionRotina({ answers, userId }: Props) {
                   border:'none', background:'#FFFFFF',
                   fontSize:13, fontFamily:'inherit', color:'var(--tx)',
                   outline:'none',
-                }}
+                , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}
               />
             </div>
 
@@ -286,7 +286,7 @@ export default function SectionRotina({ answers, userId }: Props) {
                 Adicionar
               </button>
               <button onClick={() => { setModal(null); setShowEmoji(false); }}
-                style={{ padding:'10px 16px', borderRadius:10, border:'none', background:'#FFFFFF', cursor:'pointer', fontFamily:'inherit', fontSize:13, color:'var(--tm)' }}>
+                style={{ padding:'10px 16px', borderRadius:10, border:'none', background:'#FFFFFF', cursor:'pointer', fontFamily:'inherit', fontSize:13, color:'var(--tm)' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
                 Cancelar
               </button>
             </div>

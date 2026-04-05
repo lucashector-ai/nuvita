@@ -64,7 +64,7 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
           <span style={{ fontSize:12, color:'var(--tm)' }}>Mensal</span>
           <div onClick={()=>setAnual(!anual)}
             style={{ width:36, height:20, borderRadius:100, background:anual?'var(--dark)':'var(--border)', cursor:'pointer', position:'relative', transition:'background .2s' }}>
-            <div style={{ position:'absolute', top:2, left:anual?'calc(100% - 18px)':2, width:16, height:16, borderRadius:'50%', background:'white', transition:'left .2s' }}/>
+            <div style={{ position:'absolute', top:2, left:anual?'calc(100% - 18px)':2, width:16, height:16, borderRadius:'50%', background:'white', transition:'left .2s' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}/>
           </div>
           <span style={{ fontSize:12, color:'var(--tm)', paddingRight:8 }}>Anual <span style={{ color:'var(--gm)', fontWeight:600 }}>-20%</span></span>
         </div>

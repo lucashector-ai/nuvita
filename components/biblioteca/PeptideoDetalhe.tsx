@@ -22,23 +22,23 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
   }, [slug]);
 
   if (loading) return (
-    <div style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+    <div style={{ minHeight:'100vh', background:'#F7F7F7', display:'flex', alignItems:'center', justifyContent:'center' }}>
       <div style={{ fontSize:13, color:'var(--ts)' }}>Carregando...</div>
     </div>
   );
 
   if (!p) return (
-    <div style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+    <div style={{ minHeight:'100vh', background:'#F7F7F7', display:'flex', alignItems:'center', justifyContent:'center' }}>
       <div style={{ textAlign:'center' }}>
         <div style={{ fontSize:'2rem', marginBottom:'1rem' }}>🔬</div>
         <div style={{ fontSize:14, color:'var(--tx)' }}>Peptídeo não encontrado</div>
-        <button onClick={() => { window.location.href = '/biblioteca'; }} style={{ marginTop:'1rem', padding:'8px 20px', borderRadius:100, border:'1px solid var(--border)', background:'var(--bg2)', cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>← Voltar</button>
+        <button onClick={() => { window.location.href = '/biblioteca'; }} style={{ marginTop:'1rem', padding:'8px 20px', borderRadius:100, background:'#FFFFFF', cursor:'pointer', fontFamily:'inherit', fontSize:13 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>← Voltar</button>
       </div>
     </div>
   );
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--bg)' }}>
+    <div style={{ minHeight:'100vh', background:'#F7F7F7' }}>
       {/* Hero escuro */}
       <div style={{ background:'linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 60%, #16213e 100%)', padding:'0 0 0', position:'relative' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'2rem 2rem 0' }}>
@@ -119,7 +119,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
                     <h2 style={{ fontSize:16, fontWeight:600, marginBottom:'1rem', display:'flex', alignItems:'center', gap:8 }}>✨ Benefícios Comprovados</h2>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                       {p.beneficios.map((b: string, i: number) => (
-                        <div key={i} style={{ background:'var(--bg2)', borderRadius:12, padding:'1rem', display:'flex', gap:10, alignItems:'flex-start' }}>
+                        <div key={i} style={{ background:'#FFFFFF', borderRadius:12, padding:'1rem', display:'flex', gap:10, alignItems:'flex-start' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
                           <div style={{ width:22, height:22, borderRadius:'50%', background:'var(--gp)', color:'var(--gm)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0, marginTop:1 }}>{i+1}</div>
                           <span style={{ fontSize:13, color:'var(--tx)', lineHeight:1.5 }}>{b}</span>
                         </div>
@@ -189,7 +189,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
                       { icon:'🔄', label:'Duração do ciclo', val: p.ciclo_semanas > 0 ? `${p.ciclo_semanas} semanas` : null },
                       { icon:'⏸️', label:'Pausa', val: p.pausa_semanas > 0 ? `${p.pausa_semanas} semanas` : null },
                     ].filter(s => s.val).map(s => (
-                      <div key={s.label} style={{ background:'var(--bg2)', borderRadius:12, padding:'1rem' }}>
+                      <div key={s.label} style={{ background:'#FFFFFF', borderRadius:12, padding:'1rem' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
                         <div style={{ fontSize:11, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{s.icon} {s.label}</div>
                         <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)' }}>{s.val}</div>
                       </div>
@@ -203,7 +203,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
                     <div style={{ overflowX:'auto' }}>
                       <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
                         <thead>
-                          <tr style={{ background:'var(--bg2)' }}>
+                          <tr style={{ background:'#FFFFFF' }}>
                             {['Etapa','Dose','Duração','Critério'].map(h => (
                               <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:10, fontWeight:600, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em' }}>{h}</th>
                             ))}
@@ -231,7 +231,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
               <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
                 {p.pesquisas?.length > 0 ? p.pesquisas.map((r: string, i: number) => (
                   <div key={i} className="dc" style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
-                    <div style={{ width:40, height:40, borderRadius:10, background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 }}>📄</div>
+                    <div style={{ width:40, height:40, borderRadius:10, background:'#FFFFFF', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>📄</div>
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:13, color:'var(--tx)', lineHeight:1.75 }}>{r}</div>
                     </div>
@@ -280,7 +280,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
                 <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.1em', color:'var(--ts)', marginBottom:'1rem' }}>Tags</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
                   {p.tags.map((t: string) => (
-                    <span key={t} style={{ fontSize:11, padding:'3px 10px', borderRadius:100, background:'var(--bg2)', color:'var(--ts)', fontWeight:500 }}>#{t}</span>
+                    <span key={t} style={{ fontSize:11, padding:'3px 10px', borderRadius:100, background:'#FFFFFF', color:'var(--ts)', fontWeight:500 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>#{t}</span>
                   ))}
                 </div>
               </div>

@@ -366,7 +366,7 @@ export function SectionConfig({ answers, plan }: CfgProps) {
             </div>
             <div onClick={() => n.set(!n.val)}
               style={{ width:38, height:22, borderRadius:11, background: n.val?'var(--green)':'var(--border)', position:'relative', cursor:'pointer', flexShrink:0, transition:'background .2s' }}>
-              <div style={{ position:'absolute', top:3, left: n.val?19:3, width:16, height:16, borderRadius:'50%', background:'white', transition:'left .2s' }}/>
+              <div style={{ position:'absolute', top:3, left: n.val?19:3, width:16, height:16, borderRadius:'50%', background:'white', transition:'left .2s' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}/>
             </div>
           </div>
         ))}

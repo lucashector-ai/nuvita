@@ -53,7 +53,7 @@ export default function SectionConfig({ answers, userId, onNavigate }: Props) {
           <span>Lembretes de aplicação</span>
           <div onClick={() => setNotif(!notif)}
             style={{ width:40, height:22, borderRadius:100, background:notif?'var(--green)':'var(--border)', cursor:'pointer', position:'relative', transition:'background .2s' }}>
-            <div style={{ position:'absolute', top:2, left:notif?'calc(100% - 20px)':2, width:18, height:18, borderRadius:'50%', background:'white', transition:'left .2s' }}/>
+            <div style={{ position:'absolute', top:2, left:notif?'calc(100% - 20px)':2, width:18, height:18, borderRadius:'50%', background:'white', transition:'left .2s' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}/>
           </div>
         </div>
       </div>

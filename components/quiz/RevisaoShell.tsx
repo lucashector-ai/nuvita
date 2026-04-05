@@ -102,7 +102,7 @@ export default function RevisaoShell() {
     const aceitos = items.filter(i => !removed.includes(i.n));
     saveSession({ ...answers, _removidos: removed, _aceitosRevisao: aceitos.map(i => i.n) });
     return (
-      <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--bg)', padding:'2rem' }}>
+      <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'#F7F7F7', padding:'2rem' }}>
         <div style={{ maxWidth:480, textAlign:'center' }}>
           <div style={{ fontSize:'3rem', marginBottom:'1rem' }}>✅</div>
           <h2 style={{ fontSize:'1.4rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.75rem' }}>Revisão concluída!</h2>
@@ -130,9 +130,9 @@ export default function RevisaoShell() {
   const progresso = Math.round((idx / items.length) * 100);
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--bg2)', display:'flex', flexDirection:'column' }}>
+    <div style={{ minHeight:'100vh', background:'#FFFFFF', display:'flex', flexDirection:'column' }}>
       {/* Header */}
-      <div style={{ background:'var(--bg)', borderBottom:'1px solid var(--border)', padding:'1rem 2rem' }}>
+      <div style={{ background:'#F7F7F7', borderBottom:'1px solid var(--border)', padding:'1rem 2rem' }}>
         <div style={{ maxWidth:640, margin:'0 auto', display:'flex', alignItems:'center', gap:16 }}>
           <div style={{ flex:1 }}>
             <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'var(--ts)', marginBottom:6 }}>
@@ -152,7 +152,7 @@ export default function RevisaoShell() {
       {/* Card do peptídeo */}
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:'2rem 1rem' }}>
         <div style={{ maxWidth:560, width:'100%' }}>
-          <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:20, padding:'2rem', marginBottom:'1rem' }}>
+          <div style={{ background:'#F7F7F7', borderRadius:20, padding:'2rem', marginBottom:'1rem' }}>
             {/* Emoji e nome */}
             <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:'1.25rem' }}>
               <div style={{ width:64, height:64, background:'var(--gp)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'2rem', flexShrink:0 }}>
@@ -175,7 +175,7 @@ export default function RevisaoShell() {
             {/* Detalhes */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:'1.25rem' }}>
               {[['Dose', item.doseStr(peso)], ['Timing', item.timing], ['Frequência', item.freq], ['Via', item.route], ['Ciclo', item.cycle]].map(([l, v]) => (
-                <div key={l} style={{ background:'var(--bg2)', borderRadius:8, padding:'8px 10px' }}>
+                <div key={l} style={{ background:'#FFFFFF', borderRadius:8, padding:'8px 10px' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
                   <div style={{ fontSize:9, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:2 }}>{l}</div>
                   <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)', lineHeight:1.3 }}>{v}</div>
                 </div>
@@ -190,7 +190,7 @@ export default function RevisaoShell() {
               </button>
             )}
             {aiText && (
-              <div style={{ background:'var(--bg2)', borderRadius:10, padding:'10px 12px', marginBottom:'.75rem', fontSize:13, color:'var(--tm)', lineHeight:1.6, fontStyle:'italic' }}>
+              <div style={{ background:'#FFFFFF', borderRadius:10, padding:'10px 12px', marginBottom:'.75rem', fontSize:13, color:'var(--tm)', lineHeight:1.6, fontStyle:'italic' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
                 {aiText}
               </div>
             )}
@@ -199,7 +199,7 @@ export default function RevisaoShell() {
           {/* Ações */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
             <button onClick={remove}
-              style={{ padding:'14px', borderRadius:12, border:'2px solid var(--border)', background:'var(--bg)', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'var(--ts)', transition:'all .15s' }}
+              style={{ padding:'14px', borderRadius:12, border:'2px solid var(--border)', background:'#F7F7F7', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'var(--ts)', transition:'all .15s' }}
               onMouseEnter={e=>{e.currentTarget.style.borderColor='#D85A30';e.currentTarget.style.color='#D85A30';}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.color='var(--ts)';}}>
               ✕ Remover

@@ -135,7 +135,7 @@ export default function SectionCalc() {
             <div className="dc" style={{ marginBottom:0 }}>
               <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'.75rem' }}>Selecionar protocolo <span style={{ fontWeight:400, color:'var(--ts)' }}>(opcional)</span></div>
               <select value={proto} onChange={e=>aplicarProtocolo(e.target.value)}
-                style={{ width:'100%', padding:'10px 12px', borderRadius:10, border:'none', background:'#FFFFFF', color:'var(--tx)', fontSize:13, fontFamily:'inherit', cursor:'pointer', outline:'none' }}>
+                style={{ width:'100%', padding:'10px 12px', borderRadius:10, border:'none', background:'#FFFFFF', color:'var(--tx)', fontSize:13, fontFamily:'inherit', cursor:'pointer', outline:'none' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
                 <option value="">Escolha um protocolo para pré-preencher...</option>
                 {PROTOCOLOS.map(p=>(
                   <option key={p.id} value={p.id}>{p.label}</option>

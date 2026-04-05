@@ -137,7 +137,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
                     style={{ display:'flex', gap:10, padding:'10px 1rem', cursor:'pointer', background:n.read?'transparent':'rgba(29,158,117,.04)', borderBottom:'1px solid var(--border)', transition:'background .15s' }}
                     onMouseEnter={e=>e.currentTarget.style.background='var(--bg2)'}
                     onMouseLeave={e=>e.currentTarget.style.background=n.read?'transparent':'rgba(29,158,117,.04)'}>
-                    <div style={{ width:32, height:32, borderRadius:8, background:'#FFFFFF', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 }}>{n.icon}</div>
+                    <div style={{ width:32, height:32, borderRadius:8, background:'#FFFFFF', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>{n.icon}</div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:13, fontWeight:n.read?400:500, color:'var(--tx)', marginBottom:2 }}>{n.text}</div>
                       <div style={{ fontSize:11, color:'var(--ts)', lineHeight:1.4 }}>{n.sub}</div>
