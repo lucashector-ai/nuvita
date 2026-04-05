@@ -116,9 +116,9 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:10, paddingLeft:46 }}>
                 {peps.map(item => (
                   <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip>
-                    style={{ background:'var(--bg)', border:`1px solid var(--border)`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer' }}
+                    style={{ background:'var(--bg)', border:`1px solid var(--border)`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer', transition:'all .2s ease' }}
                     onClick={() => toggle(`${turno}_${item.n}`)}>
-                    <div style={{ padding:'1rem' }}>
+                    <div style={{ padding:'1rem', paddingBottom: expanded.has(`${turno}_${item.n}`) ? '1rem' : 0 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:expanded.has(`${turno}_${item.n}`)?'.875rem':0 }}>
                         <div style={{ width:40, height:40, background:TURNO_BG[turno], borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 }}>
                           {item.e}
