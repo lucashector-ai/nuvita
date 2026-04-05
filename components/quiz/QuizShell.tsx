@@ -36,14 +36,19 @@ export default function QuizShell() {
   const [hasSession,    setHasSession]    = useState(false);
 
   useEffect(() => {
-    getSession().then(session => {
+    getSession().then(async session => {
       if (!session) {
         clearSession();
         setInitialAnswers({});
         setHasSession(false);
       } else {
+        // Tem sessão: carrega dados existentes para pré-preencher nome e sexo
+        const { carregarDiagnostico } = await import('@/lib/auth');
+        const perfil = await carregarDiagnostico(session.user.id);
         const saved = loadQuizPartial();
-        setInitialAnswers(saved ?? {});
+        // Pré-preenche com dados do banco para não precisar redigitar nome/sexo
+        const base = perfil?.diagnostico || {};
+        setInitialAnswers({ ...base, ...(saved ?? {}) });
         setHasSession(true);
       }
       setSessionChecked(true);
@@ -87,7 +92,7 @@ export default function QuizShell() {
       )}
 
       {/* Welcome: tela cheia (tem seu próprio layout) */}
-      {cur === 0 && <ScreenWelcome onNext={next} />}
+      {cur === 0 && <ScreenWelcome onNext={hasSession ? () => goTo(3) : next} isRediag={hasSession} />}
 
       {/* Perguntas 1–11 dentro do container */}
       {cur !== 0 && cur !== 'result' && cur !== 'pricing' && (

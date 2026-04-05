@@ -132,7 +132,7 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {peptideos?.map((p, i) => {
             const ps = PRIO_STYLE[p.prioridade as keyof typeof PRIO_STYLE] || PRIO_STYLE.recomendado;
-            const borrado = i > 0;
+            const borrado = hasSession ? false : i > 0; // sem blur para quem já tem conta
             return (
               <div key={i} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem', borderLeft:`4px solid ${borrado?'var(--border)':ps.cor}`, filter:borrado?'blur(5px)':'none', userSelect:borrado?'none':'auto', pointerEvents:borrado?'none':'auto' }}>
                 <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, marginBottom:'.75rem' }}>

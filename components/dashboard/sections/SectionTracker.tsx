@@ -74,9 +74,12 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
     setLoading(false);
   };
 
+  const [erroSave, setErroSave] = useState('');
+
   const salvar = async () => {
     if (!userId) return;
     setSaving(true);
+    setErroSave('');
     const entry = {
       user_id: userId,
       data: hoje(),
@@ -85,12 +88,43 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
       energia, sono,
       nota: nota || null,
     };
-    const { error } = await supabase.from('tracker_entries').upsert(entry, { onConflict: 'user_id,data' });
+
+    // Tenta upsert primeiro, se falhar faz insert/update manual
+    let { error } = await supabase
+      .from('tracker_entries')
+      .upsert(entry, { onConflict: 'user_id,data' });
+
+    if (error) {
+      // Fallback: verifica se já existe e faz update ou insert
+      const { data: existe } = await supabase
+        .from('tracker_entries')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('data', hoje())
+        .maybeSingle();
+
+      if (existe) {
+        const { error: errUp } = await supabase
+          .from('tracker_entries')
+          .update({ peso: entry.peso, cintura: entry.cintura, energia, sono, nota: entry.nota })
+          .eq('user_id', userId)
+          .eq('data', hoje());
+        error = errUp;
+      } else {
+        const { error: errIn } = await supabase
+          .from('tracker_entries')
+          .insert(entry);
+        error = errIn;
+      }
+    }
+
     if (!error) {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
       setPeso(''); setCintura(''); setNota('');
       carregarEntries();
+    } else {
+      setErroSave(error.message);
     }
     setSaving(false);
   };
@@ -160,6 +194,11 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
               <textarea className="inp" rows={2} placeholder="Como você está se sentindo?" value={nota} onChange={e=>setNota(e.target.value)} style={{ resize:'none', fontFamily:'inherit', fontSize:13, marginBottom:0 }}/>
             </div>
 
+            {erroSave && (
+              <div style={{ background:'#FAECE7', borderRadius:8, padding:'8px 12px', fontSize:12, color:'#D85A30', marginBottom:8 }}>
+                Erro ao salvar: {erroSave}
+              </div>
+            )}
             <button className="btn btn-d fw" onClick={salvar} disabled={saving}>
               {saved ? '✅ Salvo!' : saving ? 'Salvando...' : '💾 Salvar registro de hoje'}
             </button>

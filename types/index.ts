@@ -11,6 +11,7 @@ export interface QuizAnswers {
   q10?: string[]; peso?: string | number; altura?: string | number;
   plano?: PlanType; pendingPlan?: PlanType; _activePlan?: PlanType;
   _revItems?: Peptide[]; _revRemovidos?: string[];
+  _protocoloIA?: string;
 }
 
 export type ObjectiveKey = 'gordura'|'massa'|'recuperacao'|'sono'|'pele'|'longevidade'|'cognitivo'|'hormonal';

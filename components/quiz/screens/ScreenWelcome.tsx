@@ -4,9 +4,10 @@ import NuvitaLogo from '@/components/ui/NuvitaLogo';
 
 interface Props {
   onNext: () => void;
+  isRediag?: boolean;
 }
 
-export default function ScreenWelcome({ onNext }: Props) {
+export default function ScreenWelcome({ onNext, isRediag = false }: Props) {
   return (
     <div className="grad" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <nav style={{ borderBottom: '1px solid rgba(232,232,232,0.5)', background: 'transparent' }}>
@@ -22,10 +23,10 @@ export default function ScreenWelcome({ onNext }: Props) {
         <div className="w-grid">
           <div>
             <h1 style={{ fontSize: 'clamp(2.4rem,5vw,3.4rem)', letterSpacing: '-.05em', lineHeight: 1.04, marginBottom: '1rem' }}>
-              Protocolos com clareza e método para todos.
+              {isRediag ? 'Atualize seu protocolo.' : 'Protocolos com clareza e método para todos.'}
             </h1>
             <p style={{ fontSize: 16, color: 'var(--tm)', lineHeight: 1.7, marginBottom: '2rem', letterSpacing: '-.02em', maxWidth: 440 }}>
-              10 perguntas para montar um protocolo real de peptídeos adaptado ao seu perfil e objetivos.
+              {isRediag ? 'Responda apenas sobre seus objetivos atuais — nome e perfil já estão salvos.' : '10 perguntas para montar um protocolo real de peptídeos adaptado ao seu perfil e objetivos.'}
             </p>
             <div style={{ display: 'flex', gap: '.875rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: 'var(--ts)' }}>
@@ -37,7 +38,7 @@ export default function ScreenWelcome({ onNext }: Props) {
                 ~4 minutos
               </span>
             </div>
-            <button className="btn btn-d" onClick={onNext}>Iniciar diagnóstico</button>
+            <button className="btn btn-d" onClick={onNext}>{isRediag ? 'Atualizar meu protocolo' : 'Iniciar diagnóstico'}</button>
           </div>
           <div>
             <div className="w-stat-row">

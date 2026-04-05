@@ -37,29 +37,15 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
   const [expanded, setExpanded] = useState(new Set<string>());
   const nome = answers.nome?.toString() ?? '';
 
-  // Toggle: fecha todos os outros ao abrir um novo card
+  // Toggle: fecha todos ao abrir um novo (accordion)
   const toggle = (key: string) => {
     setExpanded(p => {
       const s = new Set(p);
-      if (s.has(key)) {
-        s.delete(key);
-      } else {
-        s.clear(); // fecha todos
-        s.add(key);
-      }
+      if (s.has(key)) { s.delete(key); }
+      else { s.clear(); s.add(key); }
       return s;
     });
   };
-
-  // Cria um índice global único para cada peptídeo
-  const allItems: Array<{item: any, turno: string, globalIdx: number}> = [];
-  let gIdx = 0;
-  for (const turno of ['Manhã', 'Tarde', 'Noite', 'Qualquer horário']) {
-    const peps = items.filter(item => classificarTurno(item.timing) === turno);
-    for (const item of peps) {
-      allItems.push({ item, turno, globalIdx: gIdx++ });
-    }
-  }
 
   const porTurno = TURNO_ORDER.reduce((acc, turno) => {
     const peps = items.filter(item => classificarTurno(item.timing) === turno);

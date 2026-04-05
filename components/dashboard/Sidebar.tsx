@@ -30,8 +30,6 @@ const G = [
   ]},
   { label:'Planejamento', items:[
     { id:'simulador',    label:'Simulador',   ico:'M8 1a7 7 0 100 14A7 7 0 008 1zM8 5v4l2.5 2.5' },
-    { id:'geradorciclo', label:'Ciclo',       ico:'M2 5h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V5zM6 9h4M8 7v4' },
-    { id:'fases',        label:'Fases',       ico:'M2 12h2V8H2v4zM6 12h2V5H6v7zM10 12h2V2h-2v10z' },
     { id:'rotina',       label:'Rotina',      ico:'M4 6h8M4 9h5M4 12h3M2 3h12a1 1 0 011 1v10a1 1 0 01-1 1H2a1 1 0 01-1-1V4a1 1 0 011-1z' },
   ]},
   { label:'Logística', items:[

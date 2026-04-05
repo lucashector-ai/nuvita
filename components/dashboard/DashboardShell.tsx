@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSession, signOut, carregarDiagnostico } from '@/lib/auth';
 import { buildProtocol } from '@/lib/peptides';
+import type { ProtocoloIA } from '@/lib/gerarProtocolo';
 import type { QuizAnswers } from '@/types';
 import Sidebar             from './Sidebar';
 import DashboardNav        from './DashboardNav';
@@ -45,7 +46,7 @@ export type DashSection =
   'medico'|'calendario'|'perfil'|
   'tracker'|'diario'|'historico'|'consistencia'|'analise'|
   'coach'|'ajuste'|'detector'|
-  'simulador'|'geradorciclo'|'fases'|'rotina'|
+  'simulador'|'rotina'|
   'estoque'|'exportacao'|'planos'|'conta';
 
 const PLAN_LABEL: Record<string,string> = { free:'Conta gratuita', essencial:'Essencial', pro:'Pro ✦' };
@@ -61,6 +62,7 @@ export default function DashboardShell() {
   const [protoAtivo,      setProtoAtivo]      = useState(false);
   const [planAtivo,       setPlanAtivo]       = useState<string>('free');
   const [showBoasVindas,  setShowBoasVindas]  = useState(false);
+  const [protocoloIA,    setProtocoloIA]    = useState<ProtocoloIA|null>(null);
 
   // Preferências de notificação do banco
   const [notifEmailAtivo, setNotifEmailAtivo] = useState(true);
@@ -74,6 +76,58 @@ export default function DashboardShell() {
     emailAtivo: notifEmailAtivo,
     pushAtivo: notifPushAtivo,
   });
+
+  // Relê do banco quando tab volta para foco (ex: após rediagnóstico)
+  useEffect(() => {
+    const handleFocus = async () => {
+      const flag = sessionStorage.getItem('nv_diagnostico_atualizado');
+      if (!flag) return;
+      sessionStorage.removeItem('nv_diagnostico_atualizado');
+      const session = await getSession();
+      if (!session) return;
+      const perfil = await carregarDiagnostico(session.user.id);
+      if (perfil?.diagnostico) {
+        setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
+        setPlanAtivo(perfil.plano ?? 'free');
+        // Carrega protocolo IA salvo no diagnóstico
+        if (perfil.diagnostico._protocoloIA) {
+          try {
+            setProtocoloIA(JSON.parse(perfil.diagnostico._protocoloIA));
+          } catch(e) {}
+        }
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    // Verifica imediatamente também (caso já tenha a flag)
+    handleFocus();
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  // Relê do banco quando tab volta para foco (ex: após rediagnóstico)
+  useEffect(() => {
+    const handleFocus = async () => {
+      const flag = sessionStorage.getItem('nv_diagnostico_atualizado');
+      if (!flag) return;
+      sessionStorage.removeItem('nv_diagnostico_atualizado');
+      const session = await getSession();
+      if (!session) return;
+      const perfil = await carregarDiagnostico(session.user.id);
+      if (perfil?.diagnostico) {
+        setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
+        setPlanAtivo(perfil.plano ?? 'free');
+        // Carrega protocolo IA salvo no diagnóstico
+        if (perfil.diagnostico._protocoloIA) {
+          try {
+            setProtocoloIA(JSON.parse(perfil.diagnostico._protocoloIA));
+          } catch(e) {}
+        }
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    // Verifica imediatamente também (caso já tenha a flag)
+    handleFocus();
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -92,6 +146,12 @@ export default function DashboardShell() {
       if (perfil?.diagnostico) {
         setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
         setPlanAtivo(perfil.plano ?? 'free');
+        // Carrega protocolo IA salvo no diagnóstico
+        if (perfil.diagnostico._protocoloIA) {
+          try {
+            setProtocoloIA(JSON.parse(perfil.diagnostico._protocoloIA));
+          } catch(e) {}
+        }
       } else {
         try {
           const raw = sessionStorage.getItem('nv_quiz');
@@ -127,6 +187,16 @@ export default function DashboardShell() {
   const plan  = planAtivo;
   const nome  = answers.nome?.toString() ?? '—';
   const { items: allItems } = buildProtocol(objs, peso, 999, true);
+
+  // Converte PeptideoIA para formato Peptide quando temos protocolo da IA
+  const itemsIA = protocoloIA?.peptideos?.map(p => ({
+    n: p.nome, e: p.emoji || '💊', m: p.motivo,
+    why: p.motivo, freq: p.frequencia, timing: p.timing,
+    route: p.via, cycle: p.ciclo, rest: '4 semanas',
+    how: '', ck: true,
+    doseStr: (_peso: number) => p.dose,
+    prioridade: p.prioridade,
+  })) || null;
   // Filtra peptídeos removidos na revisão
   const aceitosRevisao = answers._aceitosRevisao as string[] | undefined;
   const items = aceitosRevisao && aceitosRevisao.length > 0
@@ -159,8 +229,8 @@ export default function DashboardShell() {
           userId={userId} answers={answers}
         />
         <div className="d-body">
-          {section==='inicio'       && <SectionInicio answers={answers} items={items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan} protoAtivo={protoAtivo} onStartProto={()=>setProtoAtivo(true)} onNavigate={nav}/>}
-          {section==='protocolo'    && <SectionProtocolo answers={answers} items={items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan}/>}
+          {section==='inicio'       && <SectionInicio answers={answers} items={itemsIA || items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan} protoAtivo={protoAtivo} onStartProto={()=>setProtoAtivo(true)} onNavigate={nav}/>}
+          {section==='protocolo'    && <SectionProtocolo answers={answers} items={itemsIA || items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan}/>}
           {section==='ia'           && <SectionIA answers={answers} objs={objs}/>}
           {section==='calc'         && <SectionCalc peso={peso}/>}
           {section==='comparativo'  && <SectionComparativo onNavigate={nav}/>}
