@@ -209,7 +209,7 @@ export default function SectionLib() {
               <div key={cat} style={{ marginBottom: '2.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
                   <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--tx)', letterSpacing: '-.02em' }}>{cat}</h3>
-                  <span style={{ fontSize: 11, color: 'var(--ts)', background: 'var(--bg2)', padding: '2px 8px', borderRadius: 100 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)'}}>
+                  <span style={{ fontSize: 11, color: 'var(--ts)', background:'#FFFFFF', padding: '2px 8px', borderRadius: 100 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)'}}>
                     {items.length} peptídeos
                   </span>
                 </div>

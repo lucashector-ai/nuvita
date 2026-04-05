@@ -261,7 +261,7 @@ export default function DashboardShell() {
   const doLogout = async () => { await signOut(); router.replace('/login'); };
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'#FFFFFF' }}>
+    <div style={{ display:'flex', minHeight:'100vh', background:'#F7F7F7' }}>
       <Sidebar
         active={section} onNavigate={nav}
         mobileOpen={sidebarOpen} onMobileClose={()=>setSidebarOpen(false)}
@@ -271,7 +271,7 @@ export default function DashboardShell() {
       />
       {sidebarOpen && <div className="sidebar-overlay show" onClick={()=>setSidebarOpen(false)}/>}
 
-      <div style={{ flex:1, minWidth:0, minHeight:'100vh', marginLeft:ml, transition:'margin-left .22s cubic-bezier(.4,0,.2,1)' }}>
+      <div style={{ flex:1, minWidth:0, minHeight:'100vh', background:'#F7F7F7', marginLeft:ml, transition:'margin-left .22s cubic-bezier(.4,0,.2,1)' }}>
         <DashboardNav section={section}
           planLabel={PLAN_LABEL[plan]??'Conta gratuita'}
           section={section} nome={nome} planId={plan}
