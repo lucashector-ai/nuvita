@@ -172,7 +172,18 @@ export default function DashboardShell() {
     init();
   }, [router]);
 
-
+  // Lê seção da URL ao carregar
+  useEffect(() => {
+    const seg = window.location.pathname.split('/dashboard/')[1]?.split('?')[0] || '';
+    const REV: Record<string,string> = {
+      inicio:'inicio', protocolo:'protocolo', diario:'diario', analise:'analise',
+      historico:'historico', detector:'detector', biblioteca:'biblioteca',
+      estoque:'estoque', rotina:'rotina', calendario:'calendario',
+      configuracoes:'config', planos:'planos', perfil:'perfil',
+    };
+    if (seg && REV[seg]) setSection(REV[seg] as DashSection);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!ready) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -216,18 +227,7 @@ export default function DashboardShell() {
     window.history.replaceState(null, '', `/dashboard/${SLUG[s] || s}`);
   };
 
-  // Carrega seção da URL ao montar
-  useEffect(() => {
-    const seg = window.location.pathname.split('/dashboard/')[1]?.split('?')[0] || '';
-    const REV: Record<string,string> = {
-      inicio:'inicio', protocolo:'protocolo', diario:'diario', analise:'analise',
-      historico:'historico', detector:'detector', biblioteca:'biblioteca',
-      estoque:'estoque', rotina:'rotina', calendario:'calendario',
-      configuracoes:'config', planos:'planos', perfil:'perfil',
-    };
-    if (seg && REV[seg]) setSection(REV[seg] as DashSection);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
 
   const ml       = sidebarExpanded ? 'var(--sb-wx)' : 'var(--sb-w)';
   const doLogout = async () => { await signOut(); router.replace('/login'); };
