@@ -172,8 +172,8 @@ export default function DashboardShell() {
           } catch(e) {}
         }
       } else if (!sessionStorage.getItem('nv_quiz')) {
-        // Usuário novo sem diagnóstico e sem quiz em andamento → vai para o diagnóstico
-        router.replace('/cadastro');
+        // Usuário sem diagnóstico → vai para diagnóstico (não cadastro para evitar loop)
+        router.replace('/diagnostico');
         return;
       } else {
         try {
