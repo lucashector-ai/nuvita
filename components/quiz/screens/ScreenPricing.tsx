@@ -172,11 +172,20 @@ export default function ScreenPricing({ setAnswer, onLogin, onRevisao, onBack }:
               <span style={{ fontSize:11,color:'var(--ts)' }}>ou com e-mail</span>
               <div style={{ flex:1,height:1,background:'var(--border)' }}/>
             </div>
-            <EmailModal
-              plan={selectedPlan}
-              onSubmit={handleEmailSubmit}
-              onClose={() => setEmailOpen(false)}
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              id="pricing-email"
+              style={{ width:'100%',padding:'10px 14px',borderRadius:10,border:'1px solid var(--border)',background:'var(--bg2)',fontSize:13,fontFamily:'inherit',color:'var(--tx)',marginBottom:10,boxSizing:'border-box' }}
             />
+            <button
+              onClick={() => {
+                const el = document.getElementById('pricing-email') as HTMLInputElement;
+                if (el?.value?.includes('@')) handleEmailSubmit(el.value);
+              }}
+              style={{ width:'100%',padding:'11px',borderRadius:10,border:'none',background:'var(--dark)',color:'white',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit' }}>
+              Continuar com e-mail →
+            </button>
           </div>
         </div>
       )}
