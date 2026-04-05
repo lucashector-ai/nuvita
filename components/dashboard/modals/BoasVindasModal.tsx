@@ -19,7 +19,7 @@ export default function BoasVindasModal({ nome, onClose }: Props) {
 
   return (
     <div className="overlay" onClick={e => e.target === e.currentTarget && onClose(false)}>
-      <div style={{ background:'var(--bg)', borderRadius:20, padding:'1.5rem', maxWidth:520, width:'calc(100% - 1.5rem)', maxHeight:'85vh', overflowY:'auto', WebkitOverflowScrolling:'touch' }}>
+      <div style={{ background:'#F7F7F7', borderRadius:20, padding:'1.5rem', maxWidth:520, width:'calc(100% - 1.5rem)', maxHeight:'85vh', overflowY:'auto', WebkitOverflowScrolling:'touch' }}>
 
         {step === 'welcome' && (
           <>
@@ -33,7 +33,7 @@ export default function BoasVindasModal({ nome, onClose }: Props) {
               </p>
             </div>
 
-            <div style={{ background:'var(--bg2)', borderRadius:14, padding:'1.5rem', marginBottom:'1.5rem' }}>
+            <div style={{ background:'#FFFFFF', borderRadius:14, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1.5rem', marginBottom:'1.5rem' }}>
               <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'1.25rem', textAlign:'center' }}>
                 Você já tem os peptídeos em mãos?
               </div>
@@ -47,7 +47,7 @@ export default function BoasVindasModal({ nome, onClose }: Props) {
                   </div>
                 </button>
                 <button onClick={() => setStep('nao_tem')}
-                  style={{ padding:'12px 16px', borderRadius:12, border:'1.5px solid var(--border)', background:'var(--bg)', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'var(--tx)', display:'flex', alignItems:'center', gap:10 }}>
+                  style={{ padding:'12px 16px', borderRadius:12, border:'none', background:'#F7F7F7', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'var(--tx)', display:'flex', alignItems:'center', gap:10 }}>
                   <span style={{ fontSize:'1.3rem' }}>⏳</span>
                   <div style={{ textAlign:'left' }}>
                     <div>Ainda não tenho</div>
@@ -71,7 +71,7 @@ export default function BoasVindasModal({ nome, onClose }: Props) {
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:'1.5rem' }}>
               {FONTES.map(f => (
-                <div key={f.titulo} style={{ background:'var(--bg2)', borderRadius:12, padding:'1rem 1.25rem', display:'flex', gap:12 }}>
+                <div key={f.titulo} style={{ background:'#FFFFFF', borderRadius:12, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1rem 1.25rem', display:'flex', gap:12 }}>
                   <span style={{ fontSize:'1.5rem', flexShrink:0 }}>{f.ico}</span>
                   <div>
                     <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)', marginBottom:4 }}>{f.titulo}</div>

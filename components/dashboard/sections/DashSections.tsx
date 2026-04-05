@@ -52,7 +52,7 @@ export function SectionIA({ answers, objs }: IAProps) {
 
   return (
     <div style={{ gridColumn:'1/-1', maxWidth:720 }}>
-      <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden' }}>
+      <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, overflow:'hidden' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12, padding:'1rem 1.25rem', borderBottom:'1px solid var(--border)' }}>
           <div style={{ width:44, height:44, background:'var(--dark)', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.4rem', flexShrink:0 }}>🤖</div>
           <div style={{ flex:1 }}>
@@ -65,7 +65,7 @@ export function SectionIA({ answers, objs }: IAProps) {
           <div style={{ fontSize:11, color:'var(--ts)' }}>Fins educativos</div>
         </div>
 
-        <div style={{ height:380, overflowY:'auto', padding:'1rem', display:'flex', flexDirection:'column', gap:'.875rem', background:'var(--bg2)' }}>
+        <div style={{ height:380, overflowY:'auto', padding:'1rem', display:'flex', flexDirection:'column', gap:'.875rem', background:'#FFFFFF' }}>
           {messages.map((m, i) => (
             <div key={i} style={{ display:'flex', flexDirection:'column', alignItems: m.role==='user'?'flex-end':'flex-start', gap:3 }}>
               {m.role === 'ai' && (
@@ -86,17 +86,17 @@ export function SectionIA({ answers, objs }: IAProps) {
                 <div style={{ width:20, height:20, background:'var(--dark)', borderRadius:5, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'.7rem' }}>🤖</div>
                 <span style={{ fontSize:11, color:'var(--ts)' }}>digitando...</span>
               </div>
-              <div style={{ padding:'10px 14px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, borderBottomLeftRadius:4, display:'flex', gap:4 }}>
+              <div style={{ padding:'10px 14px', background:'#F7F7F7', border:'none', borderRadius:14, borderBottomLeftRadius:4, display:'flex', gap:4 }}>
                 {[0,1,2].map(d => <div key={d} style={{ width:6, height:6, borderRadius:'50%', background:'var(--ts)', opacity:.5 }}/>)}
               </div>
             </div>
           )}
         </div>
 
-        <div style={{ padding:'.75rem 1rem', borderTop:'1px solid var(--border)', background:'var(--bg)', display:'flex', gap:6, flexWrap:'wrap' }}>
+        <div style={{ padding:'.75rem 1rem', borderTop:'1px solid var(--border)', background:'#F7F7F7', display:'flex', gap:6, flexWrap:'wrap' }}>
           {IA_SUGGESTIONS.slice(0,4).map(s => (
             <button key={s} onClick={() => send(s)}
-              style={{ padding:'5px 11px', background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:100, fontSize:11, fontWeight:500, color:'var(--tm)', cursor:'pointer', fontFamily:'inherit' }}
+              style={{ padding:'5px 11px', background:'#FFFFFF', border:'none', borderRadius:100, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', fontSize:11, fontWeight:500, color:'var(--tm)', cursor:'pointer', fontFamily:'inherit' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor='var(--green)'; e.currentTarget.style.color='var(--gm)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.color='var(--tm)'; }}>
               {s}
@@ -104,7 +104,7 @@ export function SectionIA({ answers, objs }: IAProps) {
           ))}
         </div>
 
-        <div style={{ padding:'.875rem 1rem', borderTop:'1px solid var(--border)', background:'var(--bg)', display:'flex', gap:8, alignItems:'flex-end' }}>
+        <div style={{ padding:'.875rem 1rem', borderTop:'1px solid var(--border)', background:'#F7F7F7', display:'flex', gap:8, alignItems:'flex-end' }}>
           <textarea className="inp" rows={2} placeholder="Pergunte sobre doses, timing, fornecedores..."
             value={input} onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} }}
@@ -157,7 +157,7 @@ export function SectionCalc({ peso: initialPeso }: CalcProps) {
           <div style={{ fontSize:12, color:'var(--ts)', marginBottom:'.75rem' }}>{pep.note}</div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
             {[['Via', pep.route], ['Frequência', pep.freq]].map(([l,v]) => (
-              <div key={l} style={{ background:'var(--bg2)', borderRadius:8, padding:'8px 10px' }}>
+              <div key={l} style={{ background:'#FFFFFF', borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px 10px' }}>
                 <div style={{ fontSize:9, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:2 }}>{l}</div>
                 <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)' }}>{v}</div>
               </div>
@@ -245,7 +245,7 @@ export function SectionLib() {
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {filtered.map(p => (
               <div key={p.n} onClick={() => setOpen(open===p.n?null:p.n)}
-                style={{ background:'var(--bg)', borderRadius:12, padding:'1rem 1.25rem', cursor:'pointer', border:'1px solid var(--border)' }}>
+                style={{ background:'#F7F7F7', borderRadius:12, padding:'1rem 1.25rem', cursor:'pointer', border:'none' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10, flex:1 }}>
                     <span style={{ fontSize:'1.4rem', flexShrink:0 }}>{p.e}</span>
@@ -269,7 +269,7 @@ export function SectionLib() {
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6 }}>
                       {[['Dose',p.dose],['Via',p.via],['Timing',p.timing],['Ciclo',p.ciclo],['Pausa',p.pausa]].map(([l,v]) => (
-                        <div key={l} style={{ background:'var(--bg2)', borderRadius:8, padding:'8px 10px' }}>
+                        <div key={l} style={{ background:'#FFFFFF', borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px 10px' }}>
                           <div style={{ fontSize:9, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:2 }}>{l}</div>
                           <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)' }}>{v}</div>
                         </div>
@@ -286,7 +286,7 @@ export function SectionLib() {
       {tab === 'stacks' && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
           {STACKS.map(s => (
-            <div key={s.nome} style={{ background:'var(--bg)', borderRadius:12, padding:'1.25rem', border:'1px solid var(--border)' }}>
+            <div key={s.nome} style={{ background:'#F7F7F7', borderRadius:12, padding:'1.25rem', border:'none' }}>
               <div style={{ fontSize:'1.8rem', marginBottom:'.625rem' }}>{s.icon}</div>
               <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'.25rem' }}>{s.nome}</div>
               <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:'.75rem' }}>
@@ -294,7 +294,7 @@ export function SectionLib() {
                   <span key={item} style={{ fontSize:11, background:'var(--gp)', color:'var(--gm)', padding:'3px 9px', borderRadius:100, fontWeight:500 }}>{item}</span>
                 ))}
               </div>
-              <div style={{ fontSize:11, color:'var(--tm)', background:'var(--bg2)', borderRadius:8, padding:'7px 10px' }}>🎯 {s.obj}</div>
+              <div style={{ fontSize:11, color:'var(--tm)', background:'#FFFFFF', borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'7px 10px' }}>🎯 {s.obj}</div>
             </div>
           ))}
         </div>
@@ -304,7 +304,7 @@ export function SectionLib() {
         <div style={{ overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
             <thead>
-              <tr style={{ background:'var(--bg2)', borderBottom:'2px solid var(--border)' }}>
+              <tr style={{ background:'#FFFFFF', borderBottom:'2px solid var(--border)' }}>
                 {['Peptídeo','Categoria','Via','Dose','Timing','Ciclo'].map(h => (
                   <th key={h} style={{ padding:'10px 12px', textAlign:'left', fontWeight:600, color:'var(--ts)', fontSize:10, textTransform:'uppercase', letterSpacing:'.06em', whiteSpace:'nowrap' }}>{h}</th>
                 ))}

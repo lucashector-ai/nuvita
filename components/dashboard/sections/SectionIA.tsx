@@ -83,7 +83,7 @@ export default function SectionIA({ answers, objs }: Props) {
               <div style={{ width:22, height:22, background:'var(--dark)', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'.7rem' }}>🤖</div>
               <span style={{ fontSize:11, color:'var(--ts)' }}>digitando...</span>
             </div>
-            <div style={{ padding:'12px 16px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:16, borderBottomLeftRadius:4, display:'flex', gap:5 }}>
+            <div style={{ padding:'12px 16px', background:'#F7F7F7', border:'none', borderRadius:16, borderBottomLeftRadius:4, display:'flex', gap:5 }}>
               {[0,1,2].map(d=><div key={d} style={{ width:7, height:7, borderRadius:'50%', background:'var(--ts)', opacity:.5 }}/>)}
             </div>
           </div>
@@ -95,14 +95,14 @@ export default function SectionIA({ answers, objs }: Props) {
         <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:'.75rem' }}>
           {CHIPS.map(c => (
             <button key={c} onClick={() => send(c)}
-              style={{ padding:'5px 12px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:100, fontSize:12, fontWeight:500, color:'var(--tm)', cursor:'pointer', fontFamily:'inherit', transition:'all .13s' }}
+              style={{ padding:'5px 12px', background:'#F7F7F7', border:'none', borderRadius:100, fontSize:12, fontWeight:500, color:'var(--tm)', cursor:'pointer', fontFamily:'inherit', transition:'all .13s' }}
               onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--green)';e.currentTarget.style.color='var(--gm)';}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.color='var(--tm)';}}>
               {c}
             </button>
           ))}
         </div>
-        <div style={{ display:'flex', gap:8, alignItems:'flex-end', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'10px 12px' }}>
+        <div style={{ display:'flex', gap:8, alignItems:'flex-end', background:'#F7F7F7', border:'none', borderRadius:14, padding:'10px 12px' }}>
           <textarea placeholder="Pergunte sobre doses, timing, fornecedores..." value={input}
             onChange={e=>setInput(e.target.value)}
             onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}}

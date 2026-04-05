@@ -155,7 +155,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
       {tab === 'registrar' && (
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.25rem' }}>
           <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-            <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+            <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
               <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>Medidas — {hojeLabel()}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                 <div>
@@ -169,7 +169,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
               </div>
             </div>
 
-            <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+            <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
               <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>Energia — {energia}/10</div>
               <div style={{ display:'flex', gap:5 }}>
                 {[1,2,3,4,5,6,7,8,9,10].map(n => (
@@ -179,7 +179,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
               </div>
             </div>
 
-            <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+            <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
               <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>Sono — {sono}/10</div>
               <div style={{ display:'flex', gap:5 }}>
                 {[1,2,3,4,5,6,7,8,9,10].map(n => (
@@ -189,7 +189,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
               </div>
             </div>
 
-            <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+            <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
               <label style={{ fontSize:12, fontWeight:500, color:'var(--tm)', display:'block', marginBottom:5 }}>Nota do dia</label>
               <textarea className="inp" rows={2} placeholder="Como você está se sentindo?" value={nota} onChange={e=>setNota(e.target.value)} style={{ resize:'none', fontFamily:'inherit', fontSize:13, marginBottom:0 }}/>
             </div>
@@ -205,7 +205,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
           </div>
 
           <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-            <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+            <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
               <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>Último registro</div>
               {loading ? (
                 <div style={{ fontSize:12, color:'var(--ts)' }}>Carregando...</div>
@@ -242,7 +242,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
                       <MiniBar val={ultimo.sono} max={10} cor="#7F77DD"/>
                     </div>
                   )}
-                  {ultimo.nota && <div style={{ background:'var(--bg2)', borderRadius:8, padding:'8px 10px', fontSize:12, color:'var(--tm)', fontStyle:'italic' }}>"{ultimo.nota}"</div>}
+                  {ultimo.nota && <div style={{ background:'#FFFFFF', borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px 10px', fontSize:12, color:'var(--tm)', fontStyle:'italic' }}>"{ultimo.nota}"</div>}
                 </div>
               ) : (
                 <div style={{ textAlign:'center', padding:'1.5rem 0', color:'var(--ts)', fontSize:13 }}>
@@ -253,7 +253,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
             </div>
 
             {entries.length > 1 && (
-              <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+              <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
                 <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>Tendências (7 dias)</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                   {pesoData.length > 1 && <div><div style={{ fontSize:12, color:'var(--tm)', marginBottom:4 }}>Peso</div><SparkLine data={pesoData.slice(-7)} cor="#1D9E75"/></div>}
@@ -271,7 +271,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
           {loading ? (
             <div style={{ textAlign:'center', padding:'3rem', color:'var(--ts)', fontSize:13 }}>Carregando registros...</div>
           ) : entries.length === 0 ? (
-            <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
+            <div style={{ background:'#F7F7F7', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
               <div style={{ fontSize:'2rem', marginBottom:'.75rem' }}>📊</div>
               <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'.375rem' }}>Sem registros ainda</div>
               <div style={{ fontSize:13, color:'var(--ts)' }}>Comece registrando na aba "Registrar hoje"</div>
@@ -285,21 +285,21 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
                   { label:'Peso atual', val:entries[0]?.peso?`${entries[0].peso} kg`:'—', icon:'⚖️' },
                   { label:'Variação', val:entries[0]?.peso&&entries[entries.length-1]?.peso?`${(entries[0].peso-entries[entries.length-1].peso).toFixed(1)} kg`:'—', icon:'📉' },
                 ].map(s => (
-                  <div key={s.label} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:12, padding:'1rem', textAlign:'center' }}>
+                  <div key={s.label} style={{ background:'#F7F7F7', border:'none', borderRadius:12, padding:'1rem', textAlign:'center' }}>
                     <div style={{ fontSize:'1.3rem', marginBottom:4 }}>{s.icon}</div>
                     <div style={{ fontSize:'1.2rem', fontWeight:500, color:'var(--tx)', letterSpacing:'-.04em' }}>{s.val}</div>
                     <div style={{ fontSize:10, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.05em', marginTop:2 }}>{s.label}</div>
                   </div>
                 ))}
               </div>
-              <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden' }}>
+              <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, overflow:'hidden' }}>
                 <div style={{ padding:'.875rem 1.25rem', borderBottom:'1px solid var(--border)' }}>
                   <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)' }}>Histórico completo</div>
                 </div>
                 <div style={{ overflowX:'auto' }}>
                   <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                     <thead>
-                      <tr style={{ background:'var(--bg2)' }}>
+                      <tr style={{ background:'#FFFFFF' }}>
                         {['Data','Peso','Cintura','Energia','Sono','Nota'].map(h => (
                           <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:10, fontWeight:600, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em' }}>{h}</th>
                         ))}
@@ -326,7 +326,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
       )}
 
       {tab === 'fotos' && (
-        <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
+        <div style={{ background:'#F7F7F7', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
           <div style={{ fontSize:'2.5rem', marginBottom:'.875rem' }}>📸</div>
           <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'.375rem' }}>Registro fotográfico</div>
           <div style={{ fontSize:13, color:'var(--ts)', marginBottom:'1.5rem' }}>Em breve — fotos antes/depois ao longo do ciclo</div>

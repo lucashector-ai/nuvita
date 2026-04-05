@@ -34,7 +34,7 @@ export default function SectionConfig({ answers, userId, onNavigate }: Props) {
       </div>
 
       {/* Aparência */}
-      <div style={{ background:'var(--bg2)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', border:'1px solid var(--border)' }}>
+      <div style={{ background:'#FFFFFF', borderRadius:14, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1.25rem', marginBottom:'1rem', border:'none' }}>
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Aparência</div>
         <div style={{ display:'flex', gap:10 }}>
           {[['light','☀️ Claro'],['dark','🌙 Escuro']].map(([v,l]) => (
@@ -47,7 +47,7 @@ export default function SectionConfig({ answers, userId, onNavigate }: Props) {
       </div>
 
       {/* Notificações */}
-      <div style={{ background:'var(--bg2)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', border:'1px solid var(--border)' }}>
+      <div style={{ background:'#FFFFFF', borderRadius:14, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1.25rem', marginBottom:'1rem', border:'none' }}>
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Notificações</div>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:13 }}>
           <span>Lembretes de aplicação</span>

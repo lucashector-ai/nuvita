@@ -88,7 +88,7 @@ export default function SectionGeradorCiclo({ answers }) {
       </div>
 
       {!gerado ? (
-        <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.5rem' }}>
+        <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.5rem' }}>
           <div style={{ textAlign:'center', marginBottom:'1.5rem' }}>
             <div style={{ fontSize:'2.5rem', marginBottom:'.75rem' }}>🗓</div>
             <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'.375rem' }}>Gerar plano completo do ciclo</div>
@@ -99,7 +99,7 @@ export default function SectionGeradorCiclo({ answers }) {
             <input type="date" value={dataInicio} onChange={e=>setDataInicio(e.target.value)}
               className="inp" style={{ marginBottom:0, maxWidth:200 }}/>
           </div>
-          <div style={{ background:'var(--bg2)', borderRadius:10, padding:'1rem', marginBottom:'1.25rem' }}>
+          <div style={{ background:'#FFFFFF', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1rem', marginBottom:'1.25rem' }}>
             <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)', marginBottom:8 }}>O plano incluirá:</div>
             {['5 fases com cronograma preciso','Doses ajustadas por fase','Checklist de ações por semana','Datas de início de cada fase','Protocolo de pausa'].map((item,i) => (
               <div key={i} style={{ display:'flex', gap:7, fontSize:12, color:'var(--tm)', marginBottom:4 }}>
@@ -114,7 +114,7 @@ export default function SectionGeradorCiclo({ answers }) {
       ) : (
         <>
           {/* Barra de progresso do ciclo */}
-          <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem' }}>
+          <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem', marginBottom:'1rem' }}>
             <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>Linha do tempo</div>
             <div style={{ display:'flex', gap:0, borderRadius:8, overflow:'hidden', marginBottom:8 }}>
               {[{cor:'#EF9F27',w:'12%'},{cor:'#1D9E75',w:'12%'},{cor:'#5EC991',w:'50%'},{cor:'#7F77DD',w:'12%'},{cor:'var(--border)',w:'14%'}].map((s,i) => (
@@ -129,7 +129,7 @@ export default function SectionGeradorCiclo({ answers }) {
           {/* Fases */}
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {FASES_COM_DATAS.map(fase => (
-              <div key={fase.id} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden', borderLeft:`4px solid ${fase.cor}` }}>
+              <div key={fase.id} style={{ background:'#F7F7F7', border:'none', borderRadius:14, overflow:'hidden', borderLeft:`4px solid ${fase.cor}` }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 1.25rem', cursor:'pointer' }}
                   onClick={() => setFaseAberta(faseAberta===fase.id?null:fase.id)}>
                   <div>
@@ -150,7 +150,7 @@ export default function SectionGeradorCiclo({ answers }) {
                     <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:8 }}>Checklist</div>
                     {fase.acoes.map((acao, i) => (
                       <div key={i} style={{ display:'flex', gap:8, fontSize:13, color:'var(--tx)', marginBottom:7, alignItems:'flex-start' }}>
-                        <div style={{ width:18, height:18, borderRadius:5, border:'1.5px solid var(--border)', flexShrink:0, marginTop:1 }}/>
+                        <div style={{ width:18, height:18, borderRadius:5, border:'none', flexShrink:0, marginTop:1 }}/>
                         {acao}
                       </div>
                     ))}

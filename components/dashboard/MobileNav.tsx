@@ -70,9 +70,9 @@ export default function MobileNav({ active, onNavigate, plan, nome }: Props) {
     <>
       {/* Tela cheia do menu "Mais" */}
       {showMais && (
-        <div style={{ position:'fixed', inset:0, background:'var(--bg2)', zIndex:998, display:'flex', flexDirection:'column', overflowY:'auto', paddingBottom:80 }}>
+        <div style={{ position:'fixed', inset:0, background:'#FFFFFF', zIndex:998, display:'flex', flexDirection:'column', overflowY:'auto', paddingBottom:80 }}>
           {/* Header */}
-          <div style={{ background:'var(--bg)', borderBottom:'1px solid var(--border)', padding:'16px 20px 12px', flexShrink:0 }}>
+          <div style={{ background:'#F7F7F7', borderBottom:'1px solid var(--border)', padding:'16px 20px 12px', flexShrink:0 }}>
             <div style={{ fontSize:11, color:'var(--ts)', marginBottom:2 }}>Menu</div>
             <div style={{ fontSize:18, fontWeight:500, color:'var(--tx)', letterSpacing:'-.03em' }}>Nuvita</div>
           </div>
@@ -83,7 +83,7 @@ export default function MobileNav({ active, onNavigate, plan, nome }: Props) {
               <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', padding:'8px 20px 4px' }}>
                 {grupo.grupo}
               </div>
-              <div style={{ background:'var(--bg)', marginHorizontal:0 }}>
+              <div style={{ background:'#F7F7F7', marginHorizontal:0 }}>
                 {grupo.items.map((item, i) => {
                   const bloqueado = (item as any).proOnly && plan !== 'pro';
                   const isActive  = active === item.id;
@@ -115,7 +115,7 @@ export default function MobileNav({ active, onNavigate, plan, nome }: Props) {
       )}
 
       {/* Bottom nav bar */}
-      <div style={{ position:'fixed', bottom:0, left:0, right:0, height:60, background:'var(--bg)', borderTop:'1px solid var(--border)', display:'flex', zIndex:999, paddingBottom:'env(safe-area-inset-bottom,0px)' }}>
+      <div style={{ position:'fixed', bottom:0, left:0, right:0, height:60, background:'#F7F7F7', borderTop:'1px solid var(--border)', display:'flex', zIndex:999, paddingBottom:'env(safe-area-inset-bottom,0px)' }}>
         {NAV_ITEMS.map(item => {
           const isActive = active === item.id && !showMais;
           return (

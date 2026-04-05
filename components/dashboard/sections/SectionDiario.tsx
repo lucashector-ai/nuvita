@@ -283,7 +283,7 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
                       <MiniBar val={ultimo.sono} max={10} cor="#7F77DD"/>
                     </div>
                   )}
-                  {ultimo.nota && <div style={{ background:'var(--bg2)', borderRadius:8, padding:'8px 10px', fontSize:12, color:'var(--tm)', fontStyle:'italic' }}>"{ultimo.nota}"</div>}
+                  {ultimo.nota && <div style={{ background:'#FFFFFF', borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px 10px', fontSize:12, color:'var(--tm)', fontStyle:'italic' }}>"{ultimo.nota}"</div>}
                 </div>
               ) : (
                 <div style={{ textAlign:'center', padding:'1.5rem 0', color:'var(--ts)', fontSize:13 }}>Nenhum registro ainda.<br/><span style={{ fontSize:12 }}>Comece hoje!</span></div>
@@ -384,7 +384,7 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
             {stepD===4 && (
               <div>
                 <textarea className="inp" rows={3} placeholder="Alguma observação? (opcional)" value={notaD} onChange={e=>setNotaD(e.target.value)} style={{ resize:'none', fontFamily:'inherit', fontSize:13, marginBottom:'1rem' }}/>
-                <div style={{ background:'var(--bg2)', borderRadius:10, padding:'1rem', marginBottom:'1rem', fontSize:12, color:'var(--tm)' }}>
+                <div style={{ background:'#FFFFFF', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1rem', marginBottom:'1rem', fontSize:12, color:'var(--tm)' }}>
                   <strong>{peptideo}</strong> · Intensidade {intens}/10
                   {selEf.length>0 && <div style={{ marginTop:8, display:'flex', flexWrap:'wrap', gap:4 }}>
                     {selEf.map(ef=>{ const t=tipoEf(ef); return <span key={ef} style={{ fontSize:11, padding:'2px 8px', borderRadius:100, background:COR_EF[t as keyof typeof COR_EF].bg, color:COR_EF[t as keyof typeof COR_EF].text, fontWeight:500 }}>{ef}</span>; })}
@@ -428,7 +428,7 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
       {aba === 'evolucao' && (
         <div>
           {tracker.length === 0 ? (
-            <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
+            <div style={{ background:'#F7F7F7', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
               <div style={{ fontSize:'2rem', marginBottom:'.75rem' }}>📈</div>
               <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'.375rem' }}>Sem registros ainda</div>
               <div style={{ fontSize:13, color:'var(--ts)' }}>Comece registrando na aba "Registro diário"</div>
@@ -454,7 +454,7 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
                 <div style={{ overflowX:'auto' }}>
                   <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                     <thead>
-                      <tr style={{ background:'var(--bg2)' }}>
+                      <tr style={{ background:'#FFFFFF' }}>
                         {['Data','Peso','Cintura','Energia','Sono','Nota'].map(h=>(
                           <th key={h} style={{ padding:'9px 14px', textAlign:'left', fontSize:10, fontWeight:600, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em' }}>{h}</th>
                         ))}
@@ -515,7 +515,7 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
           )}
 
           {fotos.length === 0 ? (
-            <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center', cursor:'pointer' }}
+            <div style={{ background:'#F7F7F7', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center', cursor:'pointer' }}
               onClick={()=>fileRef.current?.click()}>
               <div style={{ fontSize:'2.5rem', marginBottom:'.875rem' }}>📸</div>
               <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'.375rem' }}>Adicione sua primeira foto</div>
@@ -527,7 +527,7 @@ export default function SectionDiario({ userId }: { userId: string | null }) {
                 const sel = comparar.some((x:any) => x.id === f.id);
                 return (
                   <div key={f.id||i}
-                    style={{ borderRadius:12, overflow:'hidden', border:`2px solid ${sel ? 'var(--green)' : 'var(--border)'}`, background:'var(--bg)', cursor:'pointer', position:'relative', transition:'all .15s', transform: sel ? 'scale(1.02)' : 'none' }}
+                    style={{ borderRadius:12, overflow:'hidden', border:`2px solid ${sel ? 'var(--green)' : 'var(--border)'}`, background:'#F7F7F7', cursor:'pointer', position:'relative', transition:'all .15s', transform: sel ? 'scale(1.02)' : 'none' }}
                     onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.opacity = '0.92'; }}
                     onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.opacity = '1'; }}
                     onClick={()=>{

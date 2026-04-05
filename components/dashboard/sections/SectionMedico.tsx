@@ -55,7 +55,7 @@ export default function SectionMedico({ plan, nome, userId }: Props) {
           <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Consulta médica especializada</h2>
           <p style={{ fontSize:13, color:'var(--tm)' }}>Revisão do protocolo por médico especializado em peptídeos</p>
         </div>
-        <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:16, padding:'3rem 2rem', textAlign:'center', maxWidth:520, margin:'0 auto' }}>
+        <div style={{ background:'#F7F7F7', border:'none', borderRadius:16, padding:'3rem 2rem', textAlign:'center', maxWidth:520, margin:'0 auto' }}>
           <div style={{ fontSize:'3rem', marginBottom:'1rem' }}>👨‍⚕️</div>
           <h3 style={{ fontSize:'1.2rem', fontWeight:500, marginBottom:'.75rem' }}>Disponível no Plano Pro</h3>
           <p style={{ fontSize:13, color:'var(--tm)', lineHeight:1.7, marginBottom:'1.5rem' }}>
@@ -109,7 +109,7 @@ export default function SectionMedico({ plan, nome, userId }: Props) {
         </div>
       ) : (
         <div style={{ display:'grid', gridTemplateColumns:'1fr 320px', gap:'1.25rem', alignItems:'start' }}>
-          <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.5rem' }}>
+          <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.5rem' }}>
             <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)', marginBottom:'1.25rem' }}>Solicitar consulta médica</div>
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
@@ -162,7 +162,7 @@ export default function SectionMedico({ plan, nome, userId }: Props) {
 
           {/* Painel lateral */}
           <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-            <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+            <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
               <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>Como funciona</div>
               {[
                 { n:'1', t:'Preencha o formulário', d:'Informe suas preferências e objetivo da consulta' },
@@ -181,7 +181,7 @@ export default function SectionMedico({ plan, nome, userId }: Props) {
             </div>
 
             {agendamentos.length > 0 && (
-              <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden' }}>
+              <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, overflow:'hidden' }}>
                 <div style={{ padding:'.875rem 1.25rem', borderBottom:'1px solid var(--border)' }}>
                   <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)' }}>Histórico de consultas</div>
                 </div>

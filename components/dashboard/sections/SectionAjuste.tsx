@@ -49,7 +49,7 @@ export default function SectionAjuste({ answers, userId }: any) {
       </div>
 
       {tab === 'sugestoes' && (
-        <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
+        <div style={{ background:'#F7F7F7', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
           <div style={{ fontSize:'2rem', marginBottom:'1rem' }}>🤖</div>
           <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'.5rem' }}>Sem dados suficientes ainda</div>
           <div style={{ fontSize:13, color:'var(--ts)', lineHeight:1.65, maxWidth:380, margin:'0 auto 1.5rem' }}>
@@ -61,7 +61,7 @@ export default function SectionAjuste({ answers, userId }: any) {
 
       {tab === 'reajuste' && (
         <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-          <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+          <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
             <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)', marginBottom:'.5rem' }}>Por que você quer um reajuste?</div>
             <div style={{ fontSize:12, color:'var(--ts)', marginBottom:'1rem' }}>Descreva o que mudou ou como está se sentindo. A IA vai analisar e sugerir alterações.</div>
             <textarea className="inp" rows={3} placeholder="ex: Parei de perder peso nas últimas 2 semanas, estou com menos energia..."
@@ -91,7 +91,7 @@ export default function SectionAjuste({ answers, userId }: any) {
       )}
 
       {tab === 'historico' && (
-        <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'2.5rem', textAlign:'center' }}>
+        <div style={{ background:'#F7F7F7', border:'1.5px dashed var(--border)', borderRadius:14, padding:'2.5rem', textAlign:'center' }}>
           <div style={{ fontSize:'2rem', marginBottom:'1rem' }}>📋</div>
           <div style={{ fontSize:13, color:'var(--ts)' }}>Nenhum ajuste registrado ainda</div>
         </div>

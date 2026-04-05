@@ -73,7 +73,7 @@ export default function SectionHistorico({ userId, answers }: any) {
         <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Histórico completo</h2>
         <p style={{ fontSize:13, color:'var(--ts)' }}>Tudo que você registrou desde o início do protocolo</p>
       </div>
-      <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:16, padding:'3rem 2rem', textAlign:'center' }}>
+      <div style={{ background:'#F7F7F7', border:'1.5px dashed var(--border)', borderRadius:16, padding:'3rem 2rem', textAlign:'center' }}>
         <div style={{ fontSize:'2.5rem', marginBottom:'1rem' }}>📋</div>
         <div style={{ fontSize:15, fontWeight:500, color:'var(--tx)', marginBottom:'.5rem' }}>Histórico vazio por enquanto</div>
         <div style={{ fontSize:13, color:'var(--ts)', lineHeight:1.7, maxWidth:420, margin:'0 auto' }}>
@@ -128,7 +128,7 @@ export default function SectionHistorico({ userId, answers }: any) {
         <div style={{ overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
             <thead>
-              <tr style={{ background:'var(--bg2)' }}>
+              <tr style={{ background:'#FFFFFF' }}>
                 {['Data','Peso','Energia','Sono','Nota'].map(h=>(
                   <th key={h} style={{ padding:'9px 14px', textAlign:'left', fontSize:10, fontWeight:600, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em' }}>{h}</th>
                 ))}

@@ -144,14 +144,14 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <button onClick={()=>{ const d=new Date(ano,mes-1); setMes(d.getMonth()); setAno(d.getFullYear()); }}
-              style={{ width:28,height:28,borderRadius:6,border:'1px solid var(--border)',background:'var(--bg2)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 }}>‹</button>
+              style={{ width:28,height:28,borderRadius:6,border:'none',background:'#FFFFFF',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 }}>‹</button>
             <span style={{ fontSize:15,fontWeight:600,minWidth:140,textAlign:'center' }}>{MESES[mes]} {ano}</span>
             <button onClick={()=>{ const d=new Date(ano,mes+1); setMes(d.getMonth()); setAno(d.getFullYear()); }}
-              style={{ width:28,height:28,borderRadius:6,border:'1px solid var(--border)',background:'var(--bg2)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 }}>›</button>
+              style={{ width:28,height:28,borderRadius:6,border:'none',background:'#FFFFFF',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 }}>›</button>
             <button onClick={()=>{ setMes(hoje.getMonth()); setAno(hoje.getFullYear()); setDia(hoje.getDate()); }}
-              style={{ padding:'4px 10px',borderRadius:6,border:'1px solid var(--border)',background:'var(--bg2)',cursor:'pointer',fontSize:12,fontFamily:'inherit',color:'var(--tm)' }}>Hoje</button>
+              style={{ padding:'4px 10px',borderRadius:6,border:'none',background:'#FFFFFF',cursor:'pointer',fontSize:12,fontFamily:'inherit',color:'var(--tm)' }}>Hoje</button>
           </div>
-          <div style={{ display:'flex',background:'var(--bg2)',borderRadius:8,padding:3,gap:2 }}>
+          <div style={{ display:'flex',background:'#FFFFFF',borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)',padding:3,gap:2 }}>
             {(['mes','semana'] as const).map(v=>(
               <button key={v} onClick={()=>setView(v)}
                 style={{ padding:'4px 12px',borderRadius:5,border:'none',fontSize:12,cursor:'pointer',fontFamily:'inherit',
@@ -186,7 +186,7 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
               <div key={d} style={{ textAlign:'center',fontSize:11,fontWeight:600,padding:'5px 0',color:i===0||i===6?'#D85A30':'var(--ts)' }}>{d}</div>
             ))}
           </div>
-          <div style={{ border:'1px solid var(--border)',borderRadius:12,overflow:'hidden' }}>
+          <div style={{ border:'none',borderRadius:12,overflow:'hidden' }}>
             <div style={{ display:'grid',gridTemplateColumns:'repeat(7,1fr)' }}>
               {/* Células vazias antes do primeiro dia */}
               {Array.from({length:primeiroDia}).map((_,i)=>(
@@ -361,7 +361,7 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
           {infoAtivo.pDia.map((p,i)=>{
             const cor = CAT_COLOR[p.categoria]||'#6B7280';
             return (
-              <div key={i} style={{ marginBottom:8,background:'var(--bg2)',borderRadius:10,padding:'10px 12px',borderLeft:`3px solid ${cor}` }}>
+              <div key={i} style={{ marginBottom:8,background:'#FFFFFF',borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)',padding:'10px 12px',borderLeft:`3px solid ${cor}` }}>
                 <div style={{ display:'flex',gap:8,alignItems:'center' }}>
                   <span style={{fontSize:'1rem',flexShrink:0}}>{p.emoji}</span>
                   <div style={{flex:1,minWidth:0}}>
@@ -391,7 +391,7 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
               {[['⚡','Energia',infoAtivo.t.energia],['😴','Sono',infoAtivo.t.sono],
                 ['⚖️','Peso',infoAtivo.t.peso?`${infoAtivo.t.peso}kg`:'—']].map(([ico,lbl,val])=>(
-                <div key={lbl} style={{background:'var(--bg2)',borderRadius:8,padding:'8px 10px'}}>
+                <div key={lbl} style={{background:'#FFFFFF',borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)',padding:'8px 10px'}}>
                   <div style={{fontSize:10,color:'var(--ts)'}}>{ico} {lbl}</div>
                   <div style={{fontSize:13,fontWeight:600,marginTop:2}}>{val||'—'}</div>
                 </div>

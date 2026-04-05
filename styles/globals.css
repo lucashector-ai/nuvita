@@ -3,49 +3,31 @@
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Base */
   --bg:    #F7F7F7;
   --bg2:   #FFFFFF;
-  --bg3:   #F0F2F5;
+  --bg3:   #EFEFEF;
   --dark:  #1A1D23;
   --dark2: #0F1115;
-
-  /* Brand green */
   --green: #22C55E;
   --gp:    #DCFCE7;
   --gm:    #15803D;
-
-  /* Text */
-  --tx:  #0F1115;
+  --tx:  #111827;
   --tm:  #6B7280;
   --ts:  #9CA3AF;
-
-  /* Accent amber */
   --am: #F59E0B;
   --ab: #FFFBEB;
-
-  /* Borders & shadows */
-  --border:  #EBEBEB;
-  --border2: #D8D8D8;
+  --border:  #E5E7EB;
+  --border2: #D1D5DB;
   --sh:  0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
-  --shm: 0 4px 16px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
-  --shx: 0 20px 40px rgba(0,0,0,.12);
-
-  /* Accent palette */
-  --accent-purple: #8B5CF6;
-  --accent-blue:   #3B82F6;
-  --accent-orange: #F97316;
-  --accent-pink:   #EC4899;
-  --accent-teal:   #14B8A6;
-
+  --shm: 0 4px 16px rgba(0,0,0,.10);
   --W: 1280px;
   --sb-w: 56px;
-  --sb-wx: 224px;
-  --radius: 12px;
-  --radius-lg: 16px;
+  --sb-wx: 232px;
+  --radius: 10px;
+  --radius-lg: 14px;
 }
 
-html, body { min-height: 100vh; background: var(--bg); font-family: 'Inter', sans-serif; color: var(--tx); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+html, body { min-height:100vh; background:#F7F7F7; font-family:'Inter',sans-serif; color:var(--tx); overflow-x:hidden; -webkit-font-smoothing:antialiased; }
 h1,h2,h3,h4 { font-weight: 500; letter-spacing: -.05em; color: var(--tx); }
 p { font-weight: 400; }
 strong { font-weight: 500; }

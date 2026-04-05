@@ -135,7 +135,7 @@ export default function SectionCalc() {
             <div className="dc" style={{ marginBottom:0 }}>
               <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'.75rem' }}>Selecionar protocolo <span style={{ fontWeight:400, color:'var(--ts)' }}>(opcional)</span></div>
               <select value={proto} onChange={e=>aplicarProtocolo(e.target.value)}
-                style={{ width:'100%', padding:'10px 12px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg2)', color:'var(--tx)', fontSize:13, fontFamily:'inherit', cursor:'pointer', outline:'none' }}>
+                style={{ width:'100%', padding:'10px 12px', borderRadius:10, border:'none', background:'#FFFFFF', color:'var(--tx)', fontSize:13, fontFamily:'inherit', cursor:'pointer', outline:'none' }}>
                 <option value="">Escolha um protocolo para pré-preencher...</option>
                 {PROTOCOLOS.map(p=>(
                   <option key={p.id} value={p.id}>{p.label}</option>
@@ -173,7 +173,7 @@ export default function SectionCalc() {
               </div>
               {!FRASCOS_MG.includes(frascoMg) && (
                 <input type="number" placeholder="Ex: 25" value={frascoMg||''} onChange={e=>setFrascoMg(Number(e.target.value))}
-                  style={{ marginTop:8, width:120, padding:'8px 12px', borderRadius:9, border:'1px solid var(--border)', background:'var(--bg)', color:'var(--tx)', fontSize:13, fontFamily:'inherit', outline:'none' }}/>
+                  style={{ marginTop:8, width:120, padding:'8px 12px', borderRadius:9, border:'none', background:'#F7F7F7', color:'var(--tx)', fontSize:13, fontFamily:'inherit', outline:'none' }}/>
               )}
               <div style={{ fontSize:11, color:'var(--ts)', marginTop:6 }}>≈ {(frascoMg*1000).toLocaleString()} mcg total no vial</div>
             </div>
@@ -221,7 +221,7 @@ export default function SectionCalc() {
                   </div>
                   {doseCustom && (
                     <input type="number" placeholder="Digite a dose em mcg" value={doseCustom==='x'?'':doseCustom} onChange={e=>setDoseCustom(e.target.value)} autoFocus
-                      style={{ marginTop:8, width:160, padding:'8px 12px', borderRadius:9, border:'1px solid var(--border)', background:'var(--bg)', color:'var(--tx)', fontSize:13, fontFamily:'inherit', outline:'none' }}/>
+                      style={{ marginTop:8, width:160, padding:'8px 12px', borderRadius:9, border:'none', background:'#F7F7F7', color:'var(--tx)', fontSize:13, fontFamily:'inherit', outline:'none' }}/>
                   )}
                 </>
               ) : (
@@ -294,7 +294,7 @@ export default function SectionCalc() {
                   [`${doseAtual} ${unidade} ÷ ${calc.concMgMl} mg/ml = ${calc.volMl} ml`],
                   [`${calc.volMl} ml = ${calc.uiDose} UI na seringa ${SERINGAS[seringa].label}`],
                 ].map(([t],i)=>(
-                  <div key={i} style={{ display:'flex', gap:8, fontSize:12, color:'var(--tm)', padding:'6px 10px', background:'var(--bg2)', borderRadius:8 }}>
+                  <div key={i} style={{ display:'flex', gap:8, fontSize:12, color:'var(--tm)', padding:'6px 10px', background:'#FFFFFF', borderRadius:8 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)'}}>
                     <span style={{ color:'var(--green)', fontWeight:600, flexShrink:0 }}>{i+1}.</span>{t}
                   </div>
                 ))}

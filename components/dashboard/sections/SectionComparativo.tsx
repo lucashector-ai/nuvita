@@ -67,7 +67,7 @@ export default function SectionComparativo({ onNavigate }) {
                 </td>
                 <td style={{ padding:'10px 16px', textAlign:'center', background:'var(--gp)' }}>
                   {r.nuvita === true ? <span style={{ color:'var(--green)', fontSize:'1.1rem' }}>✓</span>
-                   : r.nuvita === 'em breve' ? <span style={{ fontSize:10, color:'var(--ts)', padding:'2px 6px', borderRadius:100, border:'1px solid var(--border)' }}>em breve</span>
+                   : r.nuvita === 'em breve' ? <span style={{ fontSize:10, color:'var(--ts)', padding:'2px 6px', borderRadius:100, border:'none' }}>em breve</span>
                    : <span style={{ color:'var(--ts)' }}>—</span>}
                 </td>
                 <td style={{ padding:'10px 16px', textAlign:'center' }}>

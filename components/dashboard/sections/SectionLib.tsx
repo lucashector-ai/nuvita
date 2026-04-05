@@ -115,7 +115,7 @@ function PeptideoCard({ p, onClick }: any) {
         }}>
           <div style={{
             background: 'white', color: '#111', fontSize: 11, fontWeight: 600,
-            padding: '5px 0', borderRadius: 6, textAlign: 'center',
+            padding: '5px 0', borderRadius: 6, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', textAlign: 'center',
           }}>
             Ver ficha completa →
           </div>
@@ -182,7 +182,7 @@ export default function SectionLib() {
           <button key={c} onClick={() => setCatFiltro(c)}
             style={{
               padding: '6px 14px', borderRadius: 100, fontSize: 12, fontWeight: 500,
-              cursor: 'pointer', border: '1px solid var(--border)',
+              cursor: 'pointer', border:'none',
               background: catFiltro === c ? 'var(--dark)' : 'var(--bg2)',
               color: catFiltro === c ? 'white' : 'var(--tm)',
               transition: 'all .13s',
@@ -209,7 +209,7 @@ export default function SectionLib() {
               <div key={cat} style={{ marginBottom: '2.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
                   <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--tx)', letterSpacing: '-.02em' }}>{cat}</h3>
-                  <span style={{ fontSize: 11, color: 'var(--ts)', background: 'var(--bg2)', padding: '2px 8px', borderRadius: 100 }}>
+                  <span style={{ fontSize: 11, color: 'var(--ts)', background: 'var(--bg2)', padding: '2px 8px', borderRadius: 100 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)'}}>
                     {items.length} peptídeos
                   </span>
                 </div>

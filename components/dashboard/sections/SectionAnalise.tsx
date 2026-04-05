@@ -129,14 +129,14 @@ Analise o progresso e sugira ajustes específicos.` }],
         <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Análise de progresso</h2>
         <p style={{ fontSize:13, color:'var(--ts)' }}>A IA analisa seus dados automaticamente a cada 2 dias</p>
       </div>
-      <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:16, padding:'3rem 2rem', textAlign:'center' }}>
+      <div style={{ background:'#F7F7F7', border:'1.5px dashed var(--border)', borderRadius:16, padding:'3rem 2rem', textAlign:'center' }}>
         <div style={{ fontSize:'2.5rem', marginBottom:'1rem' }}>📊</div>
         <div style={{ fontSize:15, fontWeight:500, color:'var(--tx)', marginBottom:'.5rem' }}>Ainda sem dados suficientes</div>
         <div style={{ fontSize:13, color:'var(--ts)', lineHeight:1.7, maxWidth:400, margin:'0 auto' }}>
           A análise de progresso será gerada automaticamente após <strong>3 registros no Tracker</strong>. 
           Continue registrando energia, peso e sono diariamente.
         </div>
-        <div style={{ marginTop:'1.5rem', fontSize:12, color:'var(--ts)', background:'var(--bg2)', borderRadius:10, padding:'10px 16px', display:'inline-block' }}>
+        <div style={{ marginTop:'1.5rem', fontSize:12, color:'var(--ts)', background:'#FFFFFF', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'10px 16px', display:'inline-block' }}>
           {entries.length}/3 registros necessários
         </div>
       </div>

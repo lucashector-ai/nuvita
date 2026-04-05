@@ -41,7 +41,7 @@ export default function BannerDiferenciais({ plan, onNavigate }: Props) {
   if (plan === 'pro') return null; // Pro já tem tudo
 
   return (
-    <div style={{ gridColumn: '1/-1', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.5rem', marginBottom: '1rem' }}>
+    <div style={{ gridColumn: '1/-1', background: 'var(--bg)', border:'none', borderRadius: 16, padding: '1.5rem', marginBottom: '1rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 8 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--gm)', marginBottom: 4 }}>

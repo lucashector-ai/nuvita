@@ -230,7 +230,7 @@ export default function SectionMapa() {
                     ['Agulha', local.tecnica.agulha],
                     ['Grupo', GRUPO_LABEL[local.grupo]],
                   ].map(([l,v])=>(
-                    <div key={l} style={{ background:'var(--bg2)', borderRadius:9, padding:'8px 10px' }}>
+                    <div key={l} style={{ background:'#FFFFFF', borderRadius:9, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px 10px' }}>
                       <div style={{ fontSize:9, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:2 }}>{l}</div>
                       <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)' }}>{v}</div>
                     </div>
@@ -310,7 +310,7 @@ export default function SectionMapa() {
                 );
               })}
               <button onClick={()=>setHistorico([])}
-                style={{ marginTop:'1rem', padding:'7px 14px', background:'none', border:'1px solid var(--border)', borderRadius:8, fontSize:12, color:'var(--ts)', cursor:'pointer', fontFamily:'inherit' }}>
+                style={{ marginTop:'1rem', padding:'7px 14px', background:'none', border:'none', borderRadius:8, fontSize:12, color:'var(--ts)', cursor:'pointer', fontFamily:'inherit' }}>
                 Limpar histórico
               </button>
             </div>

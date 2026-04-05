@@ -159,9 +159,9 @@ export default function SectionRotina({ answers, userId }: Props) {
                     onDragStart={() => setDrag(card.id)}
                     onDragEnd={() => { setDrag(null); setDragDia(null); }}
                     style={{
-                      background:'var(--bg)', borderRadius:10,
+                      background:'#F7F7F7', borderRadius:10,
                       padding:'10px 10px',
-                      border:'1px solid var(--border)',
+                      border:'none',
                       cursor:'grab',
                       opacity: drag===card.id ? 0.35 : 1,
                       transition:'opacity .12s, box-shadow .12s',
@@ -217,7 +217,7 @@ export default function SectionRotina({ answers, userId }: Props) {
         }}
           onClick={e => { if (e.target===e.currentTarget) { setModal(null); setShowEmoji(false); } }}>
           <div style={{
-            background:'var(--bg)', borderRadius:16, padding:'1.5rem',
+            background:'#F7F7F7', borderRadius:16, padding:'1.5rem',
             width:340, boxShadow:'0 20px 60px rgba(0,0,0,.3)',
           }}>
             <div style={{ fontSize:14, fontWeight:600, marginBottom:'1rem' }}>
@@ -230,8 +230,8 @@ export default function SectionRotina({ answers, userId }: Props) {
               <button
                 onClick={() => setShowEmoji(!showEmoji)}
                 style={{
-                  width:44, height:44, borderRadius:10, border:'1px solid var(--border)',
-                  background:'var(--bg2)', cursor:'pointer', fontSize:'1.3rem',
+                  width:44, height:44, borderRadius:10, border:'none',
+                  background:'#FFFFFF', cursor:'pointer', fontSize:'1.3rem',
                   display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
                 }}>
                 {novoEmoji}
@@ -245,7 +245,7 @@ export default function SectionRotina({ answers, userId }: Props) {
                 placeholder="Meditação, academia, vitamina D..."
                 style={{
                   flex:1, padding:'10px 14px', borderRadius:10,
-                  border:'1px solid var(--border)', background:'var(--bg2)',
+                  border:'none', background:'#FFFFFF',
                   fontSize:13, fontFamily:'inherit', color:'var(--tx)',
                   outline:'none',
                 }}
@@ -255,8 +255,8 @@ export default function SectionRotina({ answers, userId }: Props) {
             {/* Emoji picker */}
             {showEmoji && (
               <div style={{
-                background:'var(--bg2)', borderRadius:12, padding:'0.75rem',
-                marginBottom:'1rem', border:'1px solid var(--border)',
+                background:'#FFFFFF', borderRadius:12, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'0.75rem',
+                marginBottom:'1rem', border:'none',
               }}>
                 <div style={{ fontSize:11, color:'var(--ts)', marginBottom:8, fontWeight:500 }}>Escolha um emoji</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
@@ -286,7 +286,7 @@ export default function SectionRotina({ answers, userId }: Props) {
                 Adicionar
               </button>
               <button onClick={() => { setModal(null); setShowEmoji(false); }}
-                style={{ padding:'10px 16px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg2)', cursor:'pointer', fontFamily:'inherit', fontSize:13, color:'var(--tm)' }}>
+                style={{ padding:'10px 16px', borderRadius:10, border:'none', background:'#FFFFFF', cursor:'pointer', fontFamily:'inherit', fontSize:13, color:'var(--tm)' }}>
                 Cancelar
               </button>
             </div>

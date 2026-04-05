@@ -275,7 +275,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
             </div>
             <div style={{ fontSize:12, color:'var(--tm)', lineHeight:1.6 }}>{fase.desc}</div>
           </div>
-          <div style={{ background:'var(--bg2)', borderRadius:10, padding:'10px 12px', display:'flex', alignItems:'center', gap:10 }}>
+          <div style={{ background:'#FFFFFF', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'10px 12px', display:'flex', alignItems:'center', gap:10 }}>
             <span style={{ fontSize:'1.2rem' }}>🎯</span>
             <div>
               <div style={{ fontSize:11, fontWeight:500, color:'var(--tx)' }}>Próximo marco — Semana {marco.semana}</div>
@@ -306,7 +306,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
             {[{ico:'📋',label:'Diário',sec:'diario'},{ico:'🧪',label:'Estoque',sec:'estoque'},{ico:'🔬',label:'Calculadora',sec:'calc'},{ico:'📚',label:'Biblioteca',sec:'lib'}].map(a=>(
               <div key={a.label} onClick={()=>onNavigate(a.sec)}
-                style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px', background:'var(--bg2)', borderRadius:10, cursor:'pointer', fontSize:13, color:'var(--tm)', transition:'background .15s' }}
+                style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px', background:'#FFFFFF', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', cursor:'pointer', fontSize:13, color:'var(--tm)', transition:'background .15s' }}
                 onMouseEnter={e=>e.currentTarget.style.background='var(--border)'}
                 onMouseLeave={e=>e.currentTarget.style.background='var(--bg2)'}>
                 <span style={{ fontSize:'1.1rem' }}>{a.ico}</span>{a.label}

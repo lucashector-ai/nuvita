@@ -60,7 +60,7 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
         <h2 style={{ fontSize:'1.4rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.5rem' }}>Escolha seu plano</h2>
         <p style={{ fontSize:13, color:'var(--ts)', marginBottom:'1.25rem' }}>Comece grátis, evolua quando quiser</p>
         {/* Toggle anual/mensal */}
-        <div style={{ display:'inline-flex', alignItems:'center', gap:10, background:'var(--bg2)', borderRadius:100, padding:'4px 4px 4px 12px', border:'1px solid var(--border)' }}>
+        <div style={{ display:'inline-flex', alignItems:'center', gap:10, background:'#FFFFFF', borderRadius:100, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'4px 4px 4px 12px', border:'none' }}>
           <span style={{ fontSize:12, color:'var(--tm)' }}>Mensal</span>
           <div onClick={()=>setAnual(!anual)}
             style={{ width:36, height:20, borderRadius:100, background:anual?'var(--dark)':'var(--border)', cursor:'pointer', position:'relative', transition:'background .2s' }}>

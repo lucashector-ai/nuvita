@@ -89,7 +89,7 @@ export default function SectionFases() {
         {FASES.map(fase => {
           const s = STATUS_STYLE[fase.status];
           return (
-            <div key={fase.num} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden', opacity:fase.status==='futura'?.6:1 }}>
+            <div key={fase.num} style={{ background:'#F7F7F7', border:'none', borderRadius:14, overflow:'hidden', opacity:fase.status==='futura'?.6:1 }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, padding:'1rem 1.25rem', cursor:fase.status!=='futura'?'pointer':'default' }}
                 onClick={() => fase.status!=='futura' && setFaseAberta(faseAberta===fase.num?0:fase.num)}>
                 <div style={{ width:28, height:28, borderRadius:'50%', background:s.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:s.cor, flexShrink:0 }}>
@@ -118,7 +118,7 @@ export default function SectionFases() {
                         { label:'Energia', val:`${fase.kpis.energia}/10` },
                         { label:'Sono', val:`${fase.kpis.sono}/10` },
                       ].map(k => (
-                        <div key={k.label} style={{ background:'var(--bg2)', borderRadius:8, padding:'8px 10px', textAlign:'center' }}>
+                        <div key={k.label} style={{ background:'#FFFFFF', borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px 10px', textAlign:'center' }}>
                           <div style={{ fontSize:10, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:2 }}>{k.label}</div>
                           <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)' }}>{k.val}</div>
                         </div>
@@ -135,7 +135,7 @@ export default function SectionFases() {
                       ))}
                     </div>
                   )}
-                  <div style={{ padding:'8px 12px', background:'var(--bg2)', borderRadius:8, fontSize:12, color:'var(--tm)' }}>
+                  <div style={{ padding:'8px 12px', background:'#FFFFFF', borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', fontSize:12, color:'var(--tm)' }}>
                     ▶ {fase.proxima}
                   </div>
                 </div>

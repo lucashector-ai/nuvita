@@ -80,7 +80,7 @@ Máximo de 3-4 parágrafos por resposta.`;
             <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'center' }}>
               {SUGESTOES.map(s=>(
                 <button key={s} onClick={()=>enviar(s)}
-                  style={{ padding:'6px 14px', borderRadius:100, border:'1px solid var(--border)', background:'var(--bg2)', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)', transition:'all .15s' }}
+                  style={{ padding:'6px 14px', borderRadius:100, border:'none', background:'#FFFFFF', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)', transition:'all .15s' }}
                   onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='var(--bg)'}
                   onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='var(--bg2)'}>
                   {s}
@@ -113,7 +113,7 @@ Máximo de 3-4 parágrafos por resposta.`;
         {loading && (
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--dark)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13 }}>🧬</div>
-            <div style={{ padding:'10px 14px', borderRadius:12, background:'var(--bg2)', fontSize:13 }}>
+            <div style={{ padding:'10px 14px', borderRadius:12, background:'#FFFFFF', fontSize:13 }}>
               <span style={{ animation:'pulse 1s infinite' }}>Analisando...</span>
             </div>
           </div>
@@ -122,7 +122,7 @@ Máximo de 3-4 parágrafos por resposta.`;
       </div>
 
       {/* Input */}
-      <div style={{ display:'flex', gap:8, marginTop:'1rem', background:'var(--bg2)', borderRadius:12, padding:'8px', border:'1px solid var(--border)' }}>
+      <div style={{ display:'flex', gap:8, marginTop:'1rem', background:'#FFFFFF', borderRadius:12, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px', border:'none' }}>
         <textarea ref={inputRef} value={input} onChange={e=>setInput(e.target.value)}
           onKeyDown={e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); enviar(); }}}
           placeholder="Pergunte sobre seu protocolo, doses, efeitos..."

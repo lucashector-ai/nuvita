@@ -70,7 +70,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
           </p>
         </div>
         {/* Toggle de modo */}
-        <div style={{ display:'flex', gap:4, background:'var(--bg2)', borderRadius:10, padding:4 }}>
+        <div style={{ display:'flex', gap:4, background:'#FFFFFF', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:4 }}>
           {[['timeline','⏱ Timeline'],['lista','📋 Lista'],['guia','📖 Guia rápido']].map(([v,l]) => (
             <button key={v} onClick={() => setModo(v as any)}
               style={{ padding:'6px 12px', borderRadius:7, border:'none', fontFamily:'inherit', fontSize:12, fontWeight:500, cursor:'pointer', transition:'all .15s', background:modo===v?'var(--bg)':'transparent', color:modo===v?'var(--tx)':'var(--ts)', boxShadow:modo===v?'0 1px 3px rgba(0,0,0,.08)':'none' }}>
@@ -88,7 +88,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
           { label:'Nível',     val:NIVEL_LABELS[nivel]??nivel },
           { label:'Peso',      val:`${peso} kg` },
         ].map(s => (
-          <div key={s.label} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:12, padding:'.875rem 1rem' }}>
+          <div key={s.label} style={{ background:'#F7F7F7', border:'none', borderRadius:12, padding:'.875rem 1rem' }}>
             <div style={{ fontSize:10, fontWeight:500, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>{s.label}</div>
             <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)' }}>{s.val}</div>
           </div>
@@ -116,7 +116,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 {peps.map((item, i) => (
                   <div key={`${turno}_${item.n}_${i}`}
-                    style={{ background:'var(--bg)', border:`1px solid ${expanded.has(`${turno}_${item.n}`) ? TURNO_COLOR[turno] : 'var(--border)'}`, borderRadius:14, overflow:'hidden', borderLeft:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer', transition:'all .18s ease' }}
+                    style={{ background:'#F7F7F7', border:`1px solid ${expanded.has(`${turno}_${item.n}`) ? TURNO_COLOR[turno] : 'var(--border)'}`, borderRadius:14, overflow:'hidden', borderLeft:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer', transition:'all .18s ease' }}
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)'; e.currentTarget.style.transform = 'translateX(2px)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg)'; e.currentTarget.style.transform = 'none'; }}
                     onClick={() => toggle(`${turno}_${item.n}`)}>
@@ -145,7 +145,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
                           )}
                           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
                             {[['Timing',item.timing],['Frequência',item.freq],['Ciclo',item.cycle],['Pausa',item.rest]].map(([l,v]) => (
-                              <div key={l} style={{ background:'var(--bg2)', borderRadius:7, padding:'6px 8px' }}>
+                              <div key={l} style={{ background:'#FFFFFF', borderRadius:7, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'6px 8px' }}>
                                 <div style={{ fontSize:9, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:1 }}>{l}</div>
                                 <div style={{ fontSize:11, fontWeight:500, color:'var(--tx)', lineHeight:1.3 }}>{v}</div>
                               </div>
@@ -164,7 +164,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
 
       {/* MODO LISTA */}
       {modo === 'lista' && (
-        <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden' }}>
+        <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, overflow:'hidden' }}>
           <div style={{ padding:'.875rem 1.25rem', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)' }}>Peptídeos do protocolo</div>
             <div style={{ fontSize:11, color:'var(--gm)', fontWeight:500 }}>{items.length} compostos</div>
@@ -198,7 +198,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
                   )}
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
                     {[['Frequência',item.freq],['Timing',item.timing],['Via',item.route],['Ciclo',item.cycle],['Pausa',item.rest],['Como usar',item.how]].map(([l,v]) => (
-                      <div key={l} style={{ background:'var(--bg2)', borderRadius:8, padding:'8px 10px' }}>
+                      <div key={l} style={{ background:'#FFFFFF', borderRadius:8, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px 10px' }}>
                         <div style={{ fontSize:9, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:2 }}>{l}</div>
                         <div style={{ fontSize:12, color:'var(--tx)', fontWeight:500, lineHeight:1.3 }}>{v}</div>
                       </div>
@@ -215,7 +215,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
       {modo === 'guia' && (
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {items.map(item => (
-            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:'.875rem' }}>
                 <span style={{ fontSize:'1.5rem' }}>{item.e}</span>
                 <div>

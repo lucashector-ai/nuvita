@@ -144,9 +144,9 @@ export default function SectionEstoque() {
           const emEdicao = editando === item.slug;
 
           return (
-            <div key={item.slug} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem', transition:'border-color .15s' }}>
+            <div key={item.slug} style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem', transition:'border-color .15s' }}>
               <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
-                <div style={{ width:40, height:40, borderRadius:10, background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.3rem', flexShrink:0 }}>
+                <div style={{ width:40, height:40, borderRadius:10, background:'#FFFFFF', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.3rem', flexShrink:0 }}>
                   {item.emoji}
                 </div>
                 <div style={{ flex:1 }}>
@@ -176,7 +176,7 @@ export default function SectionEstoque() {
                           type="number"
                           value={item.quantidade_mg}
                           onChange={e => updateItem(item.slug, 'quantidade_mg', parseFloat(e.target.value) || 0)}
-                          style={{ width:90, padding:'6px 10px', borderRadius:8, border:'1px solid var(--border)', background:'var(--bg2)', fontSize:13, fontFamily:'inherit', color:'var(--tx)' }}
+                          style={{ width:90, padding:'6px 10px', borderRadius:8, border:'none', background:'#FFFFFF', fontSize:13, fontFamily:'inherit', color:'var(--tx)' }}
                           placeholder="mg total"
                         />
                         <span style={{ fontSize:12, color:'var(--ts)' }}>mg total em estoque</span>
@@ -188,7 +188,7 @@ export default function SectionEstoque() {
                         <span style={{ fontSize:13, fontWeight:600 }}>{item.quantidade_mg} {item.unidade}</span>
                         <span style={{ fontSize:12, color:'var(--ts)' }}>em estoque</span>
                         <button onClick={() => setEditando(item.slug)}
-                          style={{ marginLeft:'auto', fontSize:11, background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:6, padding:'4px 10px', cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}>
+                          style={{ marginLeft:'auto', fontSize:11, background:'#FFFFFF', border:'none', borderRadius:6, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'4px 10px', cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}>
                           ✏️ Atualizar
                         </button>
                       </>

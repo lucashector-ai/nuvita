@@ -130,7 +130,7 @@ export default function SectionExportacao({ answers, items = [], plan }: Props) 
       </div>
 
       {items.length === 0 ? (
-        <div style={{ textAlign:'center', padding:'3rem', color:'var(--ts)', background:'var(--bg2)', borderRadius:16, border:'1.5px dashed var(--border)' }}>
+        <div style={{ textAlign:'center', padding:'3rem', color:'var(--ts)', background:'#FFFFFF', borderRadius:16, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', border:'1.5px dashed var(--border)' }}>
           <div style={{ fontSize:'2.5rem', marginBottom:'1rem' }}>📄</div>
           <div style={{ fontSize:14, fontWeight:500, marginBottom:'.5rem' }}>Nenhum protocolo ativo</div>
           <div style={{ fontSize:13 }}>Gere seu protocolo na seção Protocolo para exportar o PDF.</div>
@@ -138,13 +138,13 @@ export default function SectionExportacao({ answers, items = [], plan }: Props) 
       ) : (
         <>
           {/* Preview */}
-          <div style={{ background:'var(--bg2)', borderRadius:14, padding:'1.25rem', marginBottom:'1.25rem', border:'1px solid var(--border)' }}>
+          <div style={{ background:'#FFFFFF', borderRadius:14, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1.25rem', marginBottom:'1.25rem', border:'none' }}>
             <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.1em', color:'var(--ts)', marginBottom:'1rem' }}>
               Prévia do protocolo
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {items.map((p:any, i:number) => (
-                <div key={i} style={{ display:'flex', gap:12, alignItems:'center', background:'var(--bg)', borderRadius:10, padding:'10px 14px', border:'1px solid var(--border)' }}>
+                <div key={i} style={{ display:'flex', gap:12, alignItems:'center', background:'#F7F7F7', borderRadius:10, padding:'10px 14px', border:'none' }}>
                   <span style={{ fontSize:'1.2rem' }}>{p.emoji||'💊'}</span>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, fontWeight:500 }}>{p.nome}</div>
@@ -164,7 +164,7 @@ export default function SectionExportacao({ answers, items = [], plan }: Props) 
               ['⚠️','Avisos médicos','Orientações de segurança incluídas'],
               ['👤','Personalizado','Nome, objetivo e nível do usuário']
             ].map(([ico,t,d]) => (
-              <div key={t} style={{ background:'var(--bg2)', borderRadius:12, padding:'1rem', border:'1px solid var(--border)' }}>
+              <div key={t} style={{ background:'#FFFFFF', borderRadius:12, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1rem', border:'none' }}>
                 <div style={{ fontSize:'1.2rem', marginBottom:5 }}>{ico}</div>
                 <div style={{ fontSize:13, fontWeight:500, marginBottom:3 }}>{t}</div>
                 <div style={{ fontSize:11, color:'var(--ts)' }}>{d}</div>

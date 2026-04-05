@@ -115,7 +115,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
           {/* Notificações */}
           <div ref={notifsRef} style={{ position:'relative' }}>
             <button onClick={() => { setShowNotifs(v=>!v); if (!showNotifs) marcarLidas(); }}
-              style={{ position:'relative', width:36, height:36, borderRadius:10, border:'1px solid var(--border)', background:'var(--bg)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>
+              style={{ position:'relative', width:36, height:36, borderRadius:10, border:'none', background:'#F7F7F7', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>
               🔔
               {unread > 0 && (
                 <div style={{ position:'absolute', top:-4, right:-4, width:16, height:16, background:'#D85A30', borderRadius:'50%', fontSize:9, fontWeight:700, color:'white', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -125,7 +125,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
             </button>
 
             {showNotifs && (
-              <div style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:320, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,.12)', zIndex:200, overflow:'hidden' }}>
+              <div style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:320, background:'#F7F7F7', border:'none', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,.12)', zIndex:200, overflow:'hidden' }}>
                 <div style={{ padding:'12px 1rem', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)' }}>Notificações</div>
                   {unread > 0 && <button onClick={marcarLidas} style={{ fontSize:11, color:'var(--gm)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>Marcar todas como lidas</button>}
@@ -137,7 +137,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
                     style={{ display:'flex', gap:10, padding:'10px 1rem', cursor:'pointer', background:n.read?'transparent':'rgba(29,158,117,.04)', borderBottom:'1px solid var(--border)', transition:'background .15s' }}
                     onMouseEnter={e=>e.currentTarget.style.background='var(--bg2)'}
                     onMouseLeave={e=>e.currentTarget.style.background=n.read?'transparent':'rgba(29,158,117,.04)'}>
-                    <div style={{ width:32, height:32, borderRadius:8, background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 }}>{n.icon}</div>
+                    <div style={{ width:32, height:32, borderRadius:8, background:'#FFFFFF', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 }}>{n.icon}</div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:13, fontWeight:n.read?400:500, color:'var(--tx)', marginBottom:2 }}>{n.text}</div>
                       <div style={{ fontSize:11, color:'var(--ts)', lineHeight:1.4 }}>{n.sub}</div>
@@ -156,7 +156,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
               {initial}
             </div>
             {showUserMenu && (
-              <div style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:200, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,.12)', zIndex:200, overflow:'hidden' }}>
+              <div style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:200, background:'#F7F7F7', border:'none', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,.12)', zIndex:200, overflow:'hidden' }}>
                 <div style={{ padding:'10px 14px', borderBottom:'1px solid var(--border)' }}>
                   <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)' }}>{nome}</div>
                   <div style={{ fontSize:11, color:'var(--ts)', marginTop:2 }}>{planLabel}</div>

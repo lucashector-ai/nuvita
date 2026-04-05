@@ -36,7 +36,7 @@ export default function SectionConsistencia({ userId }: { userId?: string | null
           <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Pontuação de consistência</h2>
           <p style={{ fontSize:13, color:'var(--tm)' }}>Adesão semanal ao protocolo medida em score</p>
         </div>
-        <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
+        <div style={{ background:'#F7F7F7', border:'1.5px dashed var(--border)', borderRadius:14, padding:'3rem', textAlign:'center' }}>
           <div style={{ fontSize:'2.5rem', marginBottom:'1rem' }}>📊</div>
           <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'.5rem' }}>Sem dados ainda</div>
           <div style={{ fontSize:13, color:'var(--ts)', lineHeight:1.65, maxWidth:380, margin:'0 auto' }}>
@@ -54,7 +54,7 @@ export default function SectionConsistencia({ userId }: { userId?: string | null
         <p style={{ fontSize:13, color:'var(--tm)' }}>Adesão semanal ao protocolo medida em score</p>
       </div>
 
-      <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.5rem', marginBottom:'1rem' }}>
+      <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.5rem', marginBottom:'1rem' }}>
         <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:'1rem' }}>
           <div>
             <div style={{ fontSize:'3rem', fontWeight:500, letterSpacing:'-.06em', lineHeight:1 }}>{adesaoGeral}</div>
@@ -73,7 +73,7 @@ export default function SectionConsistencia({ userId }: { userId?: string | null
       </div>
 
       {semanas.length > 0 && (
-        <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
+        <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
           <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>Por semana</div>
           {semanas.map((s, i) => {
             const pct = Math.round((s.dias.filter((d: any) => d.aplicado).length / Math.max(s.dias.length, 1)) * 100);

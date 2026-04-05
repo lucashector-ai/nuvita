@@ -81,7 +81,7 @@ export default function SectionSimulador({ answers }) {
       </div>
 
       {/* Configuração */}
-      <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem' }}>
+      <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem', marginBottom:'1rem' }}>
         <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>Configure o ciclo</div>
 
         <div style={{ marginBottom:'1.25rem' }}>
@@ -136,7 +136,7 @@ export default function SectionSimulador({ answers }) {
               { label:'Gordura corporal',    val:`${resultado.gordura<0?resultado.gordura.toFixed(0):'0'}%`, sub:'variação estimada', cor:'var(--gm)' },
               { label:'Energia média',       val:`${energiaFinal}/10`, sub:'vs. baseline atual', cor:'var(--tx)' },
             ].map(s => (
-              <div key={s.label} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:12, padding:'1rem' }}>
+              <div key={s.label} style={{ background:'#F7F7F7', border:'none', borderRadius:12, padding:'1rem' }}>
                 <div style={{ fontSize:10, fontWeight:500, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>{s.label}</div>
                 <div style={{ fontSize:'1.3rem', fontWeight:500, color:s.cor, letterSpacing:'-.04em', marginBottom:2 }}>{s.val}</div>
                 <div style={{ fontSize:11, color:'var(--ts)' }}>{s.sub}</div>
@@ -144,7 +144,7 @@ export default function SectionSimulador({ answers }) {
             ))}
           </div>
 
-          <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem' }}>
+          <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem', marginBottom:'1rem' }}>
             <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'.875rem' }}>Fases estimadas</div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:'1rem' }}>
               {[
@@ -152,7 +152,7 @@ export default function SectionSimulador({ answers }) {
                 { fase:'Pico',      sem:`Sem ${Math.round(dur.semanas*.25)+1}–${Math.round(dur.semanas*.75)}`, cor:'var(--green)', desc:'Maior variação de peso' },
                 { fase:'Saída',     sem:`Sem ${Math.round(dur.semanas*.75)+1}–${dur.semanas}`, cor:'#7F77DD', desc:'Estabilização' },
               ].map(f => (
-                <div key={f.fase} style={{ background:'var(--bg2)', borderRadius:10, padding:'10px 12px', borderLeft:`3px solid ${f.cor}` }}>
+                <div key={f.fase} style={{ background:'#FFFFFF', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'10px 12px', borderLeft:`3px solid ${f.cor}` }}>
                   <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)', marginBottom:1 }}>{f.fase}</div>
                   <div style={{ fontSize:10, color:'var(--ts)', marginBottom:4 }}>{f.sem}</div>
                   <div style={{ fontSize:11, color:'var(--tm)' }}>{f.desc}</div>
@@ -170,7 +170,7 @@ export default function SectionSimulador({ answers }) {
             </div>
           </div>
 
-          <div style={{ fontSize:11, color:'var(--ts)', background:'var(--bg2)', borderRadius:10, padding:'8px 12px' }}>
+          <div style={{ fontSize:11, color:'var(--ts)', background:'#FFFFFF', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px 12px' }}>
             ⚠️ Simulação baseada em dados médios. Resultados individuais variam. Fins educacionais.
           </div>
         </>
