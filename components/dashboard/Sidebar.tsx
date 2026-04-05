@@ -16,7 +16,6 @@ const G = [
     { id:'protocolo', label:'Protocolo', ico:'M3 5h10M3 8h10M3 11h6' },
   ]},
   { label:'Acompanhamento', items:[
-    { id:'tracker',      label:'Tracker',     ico:'M2 12L5 9l3 3 4-5 3 2' },
     { id:'diario',       label:'Diário',       ico:'M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1zM7 6h4M7 9h4M7 12h2' },
     { id:'consistencia', label:'Consistência', ico:'M2 10l4-4 3 3 4-6 3 3' },
     { id:'analise',      label:'Análise',      ico:'M3 12h2v-2H3v2zM7 12h2V8H7v4zM11 12h2V4h-2v8zM1 13h14' },

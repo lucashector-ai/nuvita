@@ -1,166 +1,197 @@
 // @ts-nocheck
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
-const PESO_DATA = [
-  { sem:1, peso:82.0 }, { sem:2, peso:81.4 }, { sem:3, peso:80.9 },
-  { sem:4, peso:80.3 }, { sem:5, peso:79.8 }, { sem:6, peso:79.3 },
-  { sem:7, peso:79.0 }, { sem:8, peso:79.0 },
-];
-
-const ENERGIA_DATA = [
-  { sem:1, val:5.5 }, { sem:2, val:6.0 }, { sem:3, val:6.8 },
-  { sem:4, val:7.0 }, { sem:5, val:7.2 }, { sem:6, val:7.4 },
-  { sem:7, val:7.2 }, { sem:8, val:7.0 },
-];
-
-function MiniChart({ data, cor, minVal, maxVal, label, unidade }: any) {
-  const w = 320, h = 80, pad = 8;
-  const xScale = (i: number) => pad + (i / (data.length - 1)) * (w - pad * 2);
-  const yScale = (v: number) => h - pad - ((v - minVal) / (maxVal - minVal)) * (h - pad * 2);
-  const points = data.map((d: any, i: number) => `${xScale(i)},${yScale(d.val ?? d.peso)}`).join(' ');
+function SparkLine({ data, cor, label, unidade }: any) {
+  if (!data || data.length < 2) return null;
+  const w = 400, h = 80, pad = 10;
+  const vals = data.map((d: any) => d.val);
+  const min = Math.min(...vals) - 0.5;
+  const max = Math.max(...vals) + 0.5;
+  const x = (i: number) => pad + (i / (data.length - 1)) * (w - pad * 2);
+  const y = (v: number) => h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+  const pts = data.map((d: any, i: number) => `${x(i)},${y(d.val)}`).join(' ');
+  const trend = vals[vals.length - 1] - vals[0];
   return (
-    <div style={{ background:'var(--bg2)', borderRadius:10, padding:'10px 12px' }}>
-      <div style={{ fontSize:10, fontWeight:500, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:6 }}>{label}</div>
+    <div className="dc" style={{ marginBottom: 0 }}>
+      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+        <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)' }}>{label}</div>
+        <div style={{ fontSize:12, fontWeight:500, color: trend <= 0 ? 'var(--gm)' : 'var(--am)' }}>
+          {trend > 0 ? '+' : ''}{trend.toFixed(1)}{unidade}
+        </div>
+      </div>
       <svg width="100%" viewBox={`0 0 ${w} ${h}`} style={{ display:'block', overflow:'visible' }}>
-        {[0,.5,1].map(t => (
-          <line key={t} x1={pad} y1={pad + t*(h-pad*2)} x2={w-pad} y2={pad + t*(h-pad*2)} stroke="var(--border)" strokeWidth="0.5"/>
-        ))}
-        <polyline points={points} fill="none" stroke={cor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <defs>
+          <linearGradient id={`g_${label}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={cor} stopOpacity="0.15"/>
+            <stop offset="100%" stopColor={cor} stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon points={`${x(0)},${h} ${pts} ${x(data.length-1)},${h}`} fill={`url(#g_${label})`}/>
+        <polyline points={pts} fill="none" stroke={cor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         {data.map((d: any, i: number) => (
-          <circle key={i} cx={xScale(i)} cy={yScale(d.val ?? d.peso)} r="3" fill={cor} stroke="var(--bg)" strokeWidth="1.5"/>
-        ))}
-        {data.map((d: any, i: number) => (
-          i % 2 === 0 && <text key={i} x={xScale(i)} y={h+2} textAnchor="middle" fontSize="8" fill="var(--ts)">S{d.sem}</text>
+          <circle key={i} cx={x(i)} cy={y(d.val)} r="3" fill={cor} stroke="var(--bg)" strokeWidth="1.5"/>
         ))}
       </svg>
-      <div style={{ display:'flex', justifyContent:'space-between', marginTop:2 }}>
-        <div style={{ fontSize:11, color:'var(--ts)' }}>Início: {(data[0].val ?? data[0].peso)}{unidade}</div>
-        <div style={{ fontSize:11, fontWeight:500, color:cor }}>Atual: {(data[data.length-1].val ?? data[data.length-1].peso)}{unidade}</div>
+      <div style={{ display:'flex', justifyContent:'space-between', marginTop:4, fontSize:11, color:'var(--ts)' }}>
+        <span>{data[0].label}</span>
+        <span style={{ fontWeight:500, color: cor }}>{vals[vals.length-1]}{unidade} atual</span>
       </div>
     </div>
   );
 }
 
-export default function SectionAnalise({ answers, objs }) {
-  const [loading,  setLoading]  = useState(false);
-  const [analise,  setAnalise]  = useState('');
-  const [gerado,   setGerado]   = useState(false);
-  const [chartTab, setChartTab] = useState<'peso'|'energia'>('peso');
+export default function SectionAnalise({ userId, answers, objs }: any) {
+  const [entries,    setEntries]    = useState<any[]>([]);
+  const [adesao,     setAdesao]     = useState<any[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [analiseIA,  setAnaliseIA]  = useState('');
+  const [gerandoIA,  setGerandoIA]  = useState(false);
+  const [ultimaAnal, setUltimaAnal] = useState<string | null>(null);
 
-  const gerar = async () => {
+  useEffect(() => {
+    if (!userId) return;
+    carregarDados();
+  }, [userId]);
+
+  const carregarDados = async () => {
     setLoading(true);
+    const [{ data: tr }, { data: ad }] = await Promise.all([
+      supabase.from('tracker_entries').select('*').eq('user_id', userId).order('data', { ascending: true }),
+      supabase.from('adesao_diaria').select('*').eq('user_id', userId).order('data', { ascending: false }).limit(30),
+    ]);
+    setEntries(tr || []);
+    setAdesao(ad || []);
+
+    // Verifica se deve gerar análise automática (a cada 2 dias)
+    const ultima = localStorage.getItem(`nv_analise_${userId}`);
+    setUltimaAnal(ultima);
+    if (tr && tr.length >= 3) {
+      const agora = Date.now();
+      const duasDias = 2 * 24 * 60 * 60 * 1000;
+      if (!ultima || agora - Number(ultima) > duasDias) {
+        gerarAnalise(tr, ad || []);
+      }
+    }
+    setLoading(false);
+  };
+
+  const gerarAnalise = async (tr: any[], ad: any[]) => {
+    if (gerandoIA) return;
+    setGerandoIA(true);
     try {
+      const pesoInicio = tr[0]?.peso;
+      const pesoAtual  = tr[tr.length - 1]?.peso;
+      const energiaMedia = tr.reduce((s, e) => s + (e.energia || 0), 0) / tr.length;
+      const sonoMedio    = tr.reduce((s, e) => s + (e.sono || 0), 0) / tr.length;
+      const diasAtivos   = ad.filter(a => a.aplicado).length;
+      const adesaoPct    = ad.length > 0 ? Math.round((diasAtivos / ad.length) * 100) : 0;
+
       const res = await fetch('/api/ia', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system:`Você é o Coach IA da Nuvita. Analise o progresso e forneça insights em português. Seja direto e específico. Máximo 4 parágrafos.`,
-          messages:[{role:'user', content:`Dados: perda de 3kg em 8 semanas, adesão 73%, energia média 7.2/10, sono 7.5/10. Analise se está funcionando e sugira próximos passos.`}],
+          system: 'Você é o Coach IA da Nuvita. Analise o progresso do usuário e forneça insights diretos e personalizados em português. Máximo 3 parágrafos curtos. Seja específico com os números.',
+          messages: [{ role: 'user', content: `Dados do usuário:
+- Registros: ${tr.length} entradas
+- Peso: ${pesoInicio ? pesoInicio + 'kg → ' + pesoAtual + 'kg (' + (pesoAtual - pesoInicio).toFixed(1) + 'kg)' : 'não registrado'}
+- Energia média: ${energiaMedia.toFixed(1)}/10
+- Sono médio: ${sonoMedio.toFixed(1)}/10
+- Adesão ao protocolo: ${adesaoPct}% (${diasAtivos}/${ad.length} dias)
+- Objetivos: ${Array.isArray(answers?.q3) ? answers.q3.join(', ') : answers?.q3 || 'não informado'}
+Analise o progresso e sugira ajustes específicos.` }],
         }),
       });
       const data = await res.json();
-      setAnalise(data.text || 'Configure ANTHROPIC_API_KEY no .env.local para usar a análise.');
-      setGerado(true);
-    } catch {
-      setAnalise('Configure ANTHROPIC_API_KEY no .env.local para usar a análise de IA.');
-      setGerado(true);
-    } finally { setLoading(false); }
+      if (data.text) {
+        setAnaliseIA(data.text);
+        localStorage.setItem(`nv_analise_${userId}`, String(Date.now()));
+        setUltimaAnal(String(Date.now()));
+      }
+    } catch (e) { console.error(e); }
+    setGerandoIA(false);
   };
 
-  const METRICAS = [
-    { label:'Perda de peso', val:'-3 kg',   sub:'em 8 semanas',        cor:'var(--gm)' },
-    { label:'Adesão média',  val:'73%',      sub:'acima de 70% = bom',  cor:'var(--gm)' },
-    { label:'Energia',       val:'+0.8',     sub:'vs. início do ciclo', cor:'var(--gm)' },
-    { label:'Sono',          val:'7.5/10',   sub:'qualidade geral',     cor:'var(--tm)' },
-  ];
+  const pesoData    = entries.filter(e => e.peso).map((e, i) => ({ val: e.peso, label: new Date(e.data).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }) }));
+  const energiaData = entries.filter(e => e.energia).map((e, i) => ({ val: e.energia, label: new Date(e.data).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }) }));
+  const sonoData    = entries.filter(e => e.sono).map((e, i) => ({ val: e.sono, label: new Date(e.data).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }) }));
+  const adesaoPct   = adesao.length > 0 ? Math.round((adesao.filter(a => a.aplicado).length / adesao.length) * 100) : 0;
 
-  const INSIGHTS = [
-    { tipo:'positivo', icon:'✅', texto:'Perda de ~375g/semana — dentro da faixa ideal para preservação de massa muscular' },
-    { tipo:'positivo', icon:'📈', texto:'Energia melhorou 27% da semana 1 para a semana 6 do ciclo' },
-    { tipo:'atencao',  icon:'⚠️', texto:'Semana 8 com 43% de adesão — queda. Risco de rebound. Considere modo simplificado' },
-    { tipo:'sugestao', icon:'💡', texto:'Tendência de peso estabilizando. Pode ser hora de ajustar a dose do Semaglutide' },
-  ];
+  if (loading) return (
+    <div style={{ padding:'3rem', textAlign:'center', color:'var(--ts)', fontSize:13 }}>Carregando dados...</div>
+  );
 
-  const TIPO_STYLE = {
-    positivo: { bg:'var(--gp)',  border:'rgba(29,158,117,.2)', color:'var(--gm)' },
-    atencao:  { bg:'#FAEEDA',    border:'rgba(239,159,39,.2)', color:'#633806'   },
-    sugestao: { bg:'var(--bg2)', border:'var(--border)',       color:'var(--tm)' },
-  };
+  if (entries.length < 3) return (
+    <div>
+      <div style={{ marginBottom:'1.25rem' }}>
+        <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Análise de progresso</h2>
+        <p style={{ fontSize:13, color:'var(--ts)' }}>A IA analisa seus dados automaticamente a cada 2 dias</p>
+      </div>
+      <div style={{ background:'var(--bg)', border:'1.5px dashed var(--border)', borderRadius:16, padding:'3rem 2rem', textAlign:'center' }}>
+        <div style={{ fontSize:'2.5rem', marginBottom:'1rem' }}>📊</div>
+        <div style={{ fontSize:15, fontWeight:500, color:'var(--tx)', marginBottom:'.5rem' }}>Ainda sem dados suficientes</div>
+        <div style={{ fontSize:13, color:'var(--ts)', lineHeight:1.7, maxWidth:400, margin:'0 auto' }}>
+          A análise de progresso será gerada automaticamente após <strong>3 registros no Tracker</strong>. 
+          Continue registrando energia, peso e sono diariamente.
+        </div>
+        <div style={{ marginTop:'1.5rem', fontSize:12, color:'var(--ts)', background:'var(--bg2)', borderRadius:10, padding:'10px 16px', display:'inline-block' }}>
+          {entries.length}/3 registros necessários
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div>
-      {/* Header com botão no topo */}
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'1.5rem', gap:16, flexWrap:'wrap' }}>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'1.25rem', flexWrap:'wrap', gap:8 }}>
         <div>
           <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Análise de progresso</h2>
-          <p style={{ fontSize:13, color:'var(--tm)' }}>Avaliação automática do seu protocolo com insights e gráficos</p>
+          <p style={{ fontSize:13, color:'var(--ts)' }}>
+            {ultimaAnal ? `Última análise: ${new Date(Number(ultimaAnal)).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })}` : 'Análise sendo gerada...'}
+          </p>
         </div>
-        {!gerado ? (
-          <button className="btn btn-d" onClick={gerar} disabled={loading} style={{ flexShrink:0 }}>
-            {loading ? '⏳ Analisando...' : '🤖 Gerar análise com IA'}
-          </button>
-        ) : (
-          <button className="btn btn-o" onClick={() => { setGerado(false); setAnalise(''); }} style={{ flexShrink:0, fontSize:12 }}>
-            Gerar nova análise
-          </button>
+        {gerandoIA && (
+          <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'var(--gm)', background:'var(--gp)', padding:'6px 12px', borderRadius:100 }}>
+            <div style={{ width:6, height:6, borderRadius:'50%', background:'var(--green)', animation:'pulse 1s infinite' }}/>
+            IA analisando...
+          </div>
         )}
       </div>
 
-      {/* Resultado da IA — aparece logo abaixo do título quando gerado */}
-      {gerado && (
-        <div style={{ background:'var(--gp)', border:'1px solid rgba(29,158,117,.2)', borderRadius:14, padding:'1.25rem', marginBottom:'1.25rem' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:'.875rem' }}>
-            <div style={{ width:28, height:28, background:'var(--dark)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'.9rem', flexShrink:0 }}>🤖</div>
-            <div style={{ fontSize:13, fontWeight:500, color:'var(--gm)' }}>Análise personalizada — Coach Nuvita</div>
-          </div>
-          <div style={{ fontSize:13, color:'var(--gm)', lineHeight:1.75, whiteSpace:'pre-wrap' }}>{analise}</div>
-        </div>
-      )}
-
-      {/* Métricas */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:'1rem' }}>
-        {METRICAS.map(m => (
-          <div key={m.label} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:12, padding:'1rem' }}>
-            <div style={{ fontSize:10, fontWeight:500, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>{m.label}</div>
-            <div style={{ fontSize:'1.3rem', fontWeight:500, color:m.cor, letterSpacing:'-.04em', marginBottom:2 }}>{m.val}</div>
-            <div style={{ fontSize:11, color:'var(--ts)' }}>{m.sub}</div>
+      {/* Stats rápidos */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:'1.25rem' }}>
+        {[
+          { label:'Registros', val: entries.length, icon:'📝', cor:'var(--tx)' },
+          { label:'Adesão', val: adesaoPct+'%', icon:'✓', cor: adesaoPct >= 70 ? 'var(--gm)' : 'var(--am)' },
+          { label:'Energia média', val: entries.length ? (entries.reduce((s,e)=>s+(e.energia||0),0)/entries.length).toFixed(1)+'/10' : '—', icon:'⚡', cor:'#EF9F27' },
+          { label:'Peso atual', val: entries.filter(e=>e.peso).length ? entries.filter(e=>e.peso).slice(-1)[0].peso+'kg' : '—', icon:'⚖️', cor:'var(--tx)' },
+        ].map(s => (
+          <div key={s.label} className="dc" style={{ textAlign:'center', marginBottom:0 }}>
+            <div style={{ fontSize:'1.3rem', marginBottom:4 }}>{s.icon}</div>
+            <div style={{ fontSize:'1.2rem', fontWeight:500, color:s.cor, letterSpacing:'-.04em' }}>{s.val}</div>
+            <div style={{ fontSize:10, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.05em', marginTop:2 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Gráficos */}
-      <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem' }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1rem' }}>
-          <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)' }}>Evolução ao longo do ciclo</div>
-          <div style={{ display:'flex', gap:4 }}>
-            {[['peso','Peso'],['energia','Energia']].map(([v,l]) => (
-              <button key={v} onClick={() => setChartTab(v as any)}
-                style={{ padding:'4px 10px', borderRadius:7, border:`1px solid ${chartTab===v?'var(--green)':'var(--border)'}`, background:chartTab===v?'#F2FCF7':'var(--bg2)', color:chartTab===v?'var(--gm)':'var(--tm)', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit' }}>
-                {l}
-              </button>
-            ))}
+      {/* Análise IA */}
+      {analiseIA && (
+        <div className="dc" style={{ marginBottom:'1.25rem', background:'var(--gp)', border:'1px solid rgba(29,158,117,.2)' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:'.75rem' }}>
+            <span style={{ fontSize:'1rem' }}>🤖</span>
+            <span style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--gm)' }}>Análise da IA Nuvita</span>
           </div>
+          <div style={{ fontSize:13, color:'var(--tx)', lineHeight:1.8, whiteSpace:'pre-line' }}>{analiseIA}</div>
         </div>
-        {chartTab === 'peso'
-          ? <MiniChart data={PESO_DATA.map(d=>({...d,val:d.peso}))} cor="#1D9E75" minVal={78} maxVal={83} label="Peso corporal (kg)" unidade=" kg"/>
-          : <MiniChart data={ENERGIA_DATA} cor="#7F77DD" minVal={4} maxVal={10} label="Energia percebida (1–10)" unidade="/10"/>
-        }
-      </div>
+      )}
 
-      {/* Insights automáticos */}
-      <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden' }}>
-        <div style={{ padding:'.875rem 1.25rem', borderBottom:'1px solid var(--border)' }}>
-          <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)' }}>Insights automáticos</div>
-        </div>
-        <div style={{ padding:'1.25rem', display:'flex', flexDirection:'column', gap:8 }}>
-          {INSIGHTS.map((ins, i) => (
-            <div key={i} style={{ display:'flex', gap:10, padding:'10px 12px', borderRadius:10, background:TIPO_STYLE[ins.tipo].bg, border:`1px solid ${TIPO_STYLE[ins.tipo].border}` }}>
-              <span style={{ fontSize:'1rem', flexShrink:0 }}>{ins.icon}</span>
-              <span style={{ fontSize:13, color:TIPO_STYLE[ins.tipo].color, lineHeight:1.5 }}>{ins.texto}</span>
-            </div>
-          ))}
-        </div>
+      {/* Gráficos */}
+      <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+        {pesoData.length > 1 && <SparkLine data={pesoData.slice(-10)} cor="#1D9E75" label="Peso" unidade=" kg"/>}
+        {energiaData.length > 1 && <SparkLine data={energiaData.slice(-10)} cor="#EF9F27" label="Energia" unidade="/10"/>}
+        {sonoData.length > 1 && <SparkLine data={sonoData.slice(-10)} cor="#7F77DD" label="Sono" unidade="/10"/>}
       </div>
     </div>
   );

@@ -1,102 +1,178 @@
 // @ts-nocheck
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
-const REATIVACOES = [
-  { tipo:'push',    icon:'🔔', titulo:'Lembrete push',         desc:'Notificação no horário da aplicação',       ativo:true  },
-  { tipo:'email',   icon:'📧', titulo:'E-mail de retorno',      desc:'Mensagem após 2+ dias sem registro',        ativo:true  },
-  { tipo:'simplif', icon:'⚡', titulo:'Modo fácil automático',  desc:'Simplifica após 3 falhas consecutivas',     ativo:false },
-  { tipo:'coach',   icon:'🎯', titulo:'Coach IA proativo',      desc:'Sugestão quando detecta queda',             ativo:true  },
-];
+export default function SectionDetector({ userId, answers }: any) {
+  const [alertas,   setAlertas]   = useState<any[]>([]);
+  const [loading,   setLoading]   = useState(true);
+  const [analisando, setAnalisando] = useState(false);
+  const [ultimaVerif, setUltimaVerif] = useState<string | null>(null);
 
-export default function SectionDetector({ userId }: { userId?: string | null }) {
-  const [tab,         setTab]         = useState<'como'|'alertas'|'reativacao'>('como');
-  const [reativacoes, setReativacoes] = useState(REATIVACOES);
+  useEffect(() => {
+    if (!userId) return;
+    detectarInconsistencias();
+  }, [userId]);
 
-  const toggleReativacao = (tipo: string) =>
-    setReativacoes(p => p.map(r => r.tipo===tipo?{...r,ativo:!r.ativo}:r));
+  const detectarInconsistencias = async () => {
+    setLoading(true);
+    const hoje = new Date().toISOString().split('T')[0];
+    const d7 = new Date(); d7.setDate(d7.getDate() - 7);
+    const d7str = d7.toISOString().split('T')[0];
+
+    const [{ data: ad }, { data: tr }, { data: ci }] = await Promise.all([
+      supabase.from('adesao_diaria').select('*').eq('user_id', userId).gte('data', d7str).order('data', { ascending: false }),
+      supabase.from('tracker_entries').select('*').eq('user_id', userId).gte('data', d7str),
+      supabase.from('check_ins').select('*').eq('user_id', userId).gte('data', d7str),
+    ]);
+
+    const novosAlertas: any[] = [];
+
+    // Detecta: sem adesão há 2+ dias
+    const diasSemAdesao = (ad || []).filter(a => !a.aplicado).length;
+    if (diasSemAdesao >= 2) {
+      novosAlertas.push({
+        tipo: 'adesao',
+        severidade: diasSemAdesao >= 4 ? 'alta' : 'media',
+        titulo: `${diasSemAdesao} dias sem registrar aplicações`,
+        desc: 'A consistência é o fator mais importante nos resultados com peptídeos.',
+        acao: 'Registrar aplicação',
+        nav: 'tracker',
+      });
+    }
+
+    // Detecta: energia baixa por 3+ dias consecutivos
+    const enBaixa = (tr || []).filter(t => t.energia && t.energia < 5);
+    if (enBaixa.length >= 3) {
+      novosAlertas.push({
+        tipo: 'energia',
+        severidade: 'media',
+        titulo: 'Energia baixa nos últimos registros',
+        desc: `Energia média de ${(enBaixa.reduce((s,e)=>s+e.energia,0)/enBaixa.length).toFixed(1)}/10. Pode indicar necessidade de ajuste de dose ou sono insuficiente.`,
+        acao: 'Ver análise',
+        nav: 'analise',
+      });
+    }
+
+    // Detecta: sem check-in há 2+ dias
+    const ultimoCI = ci && ci.length > 0 ? new Date(ci[0].data) : null;
+    const diasSemCI = ultimoCI ? Math.floor((Date.now() - ultimoCI.getTime()) / 86400000) : 7;
+    if (diasSemCI >= 2) {
+      novosAlertas.push({
+        tipo: 'checkin',
+        severidade: 'baixa',
+        titulo: `${diasSemCI} dias sem check-in diário`,
+        desc: 'O check-in diário ajuda a detectar padrões e ajustar o protocolo.',
+        acao: 'Fazer check-in',
+        nav: 'inicio',
+      });
+    }
+
+    // Detecta: sono ruim consistente
+    const sonoRuim = (tr || []).filter(t => t.sono && t.sono < 5);
+    if (sonoRuim.length >= 3) {
+      novosAlertas.push({
+        tipo: 'sono',
+        severidade: 'media',
+        titulo: 'Qualidade do sono abaixo do ideal',
+        desc: 'Sono ruim reduz a eficácia dos peptídeos, especialmente os secretagogos de GH.',
+        acao: 'Ver protocolo',
+        nav: 'protocolo',
+      });
+    }
+
+    setAlertas(novosAlertas);
+    setUltimaVerif(new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }));
+
+    // Se tem alertas, gera análise IA
+    if (novosAlertas.length > 0 && (ad||[]).length > 0) {
+      gerarAnaliseIA(novosAlertas, ad || [], tr || []);
+    }
+
+    setLoading(false);
+  };
+
+  const [analiseIA, setAnaliseIA] = useState('');
+  const gerarAnaliseIA = async (alertas: any[], ad: any[], tr: any[]) => {
+    setAnalisando(true);
+    try {
+      const res = await fetch('/api/ia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: 'Você é o Detector IA da Nuvita. Analise as inconsistências e dê recomendações práticas e diretas em 2-3 frases. Foque no que o usuário deve fazer AGORA.',
+          messages: [{ role: 'user', content: `Inconsistências detectadas: ${alertas.map(a=>a.titulo).join('; ')}. Adesão nos últimos 7 dias: ${ad.filter(a=>a.aplicado).length}/${ad.length} dias. Dê uma recomendação acionável.` }],
+        }),
+      });
+      const data = await res.json();
+      if (data.text) setAnaliseIA(data.text);
+    } catch(e) {}
+    setAnalisando(false);
+  };
+
+  const SEV_STYLE: any = {
+    alta:  { bg:'#FAECE7', cor:'#D85A30', label:'Alta prioridade', icon:'🚨' },
+    media: { bg:'#FAEEDA', cor:'#EF9F27', label:'Atenção',         icon:'⚠️' },
+    baixa: { bg:'#E6F1FB', cor:'#378ADD', label:'Informação',      icon:'ℹ️' },
+  };
+
+  if (loading) return <div style={{ padding:'3rem', textAlign:'center', color:'var(--ts)', fontSize:13 }}>Analisando protocolo...</div>;
 
   return (
     <div>
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'1.25rem', flexWrap:'wrap', gap:12 }}>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'1.25rem', flexWrap:'wrap', gap:8 }}>
         <div>
           <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Detector de inconsistência</h2>
-          <p style={{ fontSize:13, color:'var(--tm)' }}>Identifica padrões de falha e ativa reativação automática</p>
+          <p style={{ fontSize:13, color:'var(--ts)' }}>
+            Monitorando automaticamente · Última verificação: {ultimaVerif || 'agora'}
+          </p>
         </div>
-        <div style={{ display:'flex', alignItems:'center', gap:6, background:'var(--gp)', borderRadius:100, padding:'5px 12px' }}>
-          <div style={{ width:6, height:6, borderRadius:'50%', background:'var(--green)' }}/>
-          <span style={{ fontSize:11, fontWeight:500, color:'var(--gm)' }}>Monitorando</span>
+        <div style={{ display:'flex', alignItems:'center', gap:6, background: alertas.length > 0 ? '#FAECE7' : 'var(--gp)', borderRadius:100, padding:'5px 12px' }}>
+          <div style={{ width:6, height:6, borderRadius:'50%', background: alertas.length > 0 ? '#D85A30' : 'var(--green)' }}/>
+          <span style={{ fontSize:11, fontWeight:500, color: alertas.length > 0 ? '#D85A30' : 'var(--gm)' }}>
+            {alertas.length > 0 ? `${alertas.length} inconsistência${alertas.length > 1 ? 's' : ''}` : 'Tudo em ordem'}
+          </span>
         </div>
       </div>
 
-      <div style={{ display:'flex', borderBottom:'1px solid var(--border)', marginBottom:'1.5rem' }}>
-        {[['como','📖 Como funciona'],['alertas','⚠️ Alertas'],['reativacao','🔔 Reativação']].map(([v,l]) => (
-          <button key={v} onClick={() => setTab(v as any)}
-            style={{ padding:'9px 16px', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:13, fontWeight:500, color:tab===v?'var(--tx)':'var(--ts)', borderBottom:tab===v?'2px solid var(--dark)':'2px solid transparent' }}>
-            {l}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'como' && (
-        <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-          <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.5rem' }}>
-            <div style={{ fontSize:14, fontWeight:500, color:'var(--tx)', marginBottom:'1rem' }}>O que é o Detector de Inconsistência?</div>
-            <p style={{ fontSize:13, color:'var(--tm)', lineHeight:1.75, marginBottom:'1.25rem' }}>
-              O Detector analisa automaticamente seus registros de adesão e identifica padrões que podem prejudicar seus resultados — antes que virem um problema maior.
-            </p>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
-              {[
-                { icon:'📊', titulo:'Analisa adesão', desc:'Compara sua adesão semanal e detecta quedas abruptas' },
-                { icon:'🔍', titulo:'Encontra padrões', desc:'Identifica em quais dias as falhas se concentram' },
-                { icon:'💡', titulo:'Sugere ações', desc:'Propõe ajustes simples para cada padrão detectado' },
-              ].map(c => (
-                <div key={c.titulo} style={{ background:'var(--bg2)', borderRadius:12, padding:'1rem', textAlign:'center' }}>
-                  <div style={{ fontSize:'1.5rem', marginBottom:8 }}>{c.icon}</div>
-                  <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)', marginBottom:6 }}>{c.titulo}</div>
-                  <div style={{ fontSize:12, color:'var(--tm)', lineHeight:1.5 }}>{c.desc}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <button className="btn btn-d" onClick={() => setTab('alertas')}>Ver alertas →</button>
-        </div>
-      )}
-
-      {tab === 'alertas' && (
-        <div style={{ background:'var(--gp)', border:'1px solid rgba(29,158,117,.2)', borderRadius:14, padding:'1.5rem', textAlign:'center' }}>
+      {alertas.length === 0 ? (
+        <div style={{ background:'var(--gp)', border:'1px solid rgba(29,158,117,.2)', borderRadius:16, padding:'2rem', textAlign:'center' }}>
           <div style={{ fontSize:'2rem', marginBottom:'.75rem' }}>✅</div>
-          <div style={{ fontSize:14, fontWeight:500, color:'var(--gm)', marginBottom:'.5rem' }}>Protocolo consistente</div>
-          <div style={{ fontSize:13, color:'var(--gm)', opacity:.85 }}>
-            Nenhuma inconsistência detectada. Continue assim!<br/>
-            Alertas aparecerão aqui quando o detector identificar padrões de falha.
-          </div>
+          <div style={{ fontSize:14, fontWeight:500, color:'var(--gm)', marginBottom:'.375rem' }}>Protocolo em dia!</div>
+          <div style={{ fontSize:13, color:'var(--gm)', opacity:.8 }}>Nenhuma inconsistência detectada nos últimos 7 dias.</div>
         </div>
-      )}
-
-      {tab === 'reativacao' && (
+      ) : (
         <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-          <div style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:14, padding:'1.25rem' }}>
-            <div style={{ fontSize:13, color:'var(--tm)', lineHeight:1.65, marginBottom:'1.25rem' }}>
-              Configure como a Nuvita deve agir automaticamente quando detectar que você está deixando de executar o protocolo.
+          {/* Análise IA */}
+          {(analiseIA || analisando) && (
+            <div className="dc" style={{ background:'var(--gp)', border:'1px solid rgba(29,158,117,.2)', marginBottom:0 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:'.625rem' }}>
+                <span>🤖</span>
+                <span style={{ fontSize:11, fontWeight:600, color:'var(--gm)', textTransform:'uppercase', letterSpacing:'.07em' }}>
+                  {analisando ? 'IA analisando...' : 'Recomendação da IA'}
+                </span>
+              </div>
+              <div style={{ fontSize:13, color:'var(--tx)', lineHeight:1.75 }}>{analiseIA}</div>
             </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              {reativacoes.map(r=>(
-                <div key={r.tipo} style={{ display:'flex', alignItems:'center', gap:12, padding:'1rem', background:'var(--bg2)', borderRadius:12 }}>
-                  <span style={{ fontSize:'1.2rem', flexShrink:0 }}>{r.icon}</span>
+          )}
+
+          {/* Alertas */}
+          {alertas.map((a, i) => {
+            const sty = SEV_STYLE[a.severidade];
+            return (
+              <div key={i} style={{ background:sty.bg, border:`1px solid ${sty.cor}30`, borderRadius:14, padding:'1.25rem', borderLeft:`3px solid ${sty.cor}` }}>
+                <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
+                  <span style={{ fontSize:'1.2rem', flexShrink:0 }}>{sty.icon}</span>
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)', marginBottom:2 }}>{r.titulo}</div>
-                    <div style={{ fontSize:12, color:'var(--ts)' }}>{r.desc}</div>
+                    <div style={{ fontSize:13, fontWeight:500, color:sty.cor, marginBottom:4 }}>{a.titulo}</div>
+                    <div style={{ fontSize:12, color:'var(--tm)', lineHeight:1.6 }}>{a.desc}</div>
                   </div>
-                  <div onClick={() => toggleReativacao(r.tipo)}
-                    style={{ width:40, height:22, borderRadius:11, background:r.ativo?'var(--green)':'var(--border)', position:'relative', cursor:'pointer', flexShrink:0, transition:'background .2s' }}>
-                    <div style={{ position:'absolute', top:3, left:r.ativo?21:3, width:16, height:16, borderRadius:'50%', background:'white', transition:'left .2s' }}/>
-                  </div>
+                  <span style={{ fontSize:9, padding:'2px 7px', borderRadius:100, background:sty.cor, color:'white', fontWeight:600, flexShrink:0 }}>{sty.label}</span>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
