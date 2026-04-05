@@ -51,7 +51,7 @@ const PLANOS = [
   },
 ];
 
-export default function SectionPlanos({ plan, answers }: any) {
+export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavigate }: any) {
   const [anual, setAnual] = useState(false);
 
   return (
@@ -72,7 +72,7 @@ export default function SectionPlanos({ plan, answers }: any) {
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:16 }}>
         {PLANOS.map(p => {
-          const atual = plan === p.id;
+          const atual = planoAtual === p.id;
           const preco = anual && p.preco !== 'Grátis'
             ? `R$ ${Math.round(parseInt(p.preco.replace('R$ ',''))*0.8)}`
             : p.preco;

@@ -11,7 +11,7 @@ const OBJETIVOS_LABEL: Record<string,string> = {
 };
 const NIVEL_LABEL: Record<string,string> = { iniciante:'Iniciante', intermediario:'Intermediário', avancado:'Avançado' };
 
-export default function SectionPerfil({ answers, userId }: any) {
+export default function SectionPerfil({ answers, plan, onNavigate, userId, onPlanChange }: any) {
   const [nome,     setNome]     = useState(answers?.nome || '');
   const [email,    setEmail]    = useState('');
   const [avatar,   setAvatar]   = useState<string|null>(null);

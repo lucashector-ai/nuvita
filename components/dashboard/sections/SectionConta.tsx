@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
-export default function SectionConta({ answers, userId }: any) {
+export default function SectionConta({ planoAtual, userId, answers, onNavigate }: any) {
   const [email,    setEmail]    = useState('');
   const [loading,  setLoading]  = useState(true);
   const [excluindo,setExcluindo]= useState(false);
