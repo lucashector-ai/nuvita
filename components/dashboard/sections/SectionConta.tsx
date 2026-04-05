@@ -95,9 +95,17 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
               <button disabled={confirma!=='EXCLUIR'}
                 onClick={async()=>{
                   if(confirma==='EXCLUIR'){
-                    await supabase.from('usuarios').delete().eq('id',userId);
-                    await supabase.auth.signOut();
-                    window.location.href='/';
+                    // Limpa todos os dados do usuário
+                  await Promise.all([
+                    supabase.from('usuarios').update({ 
+                      diagnostico: null, nome: null, avatar_url: null 
+                    }).eq('id', userId),
+                    supabase.from('rotina_personalizada').delete().eq('user_id', userId),
+                    supabase.from('tracker_entries').delete().eq('user_id', userId),
+                    supabase.from('adesao_diaria').delete().eq('user_id', userId),
+                  ]);
+                  await supabase.auth.signOut();
+                  window.location.href='/login';
                   }
                 }}
                 style={{ padding:'8px 16px', borderRadius:8, border:'none', background:confirma==='EXCLUIR'?'#D85A30':'#FECACA', color:'white', fontSize:12, cursor:confirma==='EXCLUIR'?'pointer':'default', fontFamily:'inherit', fontWeight:500 }}>

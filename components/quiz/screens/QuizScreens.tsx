@@ -176,31 +176,6 @@ export function ScreenNivel({ answers, setAnswer, onNext, onPrev }: ScreenProps)
 }
 
 // ── Q5 JÁ USOU ───────────────────────────────────
-export function ScreenJaUsou({ answers, setAnswer, onNext, onPrev }: ScreenProps) {
-  const opts = [
-    { v: 'sim',         icon: '✅', label: 'Sim',                     desc: 'Já tenho experiência prática' },
-    { v: 'pesquisando', icon: '🔍', label: 'Ainda estou pesquisando',  desc: 'Li bastante mas nunca usei' },
-    { v: 'nao',         icon: '❌', label: 'Não',                      desc: 'Primeira vez ouvindo falar' },
-  ];
-  return (
-    <div>
-      <div className="q-num">Pergunta 5 de 10</div>
-      <h2 className="q-title">Você já usou peptídeos antes?</h2>
-      <p className="q-sub">Importante para calibrar as recomendações com segurança.</p>
-      <div className="opts c1">
-        {opts.map(o => (
-          <SingleOpt key={o.v} value={o.v} label={o.label} desc={o.desc} icon={o.icon}
-            selected={answers.q5 === o.v}
-            onSelect={() => setAnswer({ q5: o.v })}
-          />
-        ))}
-      </div>
-      <NavRow onPrev={onPrev} onNext={onNext} disabled={!answers.q5} />
-    </div>
-  );
-}
-
-// ── Q6 ATIVIDADE ─────────────────────────────────
 export function ScreenAtividade({ answers, setAnswer, onNext, onPrev }: ScreenProps) {
   const opts = [
     { v: 'sedentario',  icon: '🪑', label: 'Sedentário',   desc: 'Menos de 1h de exercício por semana' },
@@ -210,7 +185,7 @@ export function ScreenAtividade({ answers, setAnswer, onNext, onPrev }: ScreenPr
   ];
   return (
     <div>
-      <div className="q-num">Pergunta 6 de 10</div>
+      <div className="q-num">Pergunta 4 de 10</div>
       <h2 className="q-title">Qual é o seu nível de atividade física?</h2>
       <p className="q-sub">Influencia diretamente nas doses e timing dos peptídeos.</p>
       <div className="opts c2">
@@ -243,7 +218,7 @@ export function ScreenSono({ answers, setAnswer, onNext, onPrev }: ScreenProps) 
   const labels: Record<string, string> = { '1':'Péssimo','2':'Ruim','3':'Regular','4':'Bom','5':'Ótimo' };
   return (
     <div>
-      <div className="q-num">Pergunta 7 de 10</div>
+      <div className="q-num">Pergunta 5 de 9</div>
       <h2 className="q-title">Como você avalia a qualidade do seu sono?</h2>
       <p className="q-sub">O sono profundo é quando ocorre 70% da liberação de GH.</p>
       <div className="scale-row">
@@ -280,7 +255,7 @@ export function ScreenEstresse({ answers, setAnswer, onNext, onPrev }: ScreenPro
   ];
   return (
     <div>
-      <div className="q-num">Pergunta 8 de 10</div>
+      <div className="q-num">Pergunta 6 de 9</div>
       <h2 className="q-title">Como está seu nível de estresse?</h2>
       <p className="q-sub">O cortisol crônico interfere na eficácia dos peptídeos.</p>
       <div className="opts c1">
@@ -306,7 +281,7 @@ export function ScreenDuracao({ answers, setAnswer, onNext, onPrev }: ScreenProp
   ];
   return (
     <div>
-      <div className="q-num">Pergunta 9 de 10</div>
+      <div className="q-num">Pergunta 7 de 9</div>
       <h2 className="q-title">Por quanto tempo você pretende usar o protocolo?</h2>
       <p className="q-sub">A duração influencia quais peptídeos são indicados e as doses.</p>
       <div className="opts c2">
@@ -341,7 +316,7 @@ export function ScreenSaude({ answers, setAnswer, onNext, onPrev }: ScreenProps)
   };
   return (
     <div>
-      <div className="q-num">Pergunta 10 de 10</div>
+      <div className="q-num">Pergunta 8 de 9</div>
       <h2 className="q-title">Você tem alguma condição de saúde relevante?</h2>
       <p className="q-sub">Algumas condições requerem atenção especial ou exclusão de compostos.</p>
       <div className="tags">

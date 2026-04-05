@@ -19,7 +19,6 @@ import ScreenSexo     from './screens/ScreenSexo';
 import ScreenObjetivos from './screens/ScreenObjetivos';
 import ScreenPeleSub  from './screens/ScreenPeleSub';
 import ScreenNivel    from './screens/ScreenNivel';
-import ScreenJaUsou   from './screens/ScreenJaUsou';
 import ScreenAtividade from './screens/ScreenAtividade';
 import ScreenSono     from './screens/ScreenSono';
 import ScreenEstresse from './screens/ScreenEstresse';
@@ -73,7 +72,20 @@ export default function QuizShell() {
     if (hasSession) {
       const session = await getSession();
       if (session) {
-        await salvarDiagnostico(session.user.id, answers);
+        // Carrega diagnóstico atual do banco e faz merge
+        // Só atualiza os campos que foram respondidos no quiz atual
+        const { supabase } = await import('@/lib/supabase');
+        const { data: usuarioAtual } = await supabase
+          .from('usuarios').select('diagnostico').eq('id', session.user.id).single();
+        const diagAtual = usuarioAtual?.diagnostico || {};
+        // Merge: mantém campos do banco, sobrescreve com respostas novas
+        // Preserva campos especiais (_protocoloIA, _protocoloAtivo, _dataInicioProtocolo)
+        const campos_especiais: Record<string,any> = {};
+        for (const k of Object.keys(diagAtual)) {
+          if (k.startsWith('_')) campos_especiais[k] = diagAtual[k];
+        }
+        const merged = { ...diagAtual, ...answers, ...campos_especiais };
+        await salvarDiagnostico(session.user.id, merged);
         // Limpa cache para DashboardShell reler do banco
         sessionStorage.removeItem('nv_quiz');
         sessionStorage.setItem('nv_diagnostico_atualizado', '1');
@@ -103,13 +115,12 @@ export default function QuizShell() {
             {cur === 3    && <ScreenObjetivos answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === '3b' && <ScreenPeleSub   answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === 4    && <ScreenNivel     answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-            {cur === 5    && <ScreenJaUsou    answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-            {cur === 6    && <ScreenAtividade answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-            {cur === 7    && <ScreenSono      answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-            {cur === 8    && <ScreenEstresse  answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-            {cur === 9    && <ScreenDuracao   answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-            {cur === 10   && <ScreenSaude     answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-            {cur === 11   && <ScreenBiometria answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
+                        {cur === 5    && <ScreenAtividade answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
+            {cur === 6    && <ScreenSono      answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
+            {cur === 7    && <ScreenEstresse  answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
+            {cur === 8    && <ScreenDuracao   answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
+            {cur === 9   && <ScreenSaude     answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
+            {cur === 10   && <ScreenBiometria answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
           </div>
         </div>
       )}
