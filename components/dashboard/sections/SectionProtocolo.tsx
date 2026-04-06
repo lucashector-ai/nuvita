@@ -116,9 +116,9 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 {peps.map((item, i) => (
                   <div key={`${turno}_${item.n}_${i}`}
-                    style={{ background:'#F7F7F7', border:`1px solid ${expanded.has(`${turno}_${item.n}`) ? TURNO_COLOR[turno] : 'var(--border)'}`, borderRadius:14, overflow:'hidden', borderLeft:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer', transition:'all .18s ease' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)'; e.currentTarget.style.transform = 'translateX(2px)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg)'; e.currentTarget.style.transform = 'none'; }}
+                    style={{ background:'#FFFFFF', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', borderRadius:14, overflow:'hidden', borderLeft:`3px solid ${TURNO_COLOR[turno]}`, cursor:'pointer', transition:'all .18s ease' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#F7F7F7'; e.currentTarget.style.transform = 'translateX(2px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.transform = 'none'; }}
                     onClick={() => toggle(`${turno}_${item.n}`)}>
                     <div style={{ padding:'1rem' }}>
                       {/* Header do card — sempre visível */}
@@ -164,7 +164,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
 
       {/* MODO LISTA */}
       {modo === 'lista' && (
-        <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, overflow:'hidden' }}>
+        <div style={{ background:'#FFFFFF', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', borderRadius:14, overflow:'hidden' }}>
           <div style={{ padding:'.875rem 1.25rem', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)' }}>Peptídeos do protocolo</div>
             <div style={{ fontSize:11, color:'var(--gm)', fontWeight:500 }}>{items.length} compostos</div>
@@ -215,7 +215,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
       {modo === 'guia' && (
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {items.map(item => (
-            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ background:'#F7F7F7', border:'none', borderRadius:14, padding:'1.25rem' }}>
+            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ background:'#FFFFFF', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', borderRadius:14, padding:'1.25rem' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:'.875rem' }}>
                 <span style={{ fontSize:'1.5rem' }}>{item.e}</span>
                 <div>
