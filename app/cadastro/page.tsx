@@ -22,9 +22,20 @@ function CadastroContent() {
     if (quiz) {
       try { const d = JSON.parse(quiz); if (d.nome) setNome(d.nome); } catch {}
     }
-    // Se já tem sessão, vai direto para planos
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace("/planos?origem=diagnostico");
+    // Verifica sessão — mas só redireciona se o usuário realmente existe no banco
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        // Verifica se o usuário existe no banco (pode ter sido deletado)
+        const { data: perfil } = await supabase
+          .from("usuarios").select("id").eq("id", session.user.id).maybeSingle();
+        if (perfil) {
+          // Usuário existe → vai para planos
+          router.replace("/planos?origem=diagnostico");
+        } else {
+          // Usuário deletado do banco mas token ainda existe → faz logout silencioso
+          await supabase.auth.signOut();
+        }
+      }
     });
   }, []);
 
@@ -56,6 +67,7 @@ function CadastroContent() {
     }
     setLoading(false);
     // Vai para planos
+    sessionStorage.setItem("nv_pos_cadastro", "1");
     router.push("/planos?origem=diagnostico");
   };
 

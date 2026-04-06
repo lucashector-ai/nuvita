@@ -173,9 +173,16 @@ export default function DashboardShell() {
           } catch(e) {}
         }
       } else if (!sessionStorage.getItem('nv_quiz')) {
-        // Usuário sem diagnóstico → vai para diagnóstico (não cadastro para evitar loop)
-        router.replace('/diagnostico');
-        return;
+        // Usuário sem diagnóstico → vai para diagnóstico
+        // Mas se veio do cadastro, não faz loop
+        const veioDoCadastro = sessionStorage.getItem('nv_pos_cadastro');
+        if (veioDoCadastro) {
+          sessionStorage.removeItem('nv_pos_cadastro');
+          // Deixa continuar com dados vazios
+        } else {
+          router.replace('/diagnostico');
+          return;
+        }
       } else {
         try {
           const raw = sessionStorage.getItem('nv_quiz');
