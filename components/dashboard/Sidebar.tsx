@@ -114,14 +114,14 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
       <aside style={{
         position: 'fixed', left: 0, top: 0, height: '100vh', zIndex: 200,
         display: 'flex', flexDirection: 'column',
-        background: '#0F1115',
-        borderRight: '1px solid rgba(255,255,255,.06)',
+        background: '#F7F7F7',
+        borderRight: '1px solid #E5E7EB',
         width: expanded ? 'var(--sb-wx)' : 'var(--sb-w)',
         transition: 'width .2s ease',
         overflow: 'hidden',
       }}>
         {/* Logo */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 12px', minHeight:56, borderBottom:'1px solid rgba(255,255,255,.06)', flexShrink:0, cursor:'pointer' }}
+        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 12px', minHeight:56, borderBottom:'1px solid #E5E7EB', flexShrink:0, cursor:'pointer' }}
           onClick={() => nav('inicio')}>
           {/* Logo Nuvita completa quando expandido, só ícone quando colapsado */}
           {expanded ? (
@@ -151,7 +151,7 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
             <div key={gi} style={{ marginBottom: gi < SECTIONS.length-1 ? 4 : 0 }}>
               {/* Group label */}
               {group.label && expanded && (
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase', color:'rgba(255,255,255,.25)', padding:'8px 10px 4px', whiteSpace:'nowrap' }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase', color:'#9CA3AF', padding:'8px 10px 4px', whiteSpace:'nowrap' }}>
                   {group.label}
                 </div>
               )}
@@ -169,8 +169,8 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
                       display: 'flex', alignItems: 'center', gap: 10,
                       padding: expanded ? '7px 10px' : '7px',
                       borderRadius: 9, cursor: 'pointer', width: '100%',
-                      border: 'none', background: isActive ? 'rgba(255,255,255,.1)' : 'transparent',
-                      color: isActive ? 'white' : 'rgba(255,255,255,.5)',
+                      border: 'none', background: isActive ? '#FFFFFF' : 'transparent', boxShadow: isActive ? '0 1px 3px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04)' : 'none',
+                      color: isActive ? '#111827' : '#6B7280',
                       fontSize: 13, fontWeight: isActive ? 500 : 400,
                       fontFamily: 'inherit', letterSpacing: '-.01em',
                       whiteSpace: 'nowrap', overflow: 'hidden',
@@ -178,8 +178,8 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
                       justifyContent: expanded ? 'flex-start' : 'center',
                       marginBottom: 1,
                     }}
-                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.07)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.85)'; }}
-                    onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.5)'; } }}>
+                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '#FFFFFF'; (e.currentTarget as HTMLElement).style.color = '#111827'; }}
+                    onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#6B7280'; } }}>
                     {/* Icon box colorido */}
                     <div style={{
                       width: 28, height: 28, borderRadius: 7, flexShrink: 0,
