@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
         const { data: notifs } = await supabaseAdmin.from('notificacoes').select('id');
 
         const planos = { free: 0, essencial: 0, pro: 0 };
-        (perfis || []).forEach(p => { if (planos[p.plano] !== undefined) planos[p.plano]++; });
+        (perfis || []).forEach((p: any) => { const k = p.plano as keyof typeof planos; if (k in planos) planos[k]++; });
 
         return NextResponse.json({
           totalUsuarios: users.length,
