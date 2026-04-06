@@ -1,5 +1,4 @@
 // @ts-nocheck
-// v3 - rebuild
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
