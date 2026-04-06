@@ -180,7 +180,7 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
                       fontFamily: 'inherit', letterSpacing: '-.01em',
                       whiteSpace: 'nowrap', overflow: 'hidden',
                       transition: 'all .12s', textAlign: 'left',
-                      justifyContent: expanded ? 'flex-start' : 'center',
+                      justifyContent: expanded ? 'flex-start' : 'center', width: expanded ? '100%' : 40, height: expanded ? 'auto' : 40,
                       marginBottom: 1,
                     }}
                     onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '#FFFFFF'; (e.currentTarget as HTMLElement).style.color = '#111827'; }}
