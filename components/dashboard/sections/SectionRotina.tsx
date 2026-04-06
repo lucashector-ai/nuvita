@@ -20,19 +20,18 @@ const EMOJIS = [
 ];
 
 type Card = { id:string; nome:string; emoji:string; dias:string[] };
-
 interface Props { answers:any; userId:string }
 
 export default function SectionRotina({ answers, userId }: Props) {
-  const [cards,   setCards]   = useState<Card[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [modal,   setModal]   = useState<{ dia:string }|null>(null);
-  const [novoNome,setNovoNome]= useState('');
+  const [cards,    setCards]    = useState<Card[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [modal,    setModal]    = useState<{ dia:string }|null>(null);
+  const [novoNome, setNovoNome] = useState('');
   const [novoEmoji,setNovoEmoji]= useState('💊');
   const [showEmoji,setShowEmoji]= useState(false);
-  const [drag,    setDrag]    = useState<string|null>(null);
-  const [dragDia, setDragDia] = useState<string|null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [drag,     setDrag]     = useState<string|null>(null);
+  const [dragDia,  setDragDia]  = useState<string|null>(null);
+  const inputRef  = useRef<HTMLInputElement>(null);
   const saveTimer = useRef<any>(null);
 
   useEffect(() => { if (userId) carregar(); }, [userId]);
@@ -49,52 +48,31 @@ export default function SectionRotina({ answers, userId }: Props) {
     setLoading(false);
   };
 
-  // Salva automaticamente com debounce de 800ms
   const autoSalvar = (novos: Card[]) => {
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       await supabase.from('rotina_personalizada').upsert({
-        user_id: userId,
-        itens: novos,
-        updated_at: new Date().toISOString(),
+        user_id: userId, itens: novos, updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
     }, 800);
   };
 
-  const atualizar = (novos: Card[]) => {
-    setCards(novos);
-    autoSalvar(novos);
-  };
+  const atualizar = (novos: Card[]) => { setCards(novos); autoSalvar(novos); };
 
   const adicionarCard = () => {
     if (!novoNome.trim() || !modal) return;
-    const novo: Card = {
-      id: `c${Date.now()}`,
-      nome: novoNome.trim(),
-      emoji: novoEmoji,
-      dias: [modal.dia],
-    };
+    const novo: Card = { id:`c${Date.now()}`, nome:novoNome.trim(), emoji:novoEmoji, dias:[modal.dia] };
     atualizar([...cards, novo]);
-    setNovoNome('');
-    setNovoEmoji('💊');
-    setShowEmoji(false);
-    setModal(null);
+    setNovoNome(''); setNovoEmoji('💊'); setShowEmoji(false); setModal(null);
   };
 
-  const removerCard = (id: string) => {
-    atualizar(cards.filter(c => c.id !== id));
-  };
+  const removerCard = (id: string) => { atualizar(cards.filter(c => c.id !== id)); };
 
   const onDrop = (diaId: string) => {
     if (!drag) return;
-    const novos = cards.map(c =>
-      c.id === drag
-        ? { ...c, dias: [diaId] }
-        : c
-    );
+    const novos = cards.map(c => c.id === drag ? { ...c, dias:[diaId] } : c);
     atualizar(novos);
-    setDrag(null);
-    setDragDia(null);
+    setDrag(null); setDragDia(null);
   };
 
   const hoje = new Date().toLocaleDateString('pt-BR', { weekday:'long' }).toLowerCase();
@@ -107,186 +85,86 @@ export default function SectionRotina({ answers, userId }: Props) {
 
   return (
     <div>
-      {/* Header */}
       <div style={{ marginBottom:'1.5rem' }}>
         <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Rotina semanal</h2>
         <p style={{ fontSize:13, color:'var(--ts)' }}>Organize sua rotina por dia da semana · salva automaticamente</p>
       </div>
 
-      {/* Board Kanban */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:12 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:8 }}>
         {DIAS.map(dia => {
-          const diaCards = cards.filter(c => c.dias.includes(dia.id));
-          const isDragOver = dragDia === dia.id;
-          const isHoje = dia.label.toLowerCase().startsWith(hoje.substring(0,3)) ||
-            (dia.id==='seg'&&hoje.includes('segunda')) || (dia.id==='ter'&&hoje.includes('terça')) ||
-            (dia.id==='qua'&&hoje.includes('quarta')) || (dia.id==='qui'&&hoje.includes('quinta')) ||
-            (dia.id==='sex'&&hoje.includes('sexta'))  || (dia.id==='sab'&&hoje.includes('sábado')) ||
-            (dia.id==='dom'&&hoje.includes('domingo'));
-
+          const isDia = dia.id === hoje.slice(0,3);
+          const dCards = cards.filter(c => c.dias.includes(dia.id));
           return (
             <div key={dia.id}
-              onDragOver={e => { e.preventDefault(); setDragDia(dia.id); }}
-              onDrop={() => onDrop(dia.id)}
-              onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragDia(null); }}
-              style={{ minHeight:400, display:'flex', flexDirection:'column' }}>
-
-              {/* Cabeçalho do dia */}
-              <div style={{
-                marginBottom:10, paddingBottom:10,
-                borderBottom: `2px solid ${isHoje ? 'var(--dark)' : 'var(--border)'}`,
+              onDragOver={e=>{e.preventDefault();setDragDia(dia.id);}}
+              onDrop={()=>onDrop(dia.id)}
+              style={{
+                background: isDia ? '#FFFFFF' : '#FFFFFF',
+                borderRadius:12, padding:'10px 8px', minHeight:180,
+                boxShadow: isDia
+                  ? '0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04),0 0 0 2px #22C55E'
+                  : '0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)',
+                border:'none',
+                outline: dragDia===dia.id ? '2px dashed var(--green)' : 'none',
               }}>
-                <div style={{
-                  fontSize:11, fontWeight:700, textTransform:'uppercase',
-                  letterSpacing:'.08em',
-                  color: isHoje ? 'var(--tx)' : 'var(--ts)',
-                }}>
-                  {dia.label}
+              <div style={{ fontSize:10, fontWeight:700, color:isDia?'var(--gm)':'var(--ts)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:8 }}>
+                {dia.label.slice(0,3)}
+              </div>
+              {dCards.map(card => (
+                <div key={card.id}
+                  draggable
+                  onDragStart={()=>{setDrag(card.id);setDragDia(dia.id);}}
+                  onDragEnd={()=>{setDrag(null);setDragDia(null);}}
+                  style={{ background:'#F7F7F7', borderRadius:8, padding:'6px 8px', marginBottom:4, cursor:'grab', display:'flex', alignItems:'center', gap:6, fontSize:12, position:'relative' }}>
+                  <span style={{ fontSize:14 }}>{card.emoji}</span>
+                  <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'var(--tx)' }}>{card.nome}</span>
+                  <button onClick={()=>removerCard(card.id)}
+                    style={{ background:'none', border:'none', cursor:'pointer', color:'var(--ts)', fontSize:14, lineHeight:1, padding:0, flexShrink:0 }}>×</button>
                 </div>
-              </div>
-
-              {/* Cards */}
-              <div style={{
-                flex:1, display:'flex', flexDirection:'column', gap:6,
-                background: isDragOver ? 'var(--bg2)' : 'transparent',
-                borderRadius:10, padding: isDragOver ? 6 : 0,
-                transition:'all .15s', minHeight:60,
-                outline: isDragOver ? '2px dashed var(--border)' : 'none',
-              }}>
-                {diaCards.map(card => (
-                  <div key={card.id}
-                    draggable
-                    onDragStart={() => setDrag(card.id)}
-                    onDragEnd={() => { setDrag(null); setDragDia(null); }}
-                    style={{
-                      background:'#F7F7F7', borderRadius:10,
-                      padding:'10px 10px',
-                      border:'none',
-                      cursor:'grab',
-                      opacity: drag===card.id ? 0.35 : 1,
-                      transition:'opacity .12s, box-shadow .12s',
-                      boxShadow: drag===card.id ? 'none' : '0 1px 3px rgba(0,0,0,.06)',
-                    }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow='0 2px 8px rgba(0,0,0,.1)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow='0 1px 3px rgba(0,0,0,.06)'}>
-
-                    <div style={{ display:'flex', gap:7, alignItems:'flex-start' }}>
-                      <span style={{ fontSize:'1.1rem', flexShrink:0, marginTop:1 }}>{card.emoji}</span>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)', lineHeight:1.4, wordBreak:'break-word' }}>
-                          {card.nome}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => removerCard(card.id)}
-                        style={{ background:'none', border:'none', cursor:'pointer', color:'var(--ts)', fontSize:13, padding:0, flexShrink:0, opacity:0.5, lineHeight:1 }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='1'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='0.5'}>
-                        ×
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Botão adicionar */}
-                <button
-                  onClick={() => setModal({ dia: dia.id })}
-                  style={{
-                    display:'flex', alignItems:'center', gap:5, padding:'6px 4px',
-                    borderRadius:8, border:'none', background:'transparent',
-                    color:'var(--ts)', fontSize:12, cursor:'pointer',
-                    fontFamily:'inherit', width:'100%', textAlign:'left',
-                    marginTop: diaCards.length > 0 ? 2 : 0,
-                  }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color='var(--tx)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color='var(--ts)'}>
-                  <span style={{ fontSize:16, fontWeight:300 }}>+</span>
-                  <span>Novo</span>
-                </button>
-              </div>
+              ))}
+              <button onClick={()=>setModal({dia:dia.id})}
+                style={{ width:'100%', marginTop:4, padding:'5px', borderRadius:7, border:'1.5px dashed var(--border)', background:'transparent', cursor:'pointer', fontSize:11, color:'var(--ts)', fontFamily:'inherit', transition:'all .15s' }}
+                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--green)'}
+                onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--border)'}>
+                + adicionar
+              </button>
             </div>
           );
         })}
       </div>
 
-      {/* Modal de adicionar */}
       {modal && (
-        <div style={{
-          position:'fixed', inset:0, background:'rgba(0,0,0,.4)', zIndex:9999,
-          display:'flex', alignItems:'center', justifyContent:'center',
-        }}
-          onClick={e => { if (e.target===e.currentTarget) { setModal(null); setShowEmoji(false); } }}>
-          <div style={{
-            background:'#F7F7F7', borderRadius:16, padding:'1.5rem',
-            width:340, boxShadow:'0 20px 60px rgba(0,0,0,.3)',
-          }}>
-            <div style={{ fontSize:14, fontWeight:600, marginBottom:'1rem' }}>
-              Nova atividade — {DIAS.find(d=>d.id===modal.dia)?.label}
-            </div>
-
-            {/* Input com emoji */}
-            <div style={{ display:'flex', gap:8, marginBottom:'1rem' }}>
-              {/* Botão emoji */}
-              <button
-                onClick={() => setShowEmoji(!showEmoji)}
-                style={{
-                  width:44, height:44, borderRadius:10, border:'none',
-                  background:'#FFFFFF', cursor:'pointer', fontSize:'1.3rem',
-                  display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
-                , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
+        <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)setModal(null);}}>
+          <div className="modal" style={{ maxWidth:340 }}>
+            <h3 style={{ fontSize:14, fontWeight:600, marginBottom:'1rem' }}>
+              Adicionar em {DIAS.find(d=>d.id===modal.dia)?.label}
+            </h3>
+            <div style={{ display:'flex', gap:8, marginBottom:12 }}>
+              <button onClick={()=>setShowEmoji(!showEmoji)}
+                style={{ width:42, height:42, borderRadius:10, border:'1.5px solid var(--border)', background:'var(--bg)', cursor:'pointer', fontSize:20 }}>
                 {novoEmoji}
               </button>
-              {/* Input texto */}
-              <input
-                ref={inputRef}
-                value={novoNome}
-                onChange={e => setNovoNome(e.target.value)}
-                onKeyDown={e => { if (e.key==='Enter') adicionarCard(); if (e.key==='Escape') { setModal(null); setShowEmoji(false); }}}
-                placeholder="Meditação, academia, vitamina D..."
-                style={{
-                  flex:1, padding:'10px 14px', borderRadius:10,
-                  border:'none', background:'#FFFFFF',
-                  fontSize:13, fontFamily:'inherit', color:'var(--tx)',
-                  outline:'none',
-                , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}
-              />
+              <input ref={inputRef} className="inp" value={novoNome}
+                onChange={e=>setNovoNome(e.target.value)}
+                onKeyDown={e=>e.key==='Enter'&&adicionarCard()}
+                placeholder="Nome da atividade..." style={{ flex:1 }}/>
             </div>
-
-            {/* Emoji picker */}
             {showEmoji && (
-              <div style={{
-                background:'#FFFFFF', borderRadius:12, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'0.75rem',
-                marginBottom:'1rem', border:'none',
-              }}>
-                <div style={{ fontSize:11, color:'var(--ts)', marginBottom:8, fontWeight:500 }}>Escolha um emoji</div>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
-                  {EMOJIS.map(em => (
-                    <button key={em}
-                      onClick={() => { setNovoEmoji(em); setShowEmoji(false); }}
-                      style={{
-                        width:34, height:34, borderRadius:8, border:'none',
-                        background: novoEmoji===em ? 'var(--dark)' : 'var(--bg)',
-                        cursor:'pointer', fontSize:'1.1rem', display:'flex',
-                        alignItems:'center', justifyContent:'center', transition:'all .1s',
-                      }}
-                      onMouseEnter={e => { if (novoEmoji!==em) (e.currentTarget as HTMLElement).style.background='var(--border)'; }}
-                      onMouseLeave={e => { if (novoEmoji!==em) (e.currentTarget as HTMLElement).style.background='var(--bg)'; }}>
-                      {em}
-                    </button>
-                  ))}
-                </div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginBottom:12, maxHeight:120, overflowY:'auto' }}>
+                {EMOJIS.map(em=>(
+                  <button key={em} onClick={()=>{setNovoEmoji(em);setShowEmoji(false);}}
+                    style={{ width:32, height:32, borderRadius:6, border:novoEmoji===em?'2px solid var(--green)':'1px solid var(--border)', background:novoEmoji===em?'var(--gp)':'var(--bg)', cursor:'pointer', fontSize:16 }}>
+                    {em}
+                  </button>
+                ))}
               </div>
             )}
-
-            {/* Botões */}
             <div style={{ display:'flex', gap:8 }}>
-              <button onClick={adicionarCard} className="btn btn-d"
-                style={{ flex:1, justifyContent:'center', fontSize:13 }}
-                disabled={!novoNome.trim()}>
+              <button className="btn btn-d" onClick={adicionarCard} disabled={!novoNome.trim()} style={{ flex:1 }}>
                 Adicionar
               </button>
-              <button onClick={() => { setModal(null); setShowEmoji(false); }}
-                style={{ padding:'10px 16px', borderRadius:10, border:'none', background:'#FFFFFF', cursor:'pointer', fontFamily:'inherit', fontSize:13, color:'var(--tm)' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
+              <button onClick={()=>setModal(null)}
+                style={{ padding:'10px 16px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg)', cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>
                 Cancelar
               </button>
             </div>
