@@ -52,6 +52,7 @@ export default function MedicoAdmin() {
   const [filtro, setFiltro]         = useState('todas');
   const [notaEdit, setNotaEdit]     = useState<{id:string,nota:string}|null>(null);
   const [linkEdit, setLinkEdit]     = useState<{id:string,link:string}|null>(null);
+  const [confirmDel, setConfirmDel] = useState<string|null>(null);
 
   // Agenda
   const [semana, setSemana]         = useState<DiaConfig[]>(DEFAULT_CONFIG);
@@ -211,6 +212,12 @@ export default function MedicoAdmin() {
     setLinkEdit(null); carregarConsultas();
   };
 
+  const deletarConsulta = async (id: string) => {
+    await supabase.from('agendamentos').delete().eq('id', id);
+    setConfirmDel(null);
+    carregarConsultas();
+  };
+
   const filtradas = consultas.filter(c => filtro==='todas' || c.status===filtro);
   const CARD = { background:'#FFFFFF', borderRadius:14, padding:'1.25rem', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', marginBottom:12 };
 
@@ -346,6 +353,23 @@ export default function MedicoAdmin() {
                       style={{ fontSize:12, padding:'5px 12px', borderRadius:8, border:'1px solid #E5E7EB', background:'white', cursor:'pointer', fontFamily:'inherit', color:'#374151' }}>
                       📝 Nota
                     </button>
+                    {confirmDel === c.id ? (
+                      <div style={{ display:'flex', gap:4 }}>
+                        <button onClick={() => deletarConsulta(c.id)}
+                          style={{ fontSize:11, padding:'4px 10px', borderRadius:8, border:'none', background:'#D85A30', color:'white', cursor:'pointer', fontFamily:'inherit' }}>
+                          Confirmar
+                        </button>
+                        <button onClick={() => setConfirmDel(null)}
+                          style={{ fontSize:11, padding:'4px 8px', borderRadius:8, border:'1px solid #E5E7EB', background:'white', cursor:'pointer', fontFamily:'inherit', color:'#6B7280' }}>
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmDel(c.id)}
+                        style={{ fontSize:12, padding:'5px 12px', borderRadius:8, border:'1px solid #FECACA', background:'#FFF5F5', cursor:'pointer', fontFamily:'inherit', color:'#D85A30' }}>
+                        🗑 Remover
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
