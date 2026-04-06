@@ -132,7 +132,8 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {peptideos?.map((p, i) => {
             const ps = PRIO_STYLE[p.prioridade as keyof typeof PRIO_STYLE] || PRIO_STYLE.recomendado;
-            const borrado = hasSession ? false : i > 0; // sem blur para quem já tem conta
+            // Sem conta: mostra só 1. Com conta: mostra tudo (plano controla no dashboard)
+            const borrado = !hasSession && i > 0;
             return (
               <div key={i} style={{ background:'#F7F7F7', borderRadius:14, padding:'1.25rem', borderLeft:`4px solid ${borrado?'var(--border)':ps.cor}`, filter:borrado?'blur(5px)':'none', userSelect:borrado?'none':'auto', pointerEvents:borrado?'none':'auto' }}>
                 <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, marginBottom:'.75rem' }}>
@@ -176,24 +177,33 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
             <button
               onClick={async () => {
                 if (hasSession) {
+                  // Já tem conta — salva e vai para dashboard
                   const session = await getSession();
                   if (session) {
-                    await salvarDiagnostico(session.user.id, { ...answers, _protocoloIA: protIA ? JSON.stringify(protIA) : answers._protocoloIA });
-                    // Limpa session cache para forçar DashboardShell reler do banco
+                    await salvarDiagnostico(session.user.id, {
+                      ...answers,
+                      _protocoloIA: protIA ? JSON.stringify(protIA) : answers._protocoloIA
+                    });
                     sessionStorage.removeItem('nv_quiz');
                     sessionStorage.setItem('nv_diagnostico_atualizado', '1');
-                    onLogin(); // vai para o dashboard
+                    onLogin();
                     return;
                   }
                 }
-                setPlanosOpen(true);
+                // Novo usuário: salva dados no sessionStorage e vai para cadastro
+                // O cadastro vai redirecionar para planos → pagamento → revisão → dashboard
+                saveSession({
+                  ...answers,
+                  _protocoloIA: protIA ? JSON.stringify(protIA) : undefined,
+                });
+                window.location.href = '/cadastro?origem=diagnostico';
               }}
               style={{ width:'100%', padding:'14px', background:'var(--green)', border:'none', borderRadius:12, color:'white', fontFamily:'inherit', fontSize:15, fontWeight:500, cursor:'pointer', transition:'opacity .15s', marginBottom:8 }}
               onMouseEnter={e=>e.currentTarget.style.opacity='.9'}
               onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-              {hasSession ? '→ Acessar meu protocolo' : '🚀 Desbloquear protocolo'}
+              {hasSession ? '→ Acessar meu protocolo' : '🚀 Criar conta e desbloquear'}
             </button>
-            <div style={{ fontSize:11, opacity:.5 }}>Gratuito, Essencial R$39 ou Pro R$79/mês</div>
+            <div style={{ fontSize:11, opacity:.5 }}>Crie sua conta · escolha seu plano · acesse tudo</div>
           </div>
 
           {/* Observações da IA */}
