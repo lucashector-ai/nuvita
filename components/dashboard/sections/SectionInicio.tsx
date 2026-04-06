@@ -60,7 +60,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
     if (!saved) return '';
     try { const d = JSON.parse(saved); return d.data === hoje ? d.insight : ''; } catch { return ''; }
   });
-  const [tasksDone,    setTasksDone]    = useState(new Set());
+  const [tasksDone, setTasksDone] = useState(() => { if (typeof window === "undefined") return new Set(); try { const k = "nv_tasks_" + new Date().toISOString().split("T")[0]; const s = localStorage.getItem(k); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); } });
   const [expandido,    setExpandido]    = useState(null);
   const [starting,     setStarting]     = useState(false);
 
@@ -86,7 +86,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
     })();
     setTimeout(()=>{ onStartProto(); setStarting(false); }, 500);
   };
-  const toggleTask    = (id) => setTasksDone(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});
+  const toggleTask = (id) => setTasksDone(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); try { localStorage.setItem("nv_tasks_" + new Date().toISOString().split("T")[0], JSON.stringify([...n])); } catch {} return n; });
   const toggleExpand  = (id) => setExpandido(p=>p===id?null:id);
 
   const tarefas = items.slice(0,6);
@@ -385,18 +385,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
           </a>
         </div>
 
-        <div className="dc">
-          
-          <div style={{ display:'flex', gap:5, marginBottom:8 }}>
-            {['S','T','Q','Q','S','S','D'].map((d,i)=>(
-              <div key={i} style={{ flex:1, height:28, borderRadius:6, background:i<(checkInFeito?1:0)?'var(--green)':'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:i<(checkInFeito?1:0)?'white':'var(--ts)', fontWeight:500 }}>
-                {d}
               </div>
-            ))}
-          </div>
-          
-        </div>
-      </div>
     </>
   );
 }
