@@ -31,7 +31,7 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
       </div>
 
       {/* Info da conta */}
-      <div style={{ background:'var(--bg2)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', border:'1px solid var(--border)' }}>
+      <div style={{ background:'#FFFFFF', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)' }}>
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Informações</div>
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:13 }}>
@@ -50,16 +50,16 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
       </div>
 
       {/* Sessão */}
-      <div style={{ background:'var(--bg2)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', border:'1px solid var(--border)' }}>
+      <div style={{ background:'#FFFFFF', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)' }}>
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Sessão</div>
         <button onClick={logout}
-          style={{ width:'100%', padding:'10px', borderRadius:10, border:'1.5px solid var(--border)', background:'var(--bg)', fontSize:13, fontWeight:500, cursor:'pointer', fontFamily:'inherit', color:'var(--tx)' }}>
+          style={{ width:'100%', padding:'10px', borderRadius:10, boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', background:'#F7F7F7', fontSize:13, fontWeight:500, cursor:'pointer', fontFamily:'inherit', color:'var(--tx)' }}>
           Sair desta conta
         </button>
       </div>
 
       {/* Dados */}
-      <div style={{ background:'var(--bg2)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', border:'1px solid var(--border)' }}>
+      <div style={{ background:'#FFFFFF', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)' }}>
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Seus dados</div>
         <p style={{ fontSize:12, color:'var(--ts)', lineHeight:1.6, marginBottom:'1rem' }}>
           Seus dados ficam armazenados com segurança no Supabase (infraestrutura AWS). Você tem direito de exportar ou excluir seus dados a qualquer momento.
@@ -70,7 +70,7 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href=url; a.download='nuvita-dados.json'; a.click();
           }}
-          style={{ padding:'8px 16px', borderRadius:8, border:'1px solid var(--border)', background:'var(--bg)', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}>
+          style={{ padding:'8px 16px', borderRadius:8, boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', background:'#F7F7F7', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}>
           Exportar meus dados
         </button>
       </div>
@@ -114,7 +114,7 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
                 Excluir conta
               </button>
               <button onClick={()=>{setExcluindo(false);setConfirma('');}}
-                style={{ padding:'8px 16px', borderRadius:8, border:'1px solid var(--border)', background:'white', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}>
+                style={{ padding:'8px 16px', borderRadius:8, boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', background:'white', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}>
                 Cancelar
               </button>
             </div>

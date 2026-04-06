@@ -121,15 +121,20 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
         overflow: 'hidden',
       }}>
         {/* Logo */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 12px', minHeight:56, borderBottom:'none', flexShrink:0, cursor:'pointer' }}
-          onClick={() => nav('inicio')}>
-          {/* Logo Nuvita completa quando expandido, só ícone quando colapsado */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 10px', minHeight:56, borderBottom:'none', flexShrink:0 }}>
           {expanded ? (
-            <NuvitaLogo width={80} height={18}/>
+            <>
+              <div onClick={() => nav('inicio')} style={{ cursor:'pointer', flex:1 }}>
+                <NuvitaLogo width={80} height={18}/>
+              </div>
+              <button onClick={onToggleExpand} style={{ width:28, height:28, borderRadius:7, border:'none', background:'#EBEBEB', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#6B7280', flexShrink:0 }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2L4 6l4 4"/></svg>
+              </button>
+            </>
           ) : (
-            <div style={{ width:28, height:28, borderRadius:7, background:'linear-gradient(135deg,#22C55E,#15803D)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <span style={{ color:'white', fontWeight:800, fontSize:12, letterSpacing:'-.05em' }}>N</span>
-            </div>
+            <button onClick={onToggleExpand} style={{ width:36, height:36, borderRadius:8, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#6B7280', margin:'0 auto' }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 3l5 5-5 5"/></svg>
+            </button>
           )}
           {expanded && (
             <button onClick={onToggleExpand}
@@ -146,7 +151,7 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
         </div>
 
         {/* Nav */}
-        <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'8px 8px', scrollbarWidth:'thin', scrollbarColor:'rgba(0,0,0,.08) transparent' }}>
+        <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'8px 8px', scrollbarWidth:'thin', scrollbarColor:'rgba(0,0,0,.06) transparent', scrollbarWidth:'thin', scrollbarColor:'rgba(0,0,0,.08) transparent' }}>
           {SECTIONS.map((group, gi) => (
             <div key={gi} style={{ marginBottom: gi < SECTIONS.length-1 ? 4 : 0 }}>
               {/* Group label */}
