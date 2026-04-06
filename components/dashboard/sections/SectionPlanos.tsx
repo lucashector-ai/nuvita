@@ -130,11 +130,6 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
                 const data = await res.json();
                 if (data.url) { window.location.href = data.url; } else { alert('Erro ao iniciar pagamento.'); }
                 return;
-                // Demonstração: muda o plano localmente e no banco
-                const { supabase } = await import('@/lib/supabase');
-                await supabase.from('usuarios').update({ plano: p.id }).eq('id', userId);
-                if (onPlanChange) onPlanChange(p.id);
-                alert('Plano ' + p.nome + ' ativado! Em produção, aqui entraria o checkout.');
               }}>
               {atual ? 'Plano atual' : p.id==='free' ? 'Começar grátis' : 'Assinar'}
               </button>
