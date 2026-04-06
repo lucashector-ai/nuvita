@@ -17,6 +17,7 @@ import SectionComparativo from '@/components/dashboard/sections/SectionComparati
 import SectionMapa from '@/components/dashboard/sections/SectionMapa';
 import SectionLib          from './sections/SectionLib';
 import SectionConfig       from './sections/SectionConfig';
+import SectionConsultas    from './sections/SectionConsultas';
 import SectionMedico       from './sections/SectionMedico';
 import SectionCalendario   from './sections/SectionCalendario';
 import SectionPerfil       from './sections/SectionPerfil';
@@ -43,7 +44,7 @@ import PlanLock          from '@/components/ui/PlanLock';
 
 export type DashSection =
   'inicio'|'protocolo'|'ia'|'calc'|'lib'|'config'|
-  'medico'|'calendario'|'perfil'|
+  'medico'|'consultas'|'calendario'|'perfil'|
   'tracker'|'diario'|'historico'|'consistencia'|'analise'|
   'coach'|'ajuste'|'detector'|
   'simulador'|'rotina'|
@@ -289,6 +290,7 @@ export default function DashboardShell() {
           {section==='mapa'         && <SectionMapa/>}
           {section==='lib'          && <SectionLib/>}
           {section==='config'       && <SectionConfig answers={answers} plan={plan} userId={userId}/>}
+          {section==='consultas'       && <SectionConsultas userId={userId}/>}
           {section==='medico'       && <SectionMedico plan={plan} nome={nome} userId={userId}/>}
           {section==='calendario'   && <SectionCalendario items={items} peso={peso} protoAtivo={protoAtivo}/>}
           {section==='perfil'       && <SectionPerfil answers={answers} plan={plan} onNavigate={nav} userId={userId} onPlanChange={setPlanAtivo}/>}

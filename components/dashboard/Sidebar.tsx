@@ -65,7 +65,8 @@ const SECTIONS = [
   {
     label: 'Conta',
     items: [
-      { id:'medico',      icon:'M8 2a3 3 0 100 6A3 3 0 008 2zM2.5 14a5.5 5.5 0 0111 0M8 10v4M6 12h4', label:'Médico', proOnly: true },
+      { id:'consultas', icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', label:'Consultas', accentBg:'#E0F2FE', accentColor:'#0369A1' },
+    { id:'medico',      icon:'M8 2a3 3 0 100 6A3 3 0 008 2zM2.5 14a5.5 5.5 0 0111 0M8 10v4M6 12h4', label:'Médico', proOnly: true },
       { id:'perfil',      icon:'M8 2a3 3 0 100 6A3 3 0 008 2zM2.5 14a5.5 5.5 0 0111 0', label:'Perfil' },
       { id:'planos',      icon:'M1 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1V4zM1 7h14', label:'Planos' },
       { id:'conta',       icon:'M8 1a7 7 0 100 14A7 7 0 008 1zM5 8h6M8 5v6', label:'Conta' },
