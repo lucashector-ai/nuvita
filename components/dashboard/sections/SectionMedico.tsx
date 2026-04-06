@@ -73,10 +73,13 @@ export default function SectionMedico({ userId, answers, plan, onNavigate }: any
     setSalvando(true);
     const tipo = TIPOS.find(t => t.id === tipoSel);
     await supabase.from('agendamentos').insert({
-      user_id: userId, data: dataStr, horario: horarioSel,
+      user_id: userId,
+      nome: answers?.nome || 'Paciente',
+      email: answers?.email || '',
+      data: dataStr, horario: horarioSel,
       tipo: tipoSel, tipo_label: tipo?.label, duracao_min: tipo?.dur,
       observacoes: obs, status: 'pendente',
-      nome_paciente: answers?.nome || '',
+      nome_paciente: answers?.nome || 'Paciente',
       email_paciente: answers?.email || '',
     });
     await supabase.from('notificacoes').insert({
