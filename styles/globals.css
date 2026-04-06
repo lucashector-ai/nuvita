@@ -1093,3 +1093,9 @@ body { background: #F7F7F7 !important; }
 
 /* Garante fundo correto */
 body, .db-wrap, .db-main { background: #F7F7F7; }
+
+/* Scrollbar leve no sidebar */
+aside ::-webkit-scrollbar { width: 3px; }
+aside ::-webkit-scrollbar-track { background: transparent; }
+aside ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.08); border-radius: 100px; }
+aside ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,.15); }
