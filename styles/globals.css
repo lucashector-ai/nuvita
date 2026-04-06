@@ -4,9 +4,9 @@
 
 :root {
   /* Base */
-  --bg:    #F7F7F7;
-  --bg2:   #FFFFFF;
-  --bg3:   #F0F2F5;
+  --bg: #FFFFFF;
+  --bg2: #F7F7F7;
+  --bg3: #EFEFEF;
   --dark:  #1A1D23;
   --dark2: #0F1115;
 
@@ -45,7 +45,7 @@
   --radius-lg: 16px;
 }
 
-html, body { min-height: 100vh; background: var(--bg); font-family: 'Inter', sans-serif; color: var(--tx); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+html, body { min-height:100vh; background:#F7F7F7; font-family:'Inter', sans-serif; color:var(--tx); overflow-x:hidden; -webkit-font-smoothing:antialiased; }
 h1,h2,h3,h4 { font-weight: 500; letter-spacing: -.05em; color: var(--tx); }
 p { font-weight: 400; }
 strong { font-weight: 500; }
@@ -1031,3 +1031,17 @@ body, html { background: #F7F7F7 !important; }
   border: none !important;
   box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04) !important;
 }
+
+
+/* Cards brancos com sombra — sem border */
+.db-content > div,
+.db-content > section {
+  background: #FFFFFF;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+  border: none !important;
+}
+
+/* Fundo da página */
+.db-main, .db-wrap { background: #F7F7F7; }
+body { background: #F7F7F7 !important; }
