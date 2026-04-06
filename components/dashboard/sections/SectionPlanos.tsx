@@ -118,6 +118,18 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
                   if (onPlanChange) onPlanChange('free');
                   return;
                 }
+                // Chama AbacatePay
+                const { supabase } = await import('@/lib/supabase');
+                const { data: { user } } = await supabase.auth.getUser();
+                const { data: perfil } = await supabase.from('usuarios').select('diagnostico').eq('id', userId).single();
+                const res = await fetch('/api/pagamento', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ plano: p.id, userId, nome: perfil?.diagnostico?.nome || '', email: user?.email || '' }),
+                });
+                const data = await res.json();
+                if (data.url) { window.location.href = data.url; } else { alert('Erro ao iniciar pagamento.'); }
+                return;
                 // Demonstração: muda o plano localmente e no banco
                 const { supabase } = await import('@/lib/supabase');
                 await supabase.from('usuarios').update({ plano: p.id }).eq('id', userId);
