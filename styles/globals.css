@@ -161,7 +161,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 .imc-info { font-size: 13px; color: var(--tm); margin-top: -.75rem; margin-bottom: 1.5rem; }
 
 .scale-row { display: flex; gap: 7px; margin-bottom: 1.75rem; }
-.sc { flex: 1; aspect-ratio: 1; background: #FFFFFF; border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; transition: all .13s; font-size: 1.1rem; font-weight: 500; color: var(--tm); }
+.sc { flex: 1; aspect-ratio: 1; background: #FFFFFF;  border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; transition: all .13s; font-size: 1.1rem; font-weight: 500; color: var(--tm);  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);}
 .sc:hover { border-color: var(--border2); }
 .sc.sel { border-color: var(--green); background: #F2FCF7; color: var(--tx); }
 .sc-l { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; color: var(--ts); }
@@ -341,7 +341,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 .sc-l .sc-s { font-size: 13px; color: var(--tm); }
 
 /* Cards */
-.dc { background: var(--bg); border: 1px solid var(--border); border-radius: 13px; padding: 1.25rem; margin-bottom: 1rem; }
+.dc { background: var(--bg); border: none; border-radius: 13px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
 .dc:last-child { margin-bottom: 0; }
 .dc-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
 .dc-t { font-size: 11px; font-weight: 500; letter-spacing: .07em; text-transform: uppercase; color: var(--ts); }
@@ -428,7 +428,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 .ai-msg.ai { align-self: flex-start; }
 .ai-bubble { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.65; }
 .ai-msg.user .ai-bubble { background: var(--dark); color: white; border-bottom-right-radius: 3px; }
-.ai-msg.ai .ai-bubble { background: #FFFFFF; border: 1px solid var(--border); color: var(--tx); border-bottom-left-radius: 3px; }
+.ai-msg.ai .ai-bubble { background: #FFFFFF;  color: var(--tx); border-bottom-left-radius: 3px;  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);}
 .ai-dot { width: 6px; height: 6px; background: var(--ts); border-radius: 50%; animation: bounce 1.2s infinite; }
 .ai-dot:nth-child(2) { animation-delay: .2s; }
 .ai-dot:nth-child(3) { animation-delay: .4s; }
@@ -545,13 +545,13 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 /* ── SectionInicio — fixes ── */
 .d-mets {
   background: var(--bg);
-  border: 1px solid var(--border);
+  
   border-radius: 14px;
   padding: 1.25rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-}
+ box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);}
 .d-met-item { display: flex; flex-direction: column; gap: 4px; }
 .d-met-lbl  { font-size: 10px; font-weight: 500; color: var(--ts); text-transform: uppercase; letter-spacing: .07em; }
 .d-met-val  { font-size: 1.2rem; font-weight: 500; color: var(--tx); letter-spacing: -.04em; line-height: 1.1; }
@@ -575,9 +575,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 
 /* ── SectionInicio — espaçamento e fundos ── */
 .db-l { display: flex; flex-direction: column; gap: 1rem; }
-.db-g { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.db-t { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
-.db-s { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+.db-g { background: var(--bg);  border-radius: 14px; overflow: hidden;  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);}
+.db-t { background: var(--bg);  border-radius: 14px; padding: 1.25rem;  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);}
+.db-s { background: var(--bg);  border-radius: 14px; padding: 1.25rem;  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);}
 .db-stats { display: flex; flex-direction: column; gap: 1rem; }
 
 /* ── SectionInicio — espaçamento entre blocos ── */
@@ -1047,12 +1047,6 @@ body, html { background: #F7F7F7 !important; }
 body { background: #F7F7F7 !important; }
 
 
-/* ═══ NUVITA CARD SYSTEM ═══
-   Cards: fundo branco, sem border, sombra leve
-   Fundo: #F7F7F7
-   ═══════════════════════════ */
-
-body { background: #F7F7F7 !important; }
 
 /* Remove border e adiciona sombra em TODOS os divs com border solid
    que estão dentro do conteúdo principal (não sidebar, não inputs) */
@@ -1077,3 +1071,25 @@ body { background: #F7F7F7 !important; }
 :root {
   --sh: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
 }
+
+/* ══ NUVITA — Cards sem border, com sombra ══ */
+/* Aplica em todos os divs com borderRadius dentro do conteúdo do dashboard */
+/* O border rgb(235,235,235) vem de --border: #EBEBEB */
+
+/* Remove border de todos os cards no dashboard */
+.db-content > * { border: none !important; }
+
+/* Adiciona sombra nos cards brancos do dashboard */
+.db-content > div,
+.db-content > section,
+.d-banner,
+.d-grid > div {
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04) !important;
+  border: none !important;
+}
+
+/* Remove border do .d-banner específico */
+.d-banner { border: none !important; }
+
+/* Garante fundo correto */
+body, .db-wrap, .db-main { background: #F7F7F7; }
