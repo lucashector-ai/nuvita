@@ -184,7 +184,7 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
                     <div style={{
                       width: 28, height: 28, borderRadius: 7, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: isActive ? colors.bg : 'rgba(255,255,255,.06)',
+                      background: isActive ? item.accentBg : 'transparent',
                       transition: 'background .12s',
                     }}>
                       <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
