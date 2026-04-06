@@ -143,7 +143,7 @@ export default function SectionMedico({ userId, answers }: any) {
 
       {/* Próximos agendamentos */}
       {agendamentos.filter(a => a.status !== 'cancelado').length > 0 && (
-        <div style={CARD}>
+        <div style={{ ...CARD, maxWidth:360 }}>
           <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Suas consultas</div>
           {agendamentos.filter(a => a.status !== 'cancelado').map(a => (
             <div key={a.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:'1px solid #F3F4F6' }}>
@@ -204,12 +204,12 @@ export default function SectionMedico({ userId, answers }: any) {
           {/* Labels dias */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, marginBottom:8 }}>
             {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => (
-              <div key={d} style={{ textAlign:'center', fontSize:11, fontWeight:600, color:'var(--ts)', padding:'4px 0' }}>{d}</div>
+              <div key={d} style={{ textAlign:'center', fontSize:10, fontWeight:600, color:'var(--ts)', padding:'2px 0', textAlign:'center' }}>{d}</div>
             ))}
           </div>
 
           {/* Grid calendário */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2 }}>
             {Array.from({ length: primeiro }).map((_, i) => <div key={`e${i}`}/>)}
             {Array.from({ length: total }).map((_, i) => {
               const dia = i + 1;
@@ -218,7 +218,7 @@ export default function SectionMedico({ userId, answers }: any) {
               return (
                 <button key={dia} disabled={disabled}
                   onClick={() => { setDiaSel(dia); }}
-                  style={{ aspectRatio:'1', borderRadius:10, border:'none', cursor: disabled ? 'not-allowed' : 'pointer',
+                  style={{ width:36, height:36, borderRadius:8, border:'none', cursor: disabled ? 'not-allowed' : 'pointer',
                     background: sel ? 'var(--dark)' : 'transparent',
                     color: sel ? 'white' : disabled ? '#D1D5DB' : 'var(--tx)',
                     fontWeight: sel ? 600 : 400, fontSize:13, fontFamily:'inherit',
