@@ -12,7 +12,7 @@ const TIPOS = [
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
-export default function SectionMedico({ userId, answers, plan }: any) {
+export default function SectionMedico({ userId, answers, plan, onNavigate }: any) {
   const hoje = new Date();
   const [mes, setMes] = useState(hoje.getMonth());
   const [ano, setAno] = useState(hoje.getFullYear());
@@ -292,7 +292,7 @@ export default function SectionMedico({ userId, answers, plan }: any) {
 
           {/* Link para histórico */}
           <div style={{ ...CARD, display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}
-            onClick={() => window.location.href = '/consultas'}>
+            onClick={() => onNavigate && onNavigate('consultas')}>
             <div style={{ fontSize:'1.5rem' }}>📋</div>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:13, fontWeight:500 }}>Histórico de consultas</div>
