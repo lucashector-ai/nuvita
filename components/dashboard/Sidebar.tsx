@@ -40,7 +40,7 @@ const SECTIONS = [
   {
     label: 'Ferramentas',
     items: [
-      { id:'coach',       icon:'M8 2a3 3 0 100 6 3 3 0 000-6zM2.5 14a5.5 5.5 0 0111 0', label:'Coach IA' },
+      { id:'coach',       icon:'M8 2a3 3 0 100 6 3 3 0 000-6zM2.5 14a5.5 5.5 0 0111 0', label:'IA' },
       { id:'ajuste',      icon:'M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M10.4 10.4l1.4 1.4M3.2 12.8l1.4-1.4M10.4 5.6l1.4-1.4M8 5a3 3 0 100 6', label:'Ajuste Auto' },
       { id:'detector',    icon:'M8 2L2 14h12L8 2zM8 7v3M8 11.5v.5', label:'Detector' },
       { id:'simulador',   icon:'M8 1a7 7 0 100 14A7 7 0 008 1zM8 5v4l2 2', label:'Simulador' },

@@ -1,8 +1,6 @@
 // @ts-nocheck
 'use client';
-import { useState, useEffect, useRef } from 'react';
-
-type Msg = { role:'user'|'assistant'; content:string };
+import { useState, useRef, useEffect } from 'react';
 
 const SUGESTOES = [
   'Quais são os efeitos colaterais do BPC-157?',
@@ -13,129 +11,161 @@ const SUGESTOES = [
   'Como armazenar os peptídeos reconstituídos?',
 ];
 
-export default function SectionCoach({ answers, objs }: any) {
-  const [msgs,     setMsgs]     = useState<Msg[]>([]);
-  const [input,    setInput]    = useState('');
-  const [loading,  setLoading]  = useState(false);
+export default function SectionCoach({ answers, items, userId }: any) {
+  const [msgs, setMsgs]     = useState<{role:string;text:string}[]>([]);
+  const [input, setInput]   = useState('');
+  const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
+  const nome = answers?.nome?.toString().split(' ')[0] || '';
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }); }, [msgs]);
-
-  const nome    = answers?.nome || 'você';
-  const objList = (objs || []).join(', ') || 'saúde geral';
-  const nivel   = answers?.q4 || 'iniciante';
-
-  const systemPrompt = `Você é o Coach IA da Nuvita, especialista em peptídeos terapêuticos. 
-Você está conversando com ${nome}, nível ${nivel}, com objetivos de: ${objList}.
-Responda de forma clara, baseada em evidências científicas, mas acessível.
-Sempre recomende supervisão médica para decisões clínicas.
-Responda em português do Brasil. Seja conciso mas completo.
-Máximo de 3-4 parágrafos por resposta.`;
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior:'smooth' });
+  }, [msgs, loading]);
 
   const enviar = async (texto?: string) => {
     const msg = (texto || input).trim();
     if (!msg || loading) return;
-    const novasMsgs: Msg[] = [...msgs, { role:'user', content:msg }];
-    setMsgs(novasMsgs);
     setInput('');
+    setMsgs(p => [...p, { role:'user', text:msg }]);
     setLoading(true);
 
     try {
       const res = await fetch('/api/chat', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
         body: JSON.stringify({
-          system: systemPrompt,
-          messages: novasMsgs.map(m=>({ role:m.role, content:m.content })),
-        }),
+          message: msg,
+          context: {
+            nome,
+            objetivo: answers?.q3,
+            nivel: answers?.q4,
+            protocolo: items?.map(i => i.n).join(', '),
+          }
+        })
       });
       const data = await res.json();
-      const reply = data.content?.[0]?.text || data.message || 'Desculpe, ocorreu um erro.';
-      setMsgs([...novasMsgs, { role:'assistant', content:reply }]);
+      setMsgs(p => [...p, { role:'assistant', text: data.response || 'Erro ao obter resposta.' }]);
     } catch {
-      setMsgs([...novasMsgs, { role:'assistant', content:'Ocorreu um erro ao conectar. Tente novamente.' }]);
-    } finally {
-      setLoading(false);
+      setMsgs(p => [...p, { role:'assistant', text:'Ocorreu um erro. Tente novamente.' }]);
     }
+    setLoading(false);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
+  const handleKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); }
   };
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'70vh' }}>
-      {/* Header */}
-      <div style={{ marginBottom:'1rem' }}>
-        <h2 style={{ fontSize:'1.2rem', fontWeight:500, letterSpacing:'-.04em', marginBottom:'.25rem' }}>Coach IA</h2>
-        <p style={{ fontSize:13, color:'var(--ts)' }}>Pergunte qualquer coisa sobre seu protocolo e peptídeos</p>
-      </div>
+    <div style={{ display:'flex', flexDirection:'column', height:'calc(100vh - 120px)', maxWidth:800 }}>
 
       {/* Mensagens */}
-      <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:12, paddingRight:4 }}>
-        {msgs.length === 0 && (
-          <div style={{ textAlign:'center', paddingTop:'2rem' }}>
-            <div style={{ fontSize:'2.5rem', marginBottom:'1rem' }}>🧬</div>
-            <div style={{ fontSize:14, fontWeight:500, marginBottom:'.5rem' }}>Olá, {nome}!</div>
-            <div style={{ fontSize:13, color:'var(--ts)', marginBottom:'1.5rem' }}>
-              Sou seu coach especializado em peptídeos. Pergunte o que quiser sobre seu protocolo.
+      <div style={{ flex:1, overflowY:'auto', paddingBottom:'1rem' }}>
+        {msgs.length === 0 ? (
+          /* Estado vazio */
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:300, gap:24, paddingTop:'2rem' }}>
+            <div style={{ width:60, height:60, borderRadius:16, background:'linear-gradient(135deg,#22C55E,#15803D)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.8rem' }}>
+              🧬
             </div>
-            <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'center' }}>
-              {SUGESTOES.map(s=>(
-                <button key={s} onClick={()=>enviar(s)}
-                  style={{ padding:'6px 14px', borderRadius:100, border:'none', background:'#FFFFFF', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)', transition:'all .15s' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}
-                  onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='var(--bg)'}
-                  onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='var(--bg2)'}>
+            <div style={{ textAlign:'center' }}>
+              <h3 style={{ fontSize:'1.1rem', fontWeight:500, letterSpacing:'-.03em', marginBottom:6 }}>
+                {nome ? `Olá, ${nome}!` : 'Coach IA'}
+              </h3>
+              <p style={{ fontSize:13, color:'var(--ts)', maxWidth:360, lineHeight:1.6 }}>
+                Sou especializado em peptídeos. Pergunte sobre seu protocolo, doses, efeitos e muito mais.
+              </p>
+            </div>
+            {/* Sugestões */}
+            <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'center', maxWidth:560 }}>
+              {SUGESTOES.map(s => (
+                <button key={s} onClick={() => enviar(s)}
+                  style={{ padding:'8px 14px', borderRadius:100, border:'1px solid var(--border)', background:'#FFFFFF',
+                    boxShadow:'0 1px 2px rgba(0,0,0,.04)', cursor:'pointer', fontSize:12, color:'var(--tm)',
+                    fontFamily:'inherit', transition:'all .15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--gm)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--tm)'; }}>
                   {s}
                 </button>
               ))}
             </div>
           </div>
-        )}
-
-        {msgs.map((m,i)=>(
-          <div key={i} style={{ display:'flex', justifyContent:m.role==='user'?'flex-end':'flex-start' }}>
-            {m.role==='assistant' && (
-              <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--dark)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, marginRight:8, flexShrink:0, marginTop:2 }}>🧬</div>
+        ) : (
+          /* Mensagens */
+          <div style={{ display:'flex', flexDirection:'column', gap:16, padding:'1rem 0' }}>
+            {msgs.map((m, i) => (
+              <div key={i} style={{ display:'flex', gap:10, alignItems:'flex-start',
+                flexDirection: m.role === 'user' ? 'row-reverse' : 'row' }}>
+                {/* Avatar */}
+                <div style={{ width:32, height:32, borderRadius:10, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14,
+                  background: m.role === 'user' ? 'var(--dark)' : 'linear-gradient(135deg,#22C55E,#15803D)',
+                  color:'white', fontWeight:600 }}>
+                  {m.role === 'user' ? (nome?.charAt(0)?.toUpperCase() || 'U') : '🧬'}
+                </div>
+                {/* Balão */}
+                <div style={{ maxWidth:'75%', padding:'10px 14px', borderRadius: m.role === 'user' ? '14px 4px 14px 14px' : '4px 14px 14px 14px',
+                  background: m.role === 'user' ? 'var(--dark)' : '#FFFFFF',
+                  color: m.role === 'user' ? 'white' : 'var(--tx)',
+                  boxShadow: m.role === 'assistant' ? '0 1px 2px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.04)' : 'none',
+                  fontSize:13, lineHeight:1.65, whiteSpace:'pre-wrap' }}>
+                  {m.text}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
+                <div style={{ width:32, height:32, borderRadius:10, background:'linear-gradient(135deg,#22C55E,#15803D)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 }}>🧬</div>
+                <div style={{ padding:'12px 16px', borderRadius:'4px 14px 14px 14px', background:'#FFFFFF',
+                  boxShadow:'0 1px 2px rgba(0,0,0,.06)', display:'flex', gap:4, alignItems:'center' }}>
+                  {[0,1,2].map(i => (
+                    <div key={i} style={{ width:6, height:6, borderRadius:'50%', background:'var(--ts)',
+                      animation:`bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>
+                  ))}
+                </div>
+              </div>
             )}
-            <div style={{
-              maxWidth:'75%', padding:'10px 14px', borderRadius:12,
-              background:m.role==='user'?'var(--dark)':'var(--bg2)',
-              color:m.role==='user'?'white':'var(--tx)',
-              fontSize:13, lineHeight:1.6,
-              borderBottomRightRadius:m.role==='user'?4:12,
-              borderBottomLeftRadius:m.role==='assistant'?4:12,
-            }}>
-              {m.content.split('\n').map((line,j)=>(
-                <div key={j} style={{ marginBottom:line?2:6 }}>{line}</div>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {loading && (
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--dark)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13 }}>🧬</div>
-            <div style={{ padding:'10px 14px', borderRadius:12, background:'#FFFFFF', fontSize:13 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
-              <span style={{ animation:'pulse 1s infinite' }}>Analisando...</span>
-            </div>
+            <div ref={bottomRef}/>
           </div>
         )}
-        <div ref={bottomRef}/>
       </div>
 
-      {/* Input */}
-      <div style={{ display:'flex', gap:8, marginTop:'1rem', background:'#FFFFFF', borderRadius:12, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'8px', border:'none' }}>
-        <textarea ref={inputRef} value={input} onChange={e=>setInput(e.target.value)}
-          onKeyDown={e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); enviar(); }}}
-          placeholder="Pergunte sobre seu protocolo, doses, efeitos..."
-          rows={1}
-          style={{ flex:1, border:'none', background:'transparent', resize:'none', fontSize:13, fontFamily:'inherit', color:'var(--tx)', outline:'none', lineHeight:1.5, paddingTop:2 }}/>
-        <button onClick={()=>enviar()} disabled={!input.trim()||loading}
-          style={{ width:36, height:36, borderRadius:8, border:'none', background:input.trim()&&!loading?'var(--dark)':'var(--border)', color:'white', fontSize:16, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'background .15s' }}>
-          ↑
-        </button>
+      {/* Input fixo no rodapé */}
+      <div style={{ background:'#F7F7F7', paddingTop:'12px', borderTop:'1px solid #E5E7EB' }}>
+        <div style={{ display:'flex', gap:8, alignItems:'flex-end', background:'#FFFFFF',
+          borderRadius:14, padding:'10px 10px 10px 16px',
+          boxShadow:'0 1px 2px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKey}
+            placeholder="Pergunte sobre seu protocolo, doses, efeitos..."
+            rows={1}
+            style={{ flex:1, border:'none', outline:'none', resize:'none', fontFamily:'inherit',
+              fontSize:13, color:'var(--tx)', background:'transparent', lineHeight:1.5,
+              maxHeight:120, overflowY:'auto' }}
+          />
+          <button onClick={() => enviar()} disabled={!input.trim() || loading}
+            style={{ width:36, height:36, borderRadius:10, border:'none', flexShrink:0,
+              background: input.trim() && !loading ? 'var(--dark)' : '#E5E7EB',
+              cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
+              display:'flex', alignItems:'center', justifyContent:'center', transition:'all .15s' }}>
+            <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
+              <path d="M13 1L1 7l5 2m7-8L8 13 6 9m7-8L6 9" stroke={input.trim() && !loading ? 'white' : '#9CA3AF'} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div style={{ textAlign:'center', fontSize:11, color:'var(--ts)', marginTop:8 }}>
+          Enter para enviar · Shift+Enter para nova linha · Consulte sempre um médico
+        </div>
       </div>
-      <div style={{ fontSize:11, color:'var(--ts)', textAlign:'center', marginTop:6 }}>
-        Enter para enviar · Shift+Enter para nova linha · Consulte sempre um médico
-      </div>
+
+      <style>{`
+        @keyframes bounce {
+          0%, 80%, 100% { transform: scale(0.8); opacity: .5; }
+          40% { transform: scale(1.2); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -304,7 +304,7 @@ export default function DashboardShell() {
           {section==='geradorciclo' && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Gerador de ciclo' descricao='Crie ciclos personalizados com base nos seus objetivos. Disponível a partir do Essencial.'><SectionGeradorCiclo answers={answers}/></PlanLock>}
           {section==='fases'        && <SectionFases/>}
           {section==='rotina'       && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Rotina complementar' descricao='Planner semanal de sono, hidratação, alimentação e exercício. Disponível a partir do Essencial.'><SectionRotina answers={answers} userId={userId}/></PlanLock>}
-          {section==='estoque'      && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Controle de estoque' descricao='Cadastre seus frascos e a IA calcula quanto tempo vai durar. Disponível a partir do Essencial.'><SectionEstoque userId={userId}/></PlanLock>}
+          {section==='estoque'      && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Controle de estoque' descricao='Cadastre seus frascos e a IA calcula quanto tempo vai durar. Disponível a partir do Essencial.'><SectionEstoque userId={userId} items={allItems} answers={answers}/></PlanLock>}
           {section==='exportacao'   && <SectionExportacao answers={answers} items={items} plan={plan}/>}
           {section==='planos'        && <SectionPlanos planoAtual={plan} userId={userId} onPlanChange={setPlanAtivo} onNavigate={nav}/>}
           {section==='conta'         && <SectionConta planoAtual={plan} userId={userId} answers={answers} onNavigate={nav}/>}

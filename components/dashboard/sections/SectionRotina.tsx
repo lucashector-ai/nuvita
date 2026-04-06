@@ -115,9 +115,9 @@ export default function SectionRotina({ answers, userId }: Props) {
                   draggable
                   onDragStart={()=>{setDrag(card.id);setDragDia(dia.id);}}
                   onDragEnd={()=>{setDrag(null);setDragDia(null);}}
-                  style={{ background:'#F7F7F7', borderRadius:8, padding:'6px 8px', marginBottom:4, cursor:'grab', display:'flex', alignItems:'center', gap:6, fontSize:12, position:'relative' }}>
+                  style={{ background:'#F7F7F7', borderRadius:8, padding:'6px 8px', marginBottom:4, cursor:'grab', display:'flex', alignItems:'flex-start', gap:6, fontSize:12, position:'relative' }}>
                   <span style={{ fontSize:14 }}>{card.emoji}</span>
-                  <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'var(--tx)' }}>{card.nome}</span>
+                  <span style={{ flex:1, wordBreak:'break-word', whiteSpace:'normal', color:'var(--tx)', lineHeight:1.3, fontSize:11 }}>{card.nome}</span>
                   <button onClick={()=>removerCard(card.id)}
                     style={{ background:'none', border:'none', cursor:'pointer', color:'var(--ts)', fontSize:14, lineHeight:1, padding:0, flexShrink:0 }}>×</button>
                 </div>
