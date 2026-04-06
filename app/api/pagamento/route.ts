@@ -5,13 +5,13 @@ const ABACATE_KEY = process.env.ABACATEPAY_API_KEY!;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://nuvita-l1wk.vercel.app';
 
 const PLANOS = {
-  essencial: { nome: 'Nuvita Essencial', valor: 4700, externalId: 'nuvita-essencial' },
-  pro:       { nome: 'Nuvita Pro',       valor: 9700, externalId: 'nuvita-pro' },
+  essencial: { nome: 'Nuvita Essencial', mensal: 4700, anual: 45600, externalId: 'nuvita-essencial' },
+  pro:       { nome: 'Nuvita Pro',       mensal: 9700, anual: 93600, externalId: 'nuvita-pro' },
 };
 
 export async function POST(req: NextRequest) {
   try {
-    const { plano, userId, nome, email } = await req.json();
+    const { plano, userId, nome, email, anual, valorMensal } = await req.json();
 
     if (!plano || !PLANOS[plano as keyof typeof PLANOS]) {
       return NextResponse.json({ error: 'Plano inválido' }, { status: 400 });
@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
       products: [{
         externalId: p.externalId,
         name: p.nome,
-        description: `Assinatura mensal do plano ${p.nome}`,
+        description: anual ? `Plano anual ${p.nome} — R$ ${valorMensal}/mês por 12 meses` : `Plano mensal ${p.nome}`,
         quantity: 1,
-        price: p.valor,
+        price: anual ? p.anual : p.mensal,
       }],
       returnUrl: `${APP_URL}/dashboard`,
       completionUrl: `${APP_URL}/pagamento/sucesso?plano=${plano}&userId=${userId}`,

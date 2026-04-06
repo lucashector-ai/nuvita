@@ -125,7 +125,7 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
                 const res = await fetch('/api/pagamento', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ plano: p.id, userId, nome: perfil?.diagnostico?.nome || '', email: user?.email || '' }),
+                  body: JSON.stringify({ plano: p.id, userId, nome: perfil?.diagnostico?.nome || '', email: user?.email || '', anual, valorMensal: anual ? p.precoAnual : p.precoMensal }),
                 });
                 const data = await res.json();
                 if (data.url) { window.location.href = data.url; } else { alert('Erro ao iniciar pagamento.'); }
