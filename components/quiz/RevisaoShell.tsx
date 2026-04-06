@@ -37,13 +37,17 @@ export default function RevisaoShell() {
         }
       }
 
-      // Se não tem dados mas tem sessão, vai para dashboard (usuário já configurado)
+      // Se não tem sessão → precisa criar conta primeiro
+      if (!session) {
+        // Salva o quiz atual antes de redirecionar
+        if (s) saveSession(s);
+        router.replace('/cadastro?origem=diagnostico');
+        return;
+      }
+
+      // Tem sessão mas sem dados de protocolo
       if (!s || !s.q3) {
-        if (session) {
-          router.replace('/dashboard');
-        } else {
-          router.replace('/diagnostico');
-        }
+        router.replace('/dashboard');
         return;
       }
 
@@ -73,17 +77,23 @@ export default function RevisaoShell() {
     const aceitos = items.filter(i => !removed.includes(i.n));
     const updated = { ...answers, _removidos: removed, _aceitosRevisao: aceitos.map(i => i.n) };
     saveSession(updated);
-    // Salva no banco se tem sessão
+
     const { getSession, salvarDiagnostico } = await import('@/lib/auth');
     const session = await getSession();
+
     if (session) {
+      // Tem sessão — salva no banco e seta flag
       await salvarDiagnostico(session.user.id, {
         ...updated,
         _protocoloAtivo: true,
         _dataInicioProtocolo: new Date().toISOString().split('T')[0],
       });
       sessionStorage.setItem('nv_diagnostico_atualizado', '1');
-      sessionStorage.removeItem('nv_quiz');
+      // Mantém nv_quiz para o DashboardShell usar como fallback
+      // Só remove depois que o dashboard carregou com sucesso
+    } else {
+      // Sem sessão — mantém nv_quiz obrigatoriamente para o DashboardShell
+      sessionStorage.setItem('nv_quiz', JSON.stringify(updated));
     }
     router.push('/dashboard');
   };
