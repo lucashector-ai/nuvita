@@ -34,7 +34,7 @@ export default function SectionConfig({ answers, userId, onNavigate }: Props) {
       </div>
 
       {/* Aparência */}
-      <div style={{ background:'#FFFFFF', borderRadius:14, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1.25rem', marginBottom:'1rem', border:'none' }}>
+      <div style={{ background:'var(--bg2)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', border:'1px solid var(--border)' }}>
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Aparência</div>
         <div style={{ display:'flex', gap:10 }}>
           {[['light','☀️ Claro'],['dark','🌙 Escuro']].map(([v,l]) => (
@@ -47,13 +47,13 @@ export default function SectionConfig({ answers, userId, onNavigate }: Props) {
       </div>
 
       {/* Notificações */}
-      <div style={{ background:'#FFFFFF', borderRadius:14, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', padding:'1.25rem', marginBottom:'1rem', border:'none' }}>
+      <div style={{ background:'var(--bg2)', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', border:'1px solid var(--border)' }}>
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Notificações</div>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:13 }}>
           <span>Lembretes de aplicação</span>
           <div onClick={() => setNotif(!notif)}
             style={{ width:40, height:22, borderRadius:100, background:notif?'var(--green)':'var(--border)', cursor:'pointer', position:'relative', transition:'background .2s' }}>
-            <div style={{ position:'absolute', top:2, left:notif?'calc(100% - 20px)':2, width:18, height:18, borderRadius:'50%', background:'white', transition:'left .2s' , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}/>
+            <div style={{ position:'absolute', top:2, left:notif?'calc(100% - 20px)':2, width:18, height:18, borderRadius:'50%', background:'white', transition:'left .2s' }}/>
           </div>
         </div>
       </div>
