@@ -23,8 +23,8 @@ function gerarNotificacoes(userId: string, answers: any): Promise<Notif[]> {
     try {
       // Verifica check-in de hoje
       const { data: checkin } = await supabase
-        .from('check_ins').select('id').eq('user_id', userId).eq('data', hoje).single();
-      if (!checkin) {
+        .from('adesao_diaria').select('id,completo').eq('user_id', userId).eq('data', hoje).maybeSingle();
+      if (!checkin?.completo) {
         notifs.push({ id:'checkin', icon:'✅', text:'Check-in de hoje pendente', sub:'Como você está se sentindo hoje?', time:'Agora', read:false, action:'inicio' });
       }
 
