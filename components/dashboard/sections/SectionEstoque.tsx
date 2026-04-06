@@ -63,11 +63,20 @@ export default function SectionEstoque({ userId, items = [], answers }: any) {
   };
 
   const salvarItem = async (item: ItemEstoque) => {
-    await supabase.from('estoque_usuario').upsert({
-      id: item.id, user_id: userId, slug: item.slug, nome: item.nome,
-      emoji: item.emoji, quantidade_mg: item.quantidade_mg,
-      dose_dia_mg: item.dose_dia_mg, updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id,slug' });
+    const payload: any = {
+      user_id: userId, slug: item.slug, nome: item.nome,
+      quantidade_mg: item.quantidade_mg, dose_dia_mg: item.dose_dia_mg,
+    };
+    if (item.id) payload.id = item.id;
+    
+    if (item.id) {
+      await supabase.from('estoque_usuario').update({
+        quantidade_mg: item.quantidade_mg,
+        dose_dia_mg: item.dose_dia_mg,
+      }).eq('id', item.id);
+    } else {
+      await supabase.from('estoque_usuario').insert(payload);
+    }
     setEditando(null);
     carregar();
   };
@@ -75,11 +84,10 @@ export default function SectionEstoque({ userId, items = [], answers }: any) {
   const adicionarManual = async () => {
     if (!novoItem.nome.trim()) return;
     const slug = novoItem.nome.toLowerCase().replace(/\s+/g,'-');
-    await supabase.from('estoque_usuario').upsert({
+    await supabase.from('estoque_usuario').insert({
       user_id: userId, slug, nome: novoItem.nome.trim(),
-      emoji: novoItem.emoji, quantidade_mg: novoItem.quantidade_mg,
-      dose_dia_mg: novoItem.dose_dia_mg, updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id,slug' });
+      quantidade_mg: novoItem.quantidade_mg, dose_dia_mg: novoItem.dose_dia_mg,
+    });
     setNovoItem({ nome:'', emoji:'💊', quantidade_mg:0, dose_dia_mg:0.25 });
     setAdicionando(false);
     carregar();
