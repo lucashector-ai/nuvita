@@ -7,6 +7,7 @@ interface Props {
   active: DashSection; onNavigate: (s: DashSection) => void;
   mobileOpen: boolean; onMobileClose: () => void;
   expanded: boolean; onToggleExpand: () => void;
+  nome?: string; planLabel?: string; plan?: string; onLogout?: () => void;
 }
 
 const SECTIONS = [
@@ -44,7 +45,7 @@ const SECTIONS = [
   ]},
 ];
 
-export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose, expanded, onToggleExpand }: Props) {
+export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose, expanded, onToggleExpand, nome, planLabel, plan, onLogout }: Props) {
   const nav = (s: DashSection) => { onNavigate(s); onMobileClose(); };
 
   return (
