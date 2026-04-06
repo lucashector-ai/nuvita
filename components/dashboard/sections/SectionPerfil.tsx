@@ -57,7 +57,7 @@ export default function SectionPerfil({ answers, plan, onNavigate, userId, onPla
       </div>
 
       {/* Avatar + nome */}
-      <div style={{ display:'flex', gap:20, alignItems:'center', background:'var(--bg2)', borderRadius:16, padding:'1.5rem', marginBottom:'1.25rem', border:'1px solid var(--border)' }}>
+      <div style={{ display:'flex', gap:20, alignItems:'center', background:'#FFFFFF', borderRadius:16, padding:'1.5rem', marginBottom:'1.25rem', border:'1px solid var(--border)' }}>
         <div style={{ position:'relative', flexShrink:0 }}>
           <div onClick={()=>fileRef.current?.click()}
             style={{ width:72, height:72, borderRadius:'50%', overflow:'hidden', cursor:'pointer', background:'var(--dark)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.8rem' }}>
@@ -84,7 +84,7 @@ export default function SectionPerfil({ answers, plan, onNavigate, userId, onPla
       {/* Stats */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:'1.25rem' }}>
         {[['📊','Check-ins totais',stats.checkins],['📅','Dias com registro',stats.dias],['🔥','Adesão esta semana',stats.semana]].map(([ico,lbl,val])=>(
-          <div key={lbl} style={{ background:'var(--bg2)', borderRadius:12, padding:'1rem', border:'1px solid var(--border)', textAlign:'center' }}>
+          <div key={lbl} style={{ background:'#FFFFFF', borderRadius:12, padding:'1rem', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', textAlign:'center' }}>
             <div style={{ fontSize:'1.4rem', marginBottom:4 }}>{ico}</div>
             <div style={{ fontSize:20, fontWeight:700 }}>{val}</div>
             <div style={{ fontSize:11, color:'var(--ts)', marginTop:2 }}>{lbl}</div>
@@ -93,7 +93,7 @@ export default function SectionPerfil({ answers, plan, onNavigate, userId, onPla
       </div>
 
       {/* Dados do diagnóstico */}
-      <div style={{ background:'var(--bg2)', borderRadius:16, padding:'1.25rem', border:'1px solid var(--border)', marginBottom:'1.25rem' }}>
+      <div style={{ background:'#FFFFFF', borderRadius:16, padding:'1.25rem', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', marginBottom:'1.25rem' }}>
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Perfil do diagnóstico</div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
           {[
@@ -102,13 +102,13 @@ export default function SectionPerfil({ answers, plan, onNavigate, userId, onPla
             ['⚖️','Peso',      peso?`${peso} kg`:'—'],
             ['🎂','Idade',     idade?`${idade} anos`:'—'],
           ].map(([ico,lbl,val])=>(
-            <div key={lbl} style={{ background:'var(--bg)', borderRadius:10, padding:'10px 12px' }}>
+            <div key={lbl} style={{ background:'#F7F7F7', borderRadius:10, padding:'10px 12px' }}>
               <div style={{ fontSize:11, color:'var(--ts)', marginBottom:2 }}>{ico} {lbl}</div>
               <div style={{ fontSize:13, fontWeight:500 }}>{val}</div>
             </div>
           ))}
         </div>
-        <button style={{ marginTop:'1rem', fontSize:12, padding:'6px 14px', borderRadius:8, border:'1px solid var(--border)', background:'var(--bg)', cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}
+        <button style={{ marginTop:'1rem', fontSize:12, padding:'6px 14px', borderRadius:8, border:'1px solid var(--border)', background:'#F7F7F7', cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}
           onClick={()=>window.location.href='/cadastro'}>
           Refazer diagnóstico
         </button>
