@@ -58,22 +58,26 @@ function PlanosContent() {
     setLoading(planoId);
 
     if (planoId === "free") {
-      // Plano free — salva e vai para revisão
+      // Plano free — salva diagnóstico completo e vai para revisão
+      const quiz = sessionStorage.getItem("nv_quiz");
+      let diagData: any = { email, plano: "free", _activePlan: "free" };
+      if (quiz) {
+        try { diagData = { ...JSON.parse(quiz), email, plano: "free", _activePlan: "free" }; }
+        catch {}
+      }
+      // Lê diagnóstico existente para não sobrescrever dados do banco
+      const { data: perfilAtual } = await supabase
+        .from("usuarios").select("diagnostico").eq("id", userId).single();
+      const diagFinal = { ...(perfilAtual?.diagnostico || {}), ...diagData };
+      
       await supabase.from("usuarios").upsert({
         id: userId,
         plano: "free",
-        diagnostico: { email, _activePlan: "free" },
+        diagnostico: diagFinal,
       }, { onConflict: "id" });
-      // Merge com dados do quiz
-      const quiz = sessionStorage.getItem("nv_quiz");
-      if (quiz) {
-        try {
-          const d = JSON.parse(quiz);
-          await supabase.from("usuarios").update({
-            diagnostico: { ...d, email, plano: "free", _activePlan: "free" }
-          }).eq("id", userId);
-        } catch {}
-      }
+      
+      // Garante que sessionStorage também está atualizado
+      sessionStorage.setItem("nv_quiz", JSON.stringify(diagFinal));
       sessionStorage.setItem("nv_pos_cadastro", "1");
       setLoading(null);
       router.push("/revisao");

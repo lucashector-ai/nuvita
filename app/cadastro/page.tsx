@@ -47,23 +47,24 @@ function CadastroContent() {
     const { data, error } = await supabase.auth.signUp({ email, password: senha });
     if (error) { setErro(error.message); setLoading(false); return; }
 
-    // Salva nome no banco
+    // Salva no banco com diagnóstico completo do quiz
     if (data.user) {
+      const quiz = sessionStorage.getItem("nv_quiz");
+      let diagData: any = { nome, email };
+      if (quiz) {
+        try {
+          const d = JSON.parse(quiz);
+          diagData = { ...d, nome, email };
+        } catch {}
+      }
       await supabase.from("usuarios").upsert({
         id: data.user.id,
         nome,
         plano: "free",
-        diagnostico: { nome, email },
+        diagnostico: diagData,
       });
-      // Merge quiz com nome/email
-      const quiz = sessionStorage.getItem("nv_quiz");
-      if (quiz) {
-        try {
-          const d = JSON.parse(quiz);
-          const merged = { ...d, nome, email };
-          sessionStorage.setItem("nv_quiz", JSON.stringify(merged));
-        } catch {}
-      }
+      // Atualiza sessionStorage com merge
+      sessionStorage.setItem("nv_quiz", JSON.stringify(diagData));
     }
     setLoading(false);
     // Vai para planos
