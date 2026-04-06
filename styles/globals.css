@@ -3,64 +3,46 @@
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:    #F7F7F7;
-  --bg2:   #FFFFFF;
-  --bg3:   #EFEFEF;
-  --dark:  #1A1D23;
-  --dark2: #0F1115;
-  --green: #22C55E;
-  --gp:    #DCFCE7;
-  --gm:    #15803D;
-  --tx:  #111827;
-  --tm:  #6B7280;
-  --ts:  #9CA3AF;
-  --am: #F59E0B;
-  --ab: #FFFBEB;
-  --border:  #E5E7EB;
-  --border2: #D1D5DB;
-  --sh:  0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+  --bg: #F7F7F7; --bg2: #FFFFFF; --bg3: #F0F2F5;
+  --dark: #1A1D23; --dark2: #0F1115;
+  --green: #22C55E; --gp: #DCFCE7; --gm: #15803D;
+  --border: #E5E7EB; --border2: #D1D5DB;
+  --tx: #111827; --tm: #6B7280; --ts: #9CA3AF;
+  --am: #F59E0B; --ab: #FFFBEB;
+  --sh: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
   --shm: 0 4px 16px rgba(0,0,0,.10);
   --W: 1280px;
-  --sb-w: 56px;
-  --sb-wx: 232px;
-  --radius: 10px;
-  --radius-lg: 14px;
+  --sb-w: 56px; --sb-wx: 232px;
+  --radius: 10px; --radius-lg: 14px;
 }
 
-html, body { min-height:100vh; background:#F7F7F7; font-family:'Inter',sans-serif; color:var(--tx); overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+html, body { min-height: 100vh; background: #F7F7F7; font-family: 'Inter', sans-serif; color: var(--tx); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
 h1,h2,h3,h4 { font-weight: 500; letter-spacing: -.05em; color: var(--tx); }
 p { font-weight: 400; }
 strong { font-weight: 500; }
 
-/* ── LAYOUT ── */
 .container { max-width: var(--W); margin: 0 auto; padding: 0 2rem; }
 @media(max-width:640px) { .container { padding: 0 1rem; } }
 
-/* ── GRADIENTE ── */
 .grad { background: radial-gradient(ellipse 80% 70% at 80% -10%,#B2EDD8 0%,#CAF6EC 18%,rgba(255,255,255,.5) 50%,#fff 78%), radial-gradient(ellipse 40% 50% at 5% 15%,#C8E8E0 0%,transparent 55%); }
 
-/* ── PILL ── */
 .pill { display: inline-flex; align-items: center; gap: 6px; background: var(--gp); color: var(--gm); font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; padding: 4px 12px; border-radius: 100px; }
 .pdot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pu 2s ease-in-out infinite; }
 @keyframes pu { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-/* ── BOTÕES ── */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-family: 'Inter',sans-serif; font-weight: 500; font-size: 14px; letter-spacing: -.01em; cursor: pointer; transition: all .14s; white-space: nowrap; border: none; }
 .btn-d { background: var(--dark); color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px; }
-.btn-d:hover { background: #2D3139; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+.btn-d:hover { background: #2D3139; }
 .btn-d:disabled { opacity: .32; cursor: not-allowed; }
 .btn-o { background: transparent; color: var(--tm); padding: 11px 18px; border-radius: 100px; border: 1px solid var(--border); }
 .btn-o:hover { border-color: var(--border2); color: var(--tx); }
 .btn-g { background: var(--green); color: var(--dark); padding: 12px 22px; border-radius: 100px; }
-.btn-g:hover { opacity: .88; }
 .fw { width: 100%; }
 
-/* ── INPUTS ── */
 .inp { width: 100%; padding: 11px 14px; background: #fff; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Inter',sans-serif; font-size: 14px; color: var(--tx); outline: none; transition: all .15s; }
 .inp::placeholder { color: var(--ts); }
 .inp:focus { border-color: var(--dark); background: #fff; box-shadow: 0 0 0 3px rgba(26,29,35,.08); }
 
-/* ── MODAIS ── */
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(3px); }
 .overlay.hide { display: none; }
 .modal { background: white; border-radius: 16px; padding: 2rem; max-width: 440px; width: 100%; box-shadow: 0 8px 32px rgba(0,0,0,.18); max-height: 90vh; overflow-y: auto; }
@@ -68,82 +50,55 @@ strong { font-weight: 500; }
 .modal p { font-size: 13px; color: var(--tm); line-height: 1.65; margin-bottom: 1.25rem; letter-spacing: -.02em; }
 .modal-ico { width: 44px; height: 44px; border-radius: 10px; background: var(--gp); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
 .mstack { display: flex; flex-direction: column; gap: 8px; margin-top: .5rem; }
-.ob-step { display: flex; gap: 12px; padding: 12px; background: #FFFFFF; border-radius: 10px; margin-bottom: 8px; }
-.ob-n { width: 24px; height: 24px; border-radius: 50%; background: var(--gp); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--gm); flex-shrink: 0; margin-top: 1px; }
-.ob-txt strong { font-size: 13px; font-weight: 500; color: var(--tx); display: block; margin-bottom: 2px; }
-.ob-txt span { font-size: 12px; color: var(--tm); line-height: 1.5; }
 .code-row { display: flex; gap: 7px; justify-content: center; margin-bottom: 1.1rem; }
-.ci { width: 44px; height: 52px; text-align: center; font-family: 'Inter',sans-serif; font-size: 1.3rem; font-weight: 500; border: 1px solid var(--border); border-radius: 9px; outline: none; color: var(--tx); background: #FFFFFF; transition: all .13s; }
+.ci { width: 44px; height: 52px; text-align: center; font-family: 'Inter',sans-serif; font-size: 1.3rem; font-weight: 500; border: 1px solid var(--border); border-radius: 9px; outline: none; color: var(--tx); background: var(--bg2); transition: all .13s; }
 .ci:focus { border-color: var(--green); background: var(--bg); box-shadow: 0 0 0 3px rgba(94,201,145,.1); }
 .ci.filled { border-color: var(--green); background: #F2FCF7; }
-.user-menu { position: absolute; top: calc(100% + 6px); right: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; min-width: 200px; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,.1); display: none; }
-.user-menu.open { display: block; }
-.um-item { display: flex; align-items: center; gap: 9px; padding: .625rem 1rem; font-size: 13px; color: var(--tm); cursor: pointer; transition: background .13s; }
-.um-item:hover { background: #FFFFFF; color: var(--tx); }
-.um-sep { height: 1px; background: var(--border); margin: .25rem 0; }
-.um-header { padding: .75rem 1rem .5rem; border-bottom: 1px solid var(--border); }
 .disc { padding: .875rem 1rem; background: var(--ab); border: 1px solid rgba(212,137,58,.2); border-radius: 8px; font-size: 12px; color: var(--am); line-height: 1.6; }
 
+/* QUIZ */
+.q-nav { border-bottom: 1px solid var(--border); background: var(--bg); }
+.q-nav-in { max-width: var(--W); margin: 0 auto; padding: 0 2rem; height: 58px; display: flex; align-items: center; justify-content: space-between; }
+.q-body { max-width: 640px; margin: 0 auto; padding: 3rem 2rem; }
+@media(max-width:640px) { .q-body { padding: 2rem 1.25rem; } }
+.q-num { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ts); margin-bottom: .75rem; }
+.q-title { font-size: 1.5rem; font-weight: 500; letter-spacing: -.05em; color: var(--tx); margin-bottom: .5rem; line-height: 1.25; }
+.q-sub { font-size: 13px; color: var(--tm); margin-bottom: 2rem; line-height: 1.6; }
+.opts { display: flex; flex-direction: column; gap: 10px; margin-bottom: 2rem; }
+.opts.c2 { display: grid; grid-template-columns: 1fr 1fr; }
+.opts.c1 { flex-direction: column; }
+.opt { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: 12px; cursor: pointer; transition: all .13s; background: var(--bg); text-align: left; font-family: 'Inter',sans-serif; }
+.opt:hover { border-color: var(--border2); background: var(--bg2); }
+.opt.sel { border-color: var(--dark); background: var(--bg2); }
+.opt-ico { font-size: 1.3rem; flex-shrink: 0; }
+.opt-lbl { font-size: 14px; font-weight: 500; color: var(--tx); }
+.opt-desc { font-size: 12px; color: var(--tm); margin-top: 2px; }
+.opt-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); margin-left: auto; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .13s; }
+.opt.sel .opt-check { background: var(--dark); border-color: var(--dark); }
+.nav-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.prog-bar { height: 3px; background: var(--bg3); border-radius: 100px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--dark); border-radius: 100px; transition: width .3s; }
 
+/* DASHBOARD */
+.db-wrap { display: flex; min-height: 100vh; background: #F7F7F7; }
+.db-main { flex: 1; min-width: 0; background: #F7F7F7; }
+.db-content { padding: 1.5rem 2rem; }
+@media(max-width:768px) { .db-content { padding: 1rem; } }
+.d-banner { border-radius: 16px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; }
+.d-grid { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+@media(max-width:1024px) { .d-grid { grid-template-columns: 1fr; } }
 
-/* ══════════════════════════════════════
-   NUVITA — Design System Override
-   Fundo: #F7F7F7 | Cards: #FFFFFF + shadow
-   ══════════════════════════════════════ */
+/* SIDEBAR */
+.sb-top { padding: .5rem 0; }
+.sb-logo-row { display: flex; align-items: center; gap: 10px; padding: 0 12px; width: 100%; min-height: 56px; cursor: pointer; border-bottom: 1px solid var(--border); }
+.sb-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 9px; cursor: pointer; transition: all .12s; color: var(--tm); font-size: 13px; font-weight: 400; white-space: nowrap; overflow: hidden; border: none; background: transparent; width: 100%; text-align: left; font-family: inherit; }
+.sb-item:hover { background: #FFFFFF; color: var(--tx); box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.sb-item.active { background: #FFFFFF; color: var(--tx); font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04); }
+.sb-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #EBEBEB; transition: all .12s; }
+.sb-item.active .sb-icon, .sb-item:hover .sb-icon { background: var(--accentBg, #EDE9FE); }
+.sb-group-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ts); padding: 8px 10px 4px; }
 
-/* 1. Fundo geral da aplicação */
-body { background: #F7F7F7 !important; }
-
-/* 2. Remove border de TODOS os divs que têm border inline */
-div[style*="border: 1px solid"],
-div[style*="border:1px solid"],
-div[style*="border: 1.5px solid"],
-div[style*="border:1.5px solid"] {
-  border: none !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04) !important;
-}
-
-/* 3. Cards com background var(--bg2) ou branco ficam brancos com shadow */
-div[style*="background: var(--bg2)"],
-div[style*="background:var(--bg2)"] {
-  background: #FFFFFF !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04) !important;
-  border: none !important;
-}
-
-/* 4. Wrappers de página ficam com fundo #F7F7F7 */
-div[style*="min-height: 100vh"],
-div[style*="minHeight: 100vh"],
-div[style*="min-height:100vh"],
-div[style*="minHeight:100vh"] {
-  background: #F7F7F7 !important;
-}
-
-/* 5. Exceções — não aplicar override nestes elementos */
-aside div[style*="border"],
-nav div[style*="border"],
-input[style*="border"],
-button[style*="border"],
-.overlay div[style*="border"],
-.modal div[style*="border"],
-div[style*="border-radius: 100"],
-div[style*="borderRadius: 100"],
-div[style*="border-color"],
-div[style*="border-top:"],
-div[style*="border-bottom:"],
-div[style*="border-left:"],
-div[style*="border-right:"] {
-  border: revert !important;
-  box-shadow: revert !important;
-}
-
-/* 6. Garante sidebar com fundo #F7F7F7 */
-aside {
-  background: #F7F7F7 !important;
-  border-right: 1px solid #E5E7EB !important;
-}
-
-/* Scrollbar refinada */
-::-webkit-scrollbar { width:5px; height:5px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:#D1D5DB; border-radius:100px; }
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 100px; }
