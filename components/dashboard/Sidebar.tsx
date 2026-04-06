@@ -141,12 +141,12 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
           )}
           {!expanded && (
             <button onClick={onToggleExpand}
-              style={{ position:'absolute', right:0, width:'100%', height:56, border:'none', background: isActive ? item.accentBg : 'transparent', cursor:'pointer' }}/>
+              style={{ position:'absolute', right:0, width:'100%', height:56, border:'none', background:'transparent', cursor:'pointer' }}/>
           )}
         </div>
 
         {/* Nav */}
-        <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'8px 8px' }}>
+        <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'8px 8px', scrollbarWidth:'thin', scrollbarColor:'rgba(0,0,0,.08) transparent' }}>
           {SECTIONS.map((group, gi) => (
             <div key={gi} style={{ marginBottom: gi < SECTIONS.length-1 ? 4 : 0 }}>
               {/* Group label */}
@@ -175,7 +175,7 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
                       fontFamily: 'inherit', letterSpacing: '-.01em',
                       whiteSpace: 'nowrap', overflow: 'hidden',
                       transition: 'all .12s', textAlign: 'left',
-                      justifyContent: expanded ? 'flex-start' : 'center', width: expanded ? '100%' : 42, height: expanded ? 'auto' : 42,
+                      justifyContent: expanded ? 'flex-start' : 'center',
                       marginBottom: 1,
                     }}
                     onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.07)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.85)'; }}
@@ -195,7 +195,7 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
                     </div>
                     {/* Label */}
                     {expanded && (
-                      <span style={{ flex:1, overflow:'hidden', scrollbarColor:'rgba(0,0,0,.08) transparent', scrollbarWidth:'thin', textOverflow:'ellipsis' }}>
+                      <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis' }}>
                         {item.label}
                         {item.proOnly && <span style={{ marginLeft:6, fontSize:9, background:'#EDE9FE', color:'#7C3AED', padding:'1px 5px', borderRadius:100, fontWeight:700 }}>PRO</span>}
                       </span>
