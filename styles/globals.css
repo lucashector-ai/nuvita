@@ -1033,7 +1033,7 @@ body, html { background: #F7F7F7 !important; }
 }
 
 
-/* Cards brancos com sombra — sem border */
+
 .db-content > div,
 .db-content > section {
   background: #FFFFFF;
@@ -1042,6 +1042,38 @@ body, html { background: #F7F7F7 !important; }
   border: none !important;
 }
 
-/* Fundo da página */
+
 .db-main, .db-wrap { background: #F7F7F7; }
 body { background: #F7F7F7 !important; }
+
+
+/* ═══ NUVITA CARD SYSTEM ═══
+   Cards: fundo branco, sem border, sombra leve
+   Fundo: #F7F7F7
+   ═══════════════════════════ */
+
+body { background: #F7F7F7 !important; }
+
+/* Remove border e adiciona sombra em TODOS os divs com border solid
+   que estão dentro do conteúdo principal (não sidebar, não inputs) */
+.db-content div[style*="border: 1px solid"],
+.db-content div[style*="border:1px solid"],
+.db-content div[style*="border: 1.5px solid"],
+.db-content div[style*="border:1.5px solid"] {
+  border: none !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04) !important;
+}
+
+/* Cards com background branco dentro do dashboard */
+.db-content div[style*="background: rgb(255, 255, 255)"],
+.db-content div[style*="background: white"],
+.db-content div[style*="background: #fff"],
+.db-content div[style*="background: #FFFFFF"] {
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04) !important;
+  border: none !important;
+}
+
+/* Garante fundo dos cards via variável CSS */
+:root {
+  --sh: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+}

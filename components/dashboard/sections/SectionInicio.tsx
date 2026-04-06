@@ -95,7 +95,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
 
   return (
     <>
-      <div className="d-banner" style={{ gridColumn:'1/-1', background:'radial-gradient(ellipse 90% 120% at 70% 0%,#B0EDD8 0%,var(--gp) 22%,#E4F9F2 45%,#F7FDFB 70%)', border:'1px solid #C0EAE0' }}>
+      <div className="d-banner" style={{ gridColumn:'1/-1', background:'radial-gradient(ellipse 90% 120% at 70% 0%,#B0EDD8 0%,var(--gp) 22%,#E4F9F2 45%,#F7FDFB 70%)', boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--gm)', marginBottom:'.375rem', opacity:.8 }}>
             {protoAtivo ? 'Semana '+semanas+' de '+totalSem : 'Protocolo pronto'}
