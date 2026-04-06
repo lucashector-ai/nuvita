@@ -215,18 +215,6 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
             </div>
           ))}
         </div>
-
-        {/* Expand toggle quando collapsed */}
-        {!expanded && (
-          <div style={{ padding:'8px', borderTop:'1px solid rgba(255,255,255,.06)', flexShrink:0 }}>
-            <button onClick={onToggleExpand}
-              style={{ width:'100%', height:32, borderRadius:8, border:'none', background:'rgba(255,255,255,.06)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,.4)' }}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M4 2l4 4-4 4"/>
-              </svg>
-            </button>
-          </div>
-        )}
       </aside>
     </>
   );
