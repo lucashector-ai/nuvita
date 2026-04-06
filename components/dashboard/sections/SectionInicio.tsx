@@ -4,7 +4,6 @@
 import { useState } from 'react';
 import type { Peptide, QuizAnswers, ObjectiveKey, DashSection } from '@/types';
 import { OBJECTIVE_LABELS, DURACAO_LABELS } from '@/types';
-import BannerDiferenciais from '@/components/dashboard/BannerDiferenciais';
 import PeptideTooltip from '@/components/ui/PeptideTooltip';
 
 const FASES = [
@@ -134,8 +133,6 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
         </div>
       </div>
 
-      <BannerDiferenciais plan={plan} onNavigate={onNavigate}/>
-
       {!protoAtivo && (
         <div className="start-cta" style={{ gridColumn:'1/-1' }}>
           <div className="sc-l">
@@ -165,8 +162,6 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
               </div>
             )}
           </div>
-
-          <BannerDiferenciais plan={plan} onNavigate={onNavigate}/>
 
       {!protoAtivo && (
             <div style={{ padding:'10px 12px', background:'var(--ab)', borderRadius:9, fontSize:12, color:'var(--am)', display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>

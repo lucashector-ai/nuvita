@@ -141,7 +141,7 @@ export default function SectionRotina({ answers, userId }: Props) {
             </h3>
             <div style={{ display:'flex', gap:8, marginBottom:12 }}>
               <button onClick={()=>setShowEmoji(!showEmoji)}
-                style={{ width:42, height:42, borderRadius:10, border:'1.5px solid var(--border)', background:'var(--bg)', cursor:'pointer', fontSize:20 }}>
+                style={{ width:42, height:42, borderRadius:10, background:'#F7F7F7', cursor:'pointer', fontSize:20 }}>
                 {novoEmoji}
               </button>
               <input ref={inputRef} className="inp" value={novoNome}
@@ -164,7 +164,7 @@ export default function SectionRotina({ answers, userId }: Props) {
                 Adicionar
               </button>
               <button onClick={()=>setModal(null)}
-                style={{ padding:'10px 16px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg)', cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>
+                style={{ padding:'10px 16px', borderRadius:10, background:'#F7F7F7', cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>
                 Cancelar
               </button>
             </div>
