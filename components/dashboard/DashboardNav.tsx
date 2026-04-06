@@ -101,7 +101,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
           {!isHome && (
             <button onClick={() => onNavigate('inicio')}
               style={{ display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:'pointer', color:'var(--tm)', fontSize:13, fontWeight:500, padding:'4px 8px', borderRadius:8, fontFamily:'inherit' }}
-              onMouseEnter={e => e.currentTarget.style.background='var(--bg2)'}
+              onMouseEnter={e => e.currentTarget.style.background='transparent'}
               onMouseLeave={e => e.currentTarget.style.background='none'}>
               ← Início
             </button>
@@ -126,7 +126,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
 
             {showNotifs && (
               <div style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:320, background:'#F7F7F7', border:'none', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,.12)', zIndex:200, overflow:'hidden' }}>
-                <div style={{ padding:'12px 1rem', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div style={{ padding:'12px 1rem', borderBottom:'1px solid #E5E7EB', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)' }}>Notificações</div>
                   {unread > 0 && <button onClick={marcarLidas} style={{ fontSize:11, color:'var(--gm)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>Marcar todas como lidas</button>}
                 </div>
@@ -134,10 +134,10 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
                   <div style={{ padding:'1.5rem', textAlign:'center', fontSize:13, color:'var(--ts)' }}>Nenhuma notificação</div>
                 ) : notifs.map(n => (
                   <div key={n.id} onClick={() => handleNotifClick(n)}
-                    style={{ display:'flex', gap:10, padding:'10px 1rem', cursor:'pointer', background:n.read?'transparent':'rgba(29,158,117,.04)', borderBottom:'1px solid var(--border)', transition:'background .15s' }}
-                    onMouseEnter={e=>e.currentTarget.style.background='var(--bg2)'}
+                    style={{ display:'flex', gap:10, padding:'10px 1rem', cursor:'pointer', background:n.read?'transparent':'rgba(29,158,117,.04)', borderBottom:'1px solid #E5E7EB', transition:'background .15s' }}
+                    onMouseEnter={e=>e.currentTarget.style.background='transparent'}
                     onMouseLeave={e=>e.currentTarget.style.background=n.read?'transparent':'rgba(29,158,117,.04)'}>
-                    <div style={{ width:32, height:32, borderRadius:8, background:'#FFFFFF', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>{n.icon}</div>
+                    <div style={{ width:32, height:32, borderRadius:8, background:'#F7F7F7', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>{n.icon}</div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:13, fontWeight:n.read?400:500, color:'var(--tx)', marginBottom:2 }}>{n.text}</div>
                       <div style={{ fontSize:11, color:'var(--ts)', lineHeight:1.4 }}>{n.sub}</div>
@@ -157,7 +157,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
             </div>
             {showUserMenu && (
               <div style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:200, background:'#F7F7F7', border:'none', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,.12)', zIndex:200, overflow:'hidden' }}>
-                <div style={{ padding:'10px 14px', borderBottom:'1px solid var(--border)' }}>
+                <div style={{ padding:'10px 14px', borderBottom:'1px solid #E5E7EB' }}>
                   <div style={{ fontSize:13, fontWeight:500, color:'var(--tx)' }}>{nome}</div>
                   <div style={{ fontSize:11, color:'var(--ts)', marginTop:2 }}>{planLabel}</div>
                 </div>
@@ -168,7 +168,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
                 ].map(item => (
                   <button key={item.label} onClick={item.action}
                     style={{ width:'100%', padding:'10px 14px', background:'none', border:'none', cursor:'pointer', textAlign:'left', fontFamily:'inherit', fontSize:13, color:'var(--tx)' }}
-                    onMouseEnter={e=>e.currentTarget.style.background='var(--bg2)'}
+                    onMouseEnter={e=>e.currentTarget.style.background='transparent'}
                     onMouseLeave={e=>e.currentTarget.style.background='none'}>
                     {item.label}
                   </button>
@@ -176,7 +176,7 @@ export default function DashboardNav({ section = 'inicio', planLabel, nome, plan
                 <div style={{ borderTop:'1px solid var(--border)' }}>
                   <button onClick={() => { onLogout(); setShowUserMenu(false); }}
                     style={{ width:'100%', padding:'10px 14px', background:'none', border:'none', cursor:'pointer', textAlign:'left', fontFamily:'inherit', fontSize:13, color:'#D85A30' }}
-                    onMouseEnter={e=>e.currentTarget.style.background='var(--bg2)'}
+                    onMouseEnter={e=>e.currentTarget.style.background='transparent'}
                     onMouseLeave={e=>e.currentTarget.style.background='none'}>
                     Sair
                   </button>

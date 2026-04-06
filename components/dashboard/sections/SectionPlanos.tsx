@@ -111,8 +111,11 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
                 background:p.destaque?'white':p.cor, color:p.destaque?'var(--dark)':'white',
                 fontSize:13, fontWeight:600, cursor:atual?'default':'pointer', fontFamily:'inherit',
                 opacity:atual?0.6:1,
-              }}>
-                {atual ? 'Plano atual' : p.id==='free' ? 'Começar grátis' : 'Assinar'}
+              }}
+              onClick={() => { if (!atual && p.id !== 'free' && onNavigate) onNavigate('conta'); }}
+              >
+              onClick={() => { if (!atual && onNavigate) onNavigate('planos'); }}>
+              {atual ? 'Plano atual' : p.id==='free' ? 'Começar grátis' : 'Assinar'}
               </button>
               <div style={{ marginTop:'1.25rem', display:'flex', flexDirection:'column', gap:6 }}>
                 {p.features.map((f:string)=>(

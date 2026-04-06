@@ -386,7 +386,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
         </div>
 
         <div className="dc">
-          <div style={{ fontSize:12, fontWeight:500, color:'var(--tx)', marginBottom:10 }}>🔥 Streak de check-ins</div>
+          
           <div style={{ display:'flex', gap:5, marginBottom:8 }}>
             {['S','T','Q','Q','S','S','D'].map((d,i)=>(
               <div key={i} style={{ flex:1, height:28, borderRadius:6, background:i<(checkInFeito?1:0)?'var(--green)':'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:i<(checkInFeito?1:0)?'white':'var(--ts)', fontWeight:500 }}>

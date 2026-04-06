@@ -121,7 +121,7 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
         overflow: 'hidden',
       }}>
         {/* Logo */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 12px', minHeight:56, borderBottom:'1px solid #E5E7EB', flexShrink:0, cursor:'pointer' }}
+        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 12px', minHeight:56, borderBottom:'none', flexShrink:0, cursor:'pointer' }}
           onClick={() => nav('inicio')}>
           {/* Logo Nuvita completa quando expandido, só ícone quando colapsado */}
           {expanded ? (
