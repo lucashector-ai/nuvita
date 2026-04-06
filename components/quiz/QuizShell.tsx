@@ -48,7 +48,8 @@ export default function QuizShell() {
         // Pré-preenche com dados do banco para não precisar redigitar nome/sexo
         const base = perfil?.diagnostico || {};
         setInitialAnswers({ ...base, ...(saved ?? {}) });
-        setHasSession(true);
+        // hasSession só é true se já tem diagnóstico preenchido antes
+        setHasSession(!!(perfil?.diagnostico?.q3 || perfil?.diagnostico?.nome));
       }
       setSessionChecked(true);
     });

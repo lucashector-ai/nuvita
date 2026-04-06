@@ -112,7 +112,18 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
                 fontSize:13, fontWeight:600, cursor:atual?'default':'pointer', fontFamily:'inherit',
                 opacity:atual?0.6:1,
               }}
-              onClick={() => { if (!atual && onNavigate) onNavigate('conta'); }}>
+              onClick={async () => {
+                if (atual || !userId) return;
+                if (p.id === 'free') {
+                  if (onPlanChange) onPlanChange('free');
+                  return;
+                }
+                // Demonstração: muda o plano localmente e no banco
+                const { supabase } = await import('@/lib/supabase');
+                await supabase.from('usuarios').update({ plano: p.id }).eq('id', userId);
+                if (onPlanChange) onPlanChange(p.id);
+                alert('Plano ' + p.nome + ' ativado! Em produção, aqui entraria o checkout.');
+              }}>
               {atual ? 'Plano atual' : p.id==='free' ? 'Começar grátis' : 'Assinar'}
               </button>
               <div style={{ marginTop:'1.25rem', display:'flex', flexDirection:'column', gap:6 }}>
