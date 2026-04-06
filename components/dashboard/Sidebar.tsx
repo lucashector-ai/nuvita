@@ -125,7 +125,7 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose,
           onClick={() => nav('inicio')}>
           {/* Logo Nuvita completa quando expandido, só ícone quando colapsado */}
           {expanded ? (
-            <NuvitaLogo width={80} height={18} white/>
+            <NuvitaLogo width={80} height={18}/>
           ) : (
             <div style={{ width:28, height:28, borderRadius:7, background:'linear-gradient(135deg,#22C55E,#15803D)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
               <span style={{ color:'white', fontWeight:800, fontSize:12, letterSpacing:'-.05em' }}>N</span>
