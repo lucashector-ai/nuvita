@@ -37,12 +37,19 @@ export default function SectionMedico({ userId, answers, plan }: any) {
 
   const carregarDisponibilidade = async () => {
     setLoadingSlots(true);
+    // Calcula primeiro e último dia do mês corretamente
     const inicio = `${ano}-${String(mes+1).padStart(2,'0')}-01`;
-    const fim = `${ano}-${String(mes+1).padStart(2,'0')}-31`;
+    const ultimoDia = new Date(ano, mes+1, 0).getDate();
+    const fim = `${ano}-${String(mes+1).padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
     const { data } = await supabase.from('disponibilidade_medico')
-      .select('*').gte('data', inicio).lte('data', fim);
+      .select('data,horarios').gte('data', inicio).lte('data', fim);
     const map: Record<string,string[]> = {};
-    data?.forEach(d => { map[d.data] = d.horarios; });
+    // Filtra apenas slots que têm horários disponíveis
+    data?.forEach(d => {
+      if (d.horarios && d.horarios.length > 0) {
+        map[d.data] = d.horarios;
+      }
+    });
     setDisponibilidade(map);
     setLoadingSlots(false);
   };
@@ -50,7 +57,10 @@ export default function SectionMedico({ userId, answers, plan }: any) {
   const dataStr = diaSel
     ? `${ano}-${String(mes+1).padStart(2,'0')}-${String(diaSel).padStart(2,'0')}`
     : null;
-  const slotsDisponiveis = dataStr ? (disponibilidade[dataStr] || []) : [];
+  // Pega slots disponíveis — filtra apenas horários cheios (ex: 09:00, 10:00)
+  // ou mostra todos os disponíveis
+  const todosSlots = dataStr ? (disponibilidade[dataStr] || []) : [];
+  const slotsDisponiveis = todosSlots;
 
   // Filtra horários já agendados
   const horariosOcupados = agendamentos
