@@ -58,23 +58,6 @@ export default function SectionConta({ planoAtual, userId, answers, onNavigate }
         </button>
       </div>
 
-      {/* Dados */}
-      <div style={{ background:'#FFFFFF', borderRadius:14, padding:'1.25rem', marginBottom:'1rem', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)' }}>
-        <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--ts)', marginBottom:'1rem' }}>Seus dados</div>
-        <p style={{ fontSize:12, color:'var(--ts)', lineHeight:1.6, marginBottom:'1rem' }}>
-          Seus dados ficam armazenados com segurança no Supabase (infraestrutura AWS). Você tem direito de exportar ou excluir seus dados a qualquer momento.
-        </p>
-        <button onClick={async()=>{
-            const { data } = await supabase.from('usuarios').select('*').eq('id',userId).single();
-            const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href=url; a.download='nuvita-dados.json'; a.click();
-          }}
-          style={{ padding:'8px 16px', borderRadius:8, boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', background:'#F7F7F7', fontSize:12, cursor:'pointer', fontFamily:'inherit', color:'var(--tm)' }}>
-          Exportar meus dados
-        </button>
-      </div>
-
       {/* Zona de perigo */}
       <div style={{ background:'#FFF5F5', borderRadius:14, padding:'1.25rem', border:'1.5px solid #FECACA' }}>
         <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'#D85A30', marginBottom:'1rem' }}>Zona de perigo</div>

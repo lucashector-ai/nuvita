@@ -4,7 +4,18 @@ import { useState } from 'react';
 
 interface Props { answers: any; items: any[]; plan: string; }
 
-export default function SectionExportacao({ answers, items = [], plan }: Props) {
+export default function SectionExportacao({ answers, items = [], peso = 75, plan }: Props) {
+  // Normaliza campos — suporta tanto formato IA (p.n, p.e) quanto formato legado (p.nome, p.emoji)
+  const itemsNorm = items.map((p: any) => ({
+    nome: p.nome || p.n || '—',
+    emoji: p.emoji || p.e || '💊',
+    dose_calculada: p.dose_calculada || (p.doseStr ? p.doseStr(peso) : p.dose || '—'),
+    frequencia: p.frequencia || p.freq || '—',
+    via: p.via || p.route || 'SC',
+    timing: p.timing || '',
+    porque: p.porque || p.why || p.m || '',
+    categoria: p.categoria || p.objetivo || '',
+  }));
   const [gerando, setGerando] = useState(false);
 
   const nome     = answers?.nome || 'Usuário';
@@ -74,7 +85,7 @@ export default function SectionExportacao({ answers, items = [], plan }: Props) 
     <div class="hero-nome">${nome}</div>
     <div class="hero-obj">${objetivo}</div>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-val">${items.length}</div><div class="stat-lbl">Peptídeos</div></div>
+      <div class="stat"><div class="stat-val">${itemsNorm.length}</div><div class="stat-lbl">Peptídeos</div></div>
       <div class="stat"><div class="stat-val">${nivel||'—'}</div><div class="stat-lbl">Nível</div></div>
       <div class="stat"><div class="stat-val">${duracao||'—'}</div><div class="stat-lbl">Ciclo</div></div>
     </div>
@@ -82,7 +93,7 @@ export default function SectionExportacao({ answers, items = [], plan }: Props) 
 
   <div class="section-title">Peptídeos do protocolo</div>
 
-  ${items.map(p => `
+  ${itemsNorm.map(p => `
   <div class="card">
     <div class="card-header">
       <div class="card-emoji">${p.emoji||'💊'}</div>
@@ -129,7 +140,7 @@ export default function SectionExportacao({ answers, items = [], plan }: Props) 
         <p style={{ fontSize:13, color:'var(--ts)' }}>Gere um PDF com identidade Nuvita para compartilhar com seu médico</p>
       </div>
 
-      {items.length === 0 ? (
+      {itemsNorm.length === 0 ? (
         <div style={{ textAlign:'center', padding:'3rem', color:'var(--ts)', background:'#FFFFFF', borderRadius:16, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', border:'1.5px dashed var(--border)' }}>
           <div style={{ fontSize:'2.5rem', marginBottom:'1rem' }}>📄</div>
           <div style={{ fontSize:14, fontWeight:500, marginBottom:'.5rem' }}>Nenhum protocolo ativo</div>
@@ -143,7 +154,7 @@ export default function SectionExportacao({ answers, items = [], plan }: Props) 
               Prévia do protocolo
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              {items.map((p:any, i:number) => (
+              {itemsNorm.map((p:any, i:number) => (
                 <div key={i} style={{ display:'flex', gap:12, alignItems:'center', background:'#F7F7F7', borderRadius:10, padding:'10px 14px', border:'none' }}>
                   <span style={{ fontSize:'1.2rem' }}>{p.emoji||'💊'}</span>
                   <div style={{ flex:1 }}>
