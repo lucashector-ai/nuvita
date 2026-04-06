@@ -394,9 +394,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
               </div>
             ))}
           </div>
-          <div style={{ fontSize:11, color:'var(--ts)', lineHeight:1.6 }}>
-            {checkInFeito?'Check-in feito hoje! Continue amanhã.':'Faça check-ins consecutivos para desbloquear insights.'}
-          </div>
+          
         </div>
       </div>
     </>

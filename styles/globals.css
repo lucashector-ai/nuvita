@@ -308,7 +308,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 /* ══════════════════════════════
    DASHBOARD NAV
 ══════════════════════════════ */
-.dash-nav { background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+.dash-nav { background: #F7F7F7; border-bottom: none; position: sticky; top: 0; z-index: 50; }
 .dash-nav-in { max-width: var(--W); margin: 0 auto; padding: 0 2rem; height: 58px; display: flex; align-items: center; justify-content: space-between; }
 @media(max-width:640px) { .dash-nav-in { padding: 0 1rem; } }
 .dash-plan { display: inline-flex; background: var(--gp); color: var(--gm); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px; letter-spacing: .03em; }
