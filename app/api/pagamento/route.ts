@@ -3,12 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://nuvita-l1wk.vercel.app';
 
-// Price IDs do Stripe — configure no painel Stripe e adicione no Vercel
 const PRICES: Record<string, string> = {
-  'essencial-mensal': process.env.STRIPE_PRICE_ESSENCIAL_MENSAL || '',
-  'essencial-anual':  process.env.STRIPE_PRICE_ESSENCIAL_ANUAL  || '',
-  'pro-mensal':       process.env.STRIPE_PRICE_PRO_MENSAL       || '',
-  'pro-anual':        process.env.STRIPE_PRICE_PRO_ANUAL        || '',
+  'essencial-mensal': 'price_1TJf9LAjeISNfZNYvZhPqjo2',
+  'essencial-anual':  'price_1TJf9LAjeISNfZNY5bhTxTbR',
+  'pro-mensal':       'price_1TJf9MAjeISNfZNYS5npvEBN',
+  'pro-anual':        'price_1TJf9NAjeISNfZNYfSKvUERV',
 };
 
 export async function POST(req: NextRequest) {
