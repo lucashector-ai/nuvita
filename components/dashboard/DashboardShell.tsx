@@ -192,7 +192,7 @@ export default function DashboardShell() {
           if (parsed._protocoloIA) {
             try { setProtocoloIA(JSON.parse(parsed._protocoloIA)); } catch(e) {}
           }
-        } catch { router.replace('/diagnostico'); return; }
+        } catch(e) { router.replace('/diagnostico'); return; }
       } else {
         try {
           const raw = sessionStorage.getItem('nv_quiz');
