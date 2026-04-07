@@ -84,26 +84,19 @@ function PlanosContent() {
       return;
     }
 
-    // Plano pago — salva plano e vai para revisão
-    // (pagamento via AbacatePay será ativado com API key de produção)
-    const quiz = sessionStorage.getItem("nv_quiz");
-    let diagData: any = { email, plano: planoId, _activePlan: planoId };
-    if (quiz) {
-      try { diagData = { ...JSON.parse(quiz), email, plano: planoId, _activePlan: planoId }; }
-      catch {}
-    }
-    const { data: perfilAtual } = await supabase
-      .from("usuarios").select("diagnostico").eq("id", userId).single();
-    const diagFinal = { ...(perfilAtual?.diagnostico || {}), ...diagData };
-
-    await supabase.from("usuarios").upsert({
-      id: userId, plano: planoId, diagnostico: diagFinal,
-    }, { onConflict: "id" });
-
-    sessionStorage.setItem("nv_quiz", JSON.stringify(diagFinal));
-    sessionStorage.setItem("nv_pos_cadastro", "1");
+    // Plano pago — chama Stripe Checkout
+    const res = await fetch("/api/pagamento", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plano: planoId, userId, email, anual }),
+    });
+    const data = await res.json();
     setLoading(null);
-    router.push("/revisao");
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("Erro ao iniciar pagamento: " + (data.error || "Tente novamente."));
+    }
   };
 
   return (
