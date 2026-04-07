@@ -1,60 +1,39 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 
-const ABACATE_API = 'https://api.abacatepay.com/v2';
-const ABACATE_KEY = process.env.ABACATEPAY_API_KEY || 'placeholder';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2024-04-10' });
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://nuvita-l1wk.vercel.app';
 
-const PRODUTOS: Record<string, string> = {
-  'essencial-mensal': 'prod_NQCFL6zrBbYRJUr1HyqGUgSt',
-  'essencial-anual':  'prod_CSRakGYYPQLX6GMqQNtQyZgJ',
-  'pro-mensal':       'prod_uLGQeSRQTJQcUSdxJE6HzaNN',
-  'pro-anual':        'prod_JTtjajCQFbDJ2eXHMY0b4GPc',
+const PRICES: Record<string, string> = {
+  'essencial-mensal': 'price_1TJf9LAjeISNfZNYvZhPqjo2',
+  'essencial-anual':  'price_1TJf9LAjeISNfZNY5bhTxTbR',
+  'pro-mensal':       'price_1TJf9MAjeISNfZNYS5npvEBN',
+  'pro-anual':        'price_1TJf9NAjeISNfZNYfSKvUERV',
 };
 
 export async function POST(req: NextRequest) {
   try {
-    const { plano, userId, nome, email, anual, taxId } = await req.json();
+    const { plano, userId, email, anual } = await req.json();
 
-    if (!plano || !PRODUTOS[`${plano}-${anual ? 'anual' : 'mensal'}`]) {
-      return NextResponse.json({ error: 'Plano inválido' }, { status: 400 });
-    }
+    const priceKey = `${plano}-${anual ? 'anual' : 'mensal'}`;
+    const priceId = PRICES[priceKey];
+    if (!priceId) return NextResponse.json({ error: 'Plano inválido' }, { status: 400 });
 
-    const produtoId = PRODUTOS[`${plano}-${anual ? 'anual' : 'mensal'}`];
-
-    const body = {
-      items: [{ id: produtoId, quantity: 1 }],
-      methods: ['CARD'],
-      returnUrl: `${APP_URL}/planos`,
-      completionUrl: `${APP_URL}/pagamento/sucesso?plano=${plano}&userId=${userId}`,
-      customer: {
-        name: nome || 'Cliente',
-        email: email || '',
-        cellphone: '',
-        taxId: taxId || '111.444.777-35',
-      },
-      metadata: { userId, plano, anual: String(anual) },
-    };
-
-    const res = await fetch(`${ABACATE_API}/subscriptions/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ABACATE_KEY}`,
-      },
-      body: JSON.stringify(body),
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${APP_URL}/pagamento/sucesso?plano=${plano}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${APP_URL}/planos`,
+      customer_email: email || undefined,
+      metadata: { userId, plano, anual: String(!!anual) },
+      locale: 'pt-BR',
     });
 
-    const data = await res.json();
-
-    if (!res.ok || data.error) {
-      console.error('AbacatePay error:', JSON.stringify(data));
-      return NextResponse.json({ error: data.error || 'Erro ao criar assinatura' }, { status: 500 });
-    }
-
-    return NextResponse.json({ url: data.data?.url, id: data.data?.id });
-  } catch (err) {
-    console.error('Pagamento error:', err);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ url: session.url, id: session.id });
+  } catch (err: any) {
+    console.error('Stripe error:', err.message);
+    return NextResponse.json({ error: err.message || 'Erro interno' }, { status: 500 });
   }
 }
