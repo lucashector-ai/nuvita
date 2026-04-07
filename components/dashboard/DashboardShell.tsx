@@ -174,10 +174,21 @@ export default function DashboardShell() {
     prioridade: p.prioridade,
   })) || null;
   // Filtra peptídeos removidos na revisão
+  // _aceitosRevisao = array com nomes dos peptídeos aceitos
+  // _removidos = array com nomes dos peptídeos removidos
   const aceitosRevisao = answers._aceitosRevisao as string[] | undefined;
-  const items = aceitosRevisao && aceitosRevisao.length > 0
-    ? allItems.filter(item => aceitosRevisao.includes(item.n))
-    : allItems;
+  const removidos = answers._removidos as string[] | undefined;
+  const items = (() => {
+    // Prioriza _aceitosRevisao se existir e tiver conteúdo
+    if (aceitosRevisao && aceitosRevisao.length > 0) {
+      return allItems.filter(item => aceitosRevisao.includes(item.n));
+    }
+    // Fallback: filtra pelos removidos
+    if (removidos && removidos.length > 0) {
+      return allItems.filter(item => !removidos.includes(item.n));
+    }
+    return allItems;
+  })();
 
   // Mapa seção → URL e URL → seção
   const SECTION_TO_URL: Record<string,string> = {
