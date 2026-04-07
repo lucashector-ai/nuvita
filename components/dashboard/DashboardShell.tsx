@@ -93,7 +93,7 @@ export default function DashboardShell() {
 
   // Relê do banco quando tab volta para foco (ex: após rediagnóstico)
   useEffect(() => {
-    const handleFocus = async () => {
+    const init = async () => {
       const flag = sessionStorage.getItem('nv_diagnostico_atualizado');
       if (!flag) return;
       sessionStorage.removeItem('nv_diagnostico_atualizado');
