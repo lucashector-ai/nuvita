@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const ABACATE_API = 'https://api.abacatepay.com/v1';
 const ABACATE_KEY = process.env.ABACATEPAY_API_KEY || 'placeholder';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://nuvita-l1wk.vercel.app';
 
 const PLANOS: Record<string, { nome: string; mensal: number; anual: number }> = {
-  essencial: { nome: 'Nuvita Essencial', mensal: 4700,  anual: 45120 },
-  pro:       { nome: 'Nuvita Pro',       mensal: 9700,  anual: 93120 },
+  essencial: { nome: 'Nuvita Essencial', mensal: 4700, anual: 45120 },
+  pro:       { nome: 'Nuvita Pro',       mensal: 9700, anual: 93120 },
 };
 
 export async function POST(req: NextRequest) {
@@ -20,9 +21,6 @@ export async function POST(req: NextRequest) {
     const nomePlano = anual ? `${p.nome} — Anual` : `${p.nome} — Mensal`;
     const externalId = anual ? `nuvita-${plano}-anual` : `nuvita-${plano}-mensal`;
 
-    // Anual = cobrança única (ONE_TIME), mensal = recorrente (MONTHLY)
-    const frequency = anual ? 'ONE_TIME' : 'MONTHLY';
-
     const res = await fetch(`${ABACATE_API}/billing/create`, {
       method: 'POST',
       headers: {
@@ -30,7 +28,7 @@ export async function POST(req: NextRequest) {
         'Authorization': `Bearer ${ABACATE_KEY}`,
       },
       body: JSON.stringify({
-        frequency,
+        frequency: 'ONE_TIME',
         methods: ['PIX'],
         products: [{
           externalId,
@@ -38,24 +36,21 @@ export async function POST(req: NextRequest) {
           quantity: 1,
           price: valor,
         }],
+        returnUrl: `${APP_URL}/planos`,
+        completionUrl: `${APP_URL}/pagamento/sucesso?plano=${plano}&userId=${userId}`,
         customer: {
           name: nome || 'Cliente',
           email: email || '',
           cellphone: '',
         },
-        metadata: {
-          userId,
-          plano,
-          anual: anual ? 'true' : 'false',
-          returnUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://nuvita-l1wk.vercel.app'}/dashboard`,
-          completionUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://nuvita-l1wk.vercel.app'}/pagamento/sucesso?plano=${plano}&userId=${userId}`,
-        },
+        metadata: { userId, plano, anual: String(anual) },
       }),
     });
 
     const data = await res.json();
+
     if (!res.ok || data.error) {
-      console.error('AbacatePay error:', data);
+      console.error('AbacatePay error:', JSON.stringify(data));
       return NextResponse.json({ error: data.error || 'Erro ao criar cobrança' }, { status: 500 });
     }
 
