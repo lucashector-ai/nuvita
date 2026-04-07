@@ -91,6 +91,7 @@ export default function RevisaoShell() {
       const { supabase } = await import('@/lib/supabase');
       await supabase.from('usuarios').upsert({
         id: session.user.id,
+        email: session.user.email || updated.email || '',
         nome: updated.nome || '',
         plano: updated._activePlan || updated.plano || 'free',
         diagnostico: diagFinal,

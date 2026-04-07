@@ -118,6 +118,7 @@ export default function DashboardShell() {
           const { supabase } = await import('@/lib/supabase');
           await supabase.from('usuarios').upsert({
             id: session.user.id,
+            email: session.user.email || parsed.email || '',
             nome: parsed.nome || '',
             plano: parsed._activePlan || parsed.plano || 'free',
             diagnostico: parsed,

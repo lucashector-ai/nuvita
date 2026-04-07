@@ -72,6 +72,7 @@ function PlanosContent() {
       
       await supabase.from("usuarios").upsert({
         id: userId,
+        email: email || '',
         plano: "free",
         diagnostico: diagFinal,
       }, { onConflict: "id" });
