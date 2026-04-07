@@ -175,21 +175,23 @@ export default function DashboardShell() {
     prioridade: p.prioridade,
   })) || null;
   // Filtra peptídeos removidos na revisão
-  // _aceitosRevisao = array com nomes dos peptídeos aceitos
-  // _removidos = array com nomes dos peptídeos removidos
   const aceitosRevisao = answers._aceitosRevisao as string[] | undefined;
   const removidos = answers._removidos as string[] | undefined;
-  const items = (() => {
-    // Prioriza _aceitosRevisao se existir e tiver conteúdo
+
+  // Aplica filtro tanto em allItems quanto em itemsIA
+  const filtrarPeptideos = (lista: any[]) => {
     if (aceitosRevisao && aceitosRevisao.length > 0) {
-      return allItems.filter(item => aceitosRevisao.includes(item.n));
+      return lista.filter(item => aceitosRevisao.includes(item.n || item.nome));
     }
-    // Fallback: filtra pelos removidos
     if (removidos && removidos.length > 0) {
-      return allItems.filter(item => !removidos.includes(item.n));
+      return lista.filter(item => !removidos.includes(item.n || item.nome));
     }
-    return allItems;
-  })();
+    return lista;
+  };
+
+  const items = filtrarPeptideos(allItems);
+  // Também filtra itemsIA se existir
+  const itemsIAFiltrado = itemsIA ? filtrarPeptideos(itemsIA) : null;
 
   // Mapa seção → URL e URL → seção
   const SECTION_TO_URL: Record<string,string> = {
@@ -246,8 +248,8 @@ export default function DashboardShell() {
           userId={userId} answers={answers}
         />
         <div className="d-body">
-          {section==='inicio'       && <SectionInicio answers={answers} items={itemsIA || items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan} protoAtivo={protoAtivo} onStartProto={async()=>{ setProtoAtivo(true); const { supabase } = await import('@/lib/supabase'); await supabase.from('usuarios').update({ diagnostico: { ...answers, _protocoloAtivo: true, _dataInicioProtocolo: new Date().toISOString().split('T')[0] } }).eq('id', userId); }} onNavigate={nav}/>}
-          {section==='protocolo'    && <SectionProtocolo answers={answers} items={itemsIA || items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan}/>}
+          {section==='inicio'       && <SectionInicio answers={answers} items={itemsIAFiltrado || items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan} protoAtivo={protoAtivo} onStartProto={async()=>{ setProtoAtivo(true); const { supabase } = await import('@/lib/supabase'); await supabase.from('usuarios').update({ diagnostico: { ...answers, _protocoloAtivo: true, _dataInicioProtocolo: new Date().toISOString().split('T')[0] } }).eq('id', userId); }} onNavigate={nav}/>}
+          {section==='protocolo'    && <SectionProtocolo answers={answers} items={itemsIAFiltrado || items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan}/>}
           {section==='ia'           && <SectionIA answers={answers} objs={objs}/>}
           {section==='calc'         && <SectionCalc peso={peso}/>}
           {section==='comparativo'  && <SectionComparativo onNavigate={nav}/>}
@@ -263,15 +265,15 @@ export default function DashboardShell() {
           {section==='historico'    && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Histórico de ciclos' descricao='Veja todos os seus ciclos anteriores e evolução. Disponível a partir do Essencial.'><SectionHistorico userId={userId} answers={answers}/></PlanLock>}
           {section==='consistencia' && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Pontuação de consistência' descricao='Acompanhe sua adesão semanal ao protocolo. Disponível a partir do Essencial.'><SectionConsistencia userId={userId}/></PlanLock>}
           {section==='analise'      && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Análise de evolução' descricao='Insights e gráficos sobre sua evolução. Disponível a partir do Essencial.'><SectionAnalise userId={userId} answers={answers} objs={objs}/></PlanLock>}
-          {section==='coach'        && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Coach IA' descricao='Chat com IA especializada em peptídeos para tirar dúvidas do seu protocolo. Disponível a partir do Essencial.'><SectionCoach answers={answers} items={itemsIA || items} userId={userId}/></PlanLock>}
+          {section==='coach'        && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Coach IA' descricao='Chat com IA especializada em peptídeos para tirar dúvidas do seu protocolo. Disponível a partir do Essencial.'><SectionCoach answers={answers} items={itemsIAFiltrado || items} userId={userId}/></PlanLock>}
           {section==='ajuste'       && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Ajuste automático' descricao='Solicite reajustes no protocolo com base na sua evolução. Disponível a partir do Essencial.'><SectionAjuste answers={answers} userId={userId}/></PlanLock>}
           {section==='detector'     && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Detector de inconsistência' descricao='Identifica padrões de falha e ativa reativação automática. Disponível a partir do Essencial.'><SectionDetector userId={userId} answers={answers}/></PlanLock>}
           {section==='simulador'    && <SectionSimulador answers={answers}/>}
           {section==='geradorciclo' && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Gerador de ciclo' descricao='Crie ciclos personalizados com base nos seus objetivos. Disponível a partir do Essencial.'><SectionGeradorCiclo answers={answers}/></PlanLock>}
           {section==='fases'        && <SectionFases/>}
           {section==='rotina'       && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Rotina complementar' descricao='Planner semanal de sono, hidratação, alimentação e exercício. Disponível a partir do Essencial.'><SectionRotina answers={answers} userId={userId}/></PlanLock>}
-          {section==='estoque'      && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Controle de estoque' descricao='Cadastre seus frascos e a IA calcula quanto tempo vai durar. Disponível a partir do Essencial.'><SectionEstoque userId={userId} items={itemsIA || allItems} answers={answers}/></PlanLock>}
-          {section==='exportacao'   && <SectionExportacao answers={answers} items={itemsIA || items} peso={peso} plan={plan}/>}
+          {section==='estoque'      && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Controle de estoque' descricao='Cadastre seus frascos e a IA calcula quanto tempo vai durar. Disponível a partir do Essencial.'><SectionEstoque userId={userId} items={itemsIAFiltrado || items} answers={answers}/></PlanLock>}
+          {section==='exportacao'   && <SectionExportacao answers={answers} items={itemsIAFiltrado || items} peso={peso} plan={plan}/>}
           {section==='planos'        && <SectionPlanos planoAtual={plan} userId={userId} onPlanChange={setPlanAtivo} onNavigate={nav}/>}
           {section==='conta'         && <SectionConta planoAtual={plan} userId={userId} answers={answers} onNavigate={nav}/>}
         </div>

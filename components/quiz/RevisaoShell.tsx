@@ -75,7 +75,15 @@ export default function RevisaoShell() {
 
   const salvarEIr = async () => {
     const aceitos = items.filter(i => !removed.includes(i.n));
-    const updated = { ...answers, _removidos: removed, _aceitosRevisao: aceitos.map(i => i.n) };
+    const aceitosNomes = aceitos.map(i => String(i.n));
+    const removidosNomes = removed.map(String);
+    const updated = { 
+      ...answers, 
+      _removidos: removidosNomes, 
+      _aceitosRevisao: aceitosNomes,
+      _revisaoFeita: true,
+    };
+    console.log('Revisão finalizada:', { aceitos: aceitosNomes, removidos: removidosNomes });
     saveSession(updated);
 
     const { getSession, salvarDiagnostico } = await import('@/lib/auth');
