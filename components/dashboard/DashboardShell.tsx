@@ -94,11 +94,13 @@ export default function DashboardShell() {
   // Relê do banco quando tab volta para foco (ex: após rediagnóstico)
   useEffect(() => {
     const init = async () => {
-      const flag = sessionStorage.getItem('nv_diagnostico_atualizado');
-      if (!flag) return;
-      sessionStorage.removeItem('nv_diagnostico_atualizado');
       const session = await getSession();
-      if (!session) return;
+      if (!session) {
+        router.replace('/cadastro');
+        return;
+      }
+      setUserId(session.user.id);
+
       const perfil = await carregarDiagnostico(session.user.id);
       if (perfil?.diagnostico) {
         setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
@@ -127,12 +129,23 @@ export default function DashboardShell() {
           }
         } catch(e) { router.replace('/diagnostico'); return; }
       }
-            // Mostra modal de boas-vindas na primeira vez
+
       const boasVindasVisto = sessionStorage.getItem('nv_boas_vindas');
       if (!boasVindasVisto) setShowBoasVindas(true);
       setReady(true);
     };
+
+    const handleFocus = () => {
+      const flag = sessionStorage.getItem('nv_diagnostico_atualizado');
+      if (flag) {
+        sessionStorage.removeItem('nv_diagnostico_atualizado');
+        init();
+      }
+    };
+
     init();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [router]);
 
 
