@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         frequency,
-        methods: ['PIX', 'CREDIT_CARD'],
+        methods: ['PIX'],
         products: [{
           externalId,
           name: nomePlano,
