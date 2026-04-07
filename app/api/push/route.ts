@@ -7,8 +7,8 @@ export async function POST(req: Request) {
     if (!userId) return NextResponse.json({ error: 'missing userId' }, { status: 400 });
 
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
     );
 
     await supabase.from('notificacoes_config').upsert({

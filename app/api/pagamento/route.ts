@@ -1,7 +1,8 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 
 const ABACATE_API = 'https://api.abacatepay.com/v1';
-const ABACATE_KEY = process.env.ABACATEPAY_API_KEY!;
+const ABACATE_KEY = process.env.ABACATEPAY_API_KEY || 'placeholder';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://nuvita-l1wk.vercel.app';
 
 const PLANOS = {

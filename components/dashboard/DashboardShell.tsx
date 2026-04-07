@@ -103,83 +103,16 @@ export default function DashboardShell() {
       if (perfil?.diagnostico) {
         setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
         setPlanAtivo(perfil.plano ?? 'free');
-        // Restaura protoAtivo do banco
-        if (perfil.diagnostico._protocoloAtivo) setProtoAtivo(true);
-        // Carrega protocolo IA salvo no diagnóstico
-        if (perfil.diagnostico._protocoloIA) {
-          try {
-            setProtocoloIA(JSON.parse(perfil.diagnostico._protocoloIA));
-          } catch(e) {}
-        }
-      }
-    };
-    window.addEventListener('focus', handleFocus);
-    // Verifica imediatamente também (caso já tenha a flag)
-    handleFocus();
-    return () => window.removeEventListener('focus', handleFocus);
-  }, []);
-
-  // Relê do banco quando tab volta para foco (ex: após rediagnóstico)
-  useEffect(() => {
-    const handleFocus = async () => {
-      const flag = sessionStorage.getItem('nv_diagnostico_atualizado');
-      if (!flag) return;
-      sessionStorage.removeItem('nv_diagnostico_atualizado');
-      const session = await getSession();
-      if (!session) return;
-      const perfil = await carregarDiagnostico(session.user.id);
-      if (perfil?.diagnostico) {
-        setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
-        setPlanAtivo(perfil.plano ?? 'free');
-        // Restaura protoAtivo do banco
-        if (perfil.diagnostico._protocoloAtivo) setProtoAtivo(true);
-        // Carrega protocolo IA salvo no diagnóstico
-        if (perfil.diagnostico._protocoloIA) {
-          try {
-            setProtocoloIA(JSON.parse(perfil.diagnostico._protocoloIA));
-          } catch(e) {}
-        }
-      }
-    };
-    window.addEventListener('focus', handleFocus);
-    // Verifica imediatamente também (caso já tenha a flag)
-    handleFocus();
-    return () => window.removeEventListener('focus', handleFocus);
-  }, []);
-
-  useEffect(() => {
-    const init = async () => {
-      const session = await getSession();
-      if (!session) { router.replace('/cadastro'); return; }
-      setUserId(session.user.id);
-
-      // Verifica se voltou de um diagnóstico atualizado — força reler do banco
-      const diagnosticoAtualizado = sessionStorage.getItem('nv_diagnostico_atualizado');
-      if (diagnosticoAtualizado) {
-        sessionStorage.removeItem('nv_diagnostico_atualizado');
-        sessionStorage.removeItem('nv_quiz');
-      }
-
-      const perfil = await carregarDiagnostico(session.user.id);
-      if (perfil?.diagnostico) {
-        setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
-        setPlanAtivo(perfil.plano ?? 'free');
         if (perfil.diagnostico._protocoloAtivo) setProtoAtivo(true);
         if (perfil.diagnostico._protocoloIA) {
           try { setProtocoloIA(JSON.parse(perfil.diagnostico._protocoloIA)); } catch(e) {}
         }
       } else {
-        // Sem perfil no banco — tenta carregar do sessionStorage
         const raw = sessionStorage.getItem('nv_quiz');
-        if (!raw) {
-          // Sem nada — vai para diagnóstico
-          router.replace('/diagnostico');
-          return;
-        }
+        if (!raw) { router.replace('/diagnostico'); return; }
         try {
           const parsed = JSON.parse(raw);
           if (!parsed?.q3?.length) { router.replace('/diagnostico'); return; }
-          // Tem quiz — cria perfil no banco agora
           const { supabase } = await import('@/lib/supabase');
           await supabase.from('usuarios').upsert({
             id: session.user.id,
@@ -193,19 +126,8 @@ export default function DashboardShell() {
             try { setProtocoloIA(JSON.parse(parsed._protocoloIA)); } catch(e) {}
           }
         } catch(e) { router.replace('/diagnostico'); return; }
-      } else {
-        try {
-          const raw = sessionStorage.getItem('nv_quiz');
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (parsed?.q3?.length) { setAnswers(parsed); setPlanAtivo(parsed._activePlan ?? parsed.plano ?? 'free'); }
-            else router.replace('/diagnostico');
-          } else {
-            router.replace('/diagnostico');
-          }
-        } catch(e) { router.replace('/diagnostico'); }
       }
-      // Mostra modal de boas-vindas na primeira vez
+            // Mostra modal de boas-vindas na primeira vez
       const boasVindasVisto = sessionStorage.getItem('nv_boas_vindas');
       if (!boasVindasVisto) setShowBoasVindas(true);
       setReady(true);

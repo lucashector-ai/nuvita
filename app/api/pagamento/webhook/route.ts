@@ -1,10 +1,13 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder'
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,13 +23,13 @@ export async function POST(req: NextRequest) {
 
       if (userId && plano) {
         // Atualiza o plano no Supabase
-        await supabaseAdmin
+        await getSupabaseAdmin()
           .from('usuarios')
           .update({ plano })
           .eq('id', userId);
 
         // Cria notificação para o usuário
-        await supabaseAdmin.from('notificacoes').insert({
+        await getSupabaseAdmin().from('notificacoes').insert({
           user_id: userId,
           icon: '✅',
           titulo: `Plano ${plano === 'essencial' ? 'Essencial' : 'Pro'} ativado!`,
