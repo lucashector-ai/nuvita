@@ -68,8 +68,8 @@ export async function carregarDiagnostico(userId: string) {
     .from('usuarios')
     .select('diagnostico, nome, plano')
     .eq('id', userId)
-    .single()
-  if (error) return null
+    .maybeSingle()
+  if (error || !data) return null
   return data
 }
 

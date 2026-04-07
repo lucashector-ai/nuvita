@@ -82,18 +82,27 @@ export default function RevisaoShell() {
     const session = await getSession();
 
     if (session) {
-      // Tem sessão — salva no banco e seta flag
-      await salvarDiagnostico(session.user.id, {
+      const diagFinal = {
         ...updated,
         _protocoloAtivo: true,
         _dataInicioProtocolo: new Date().toISOString().split('T')[0],
-      });
+      };
+      // Usa UPSERT para garantir que o registro existe
+      const { supabase } = await import('@/lib/supabase');
+      await supabase.from('usuarios').upsert({
+        id: session.user.id,
+        nome: updated.nome || '',
+        plano: updated._activePlan || updated.plano || 'free',
+        diagnostico: diagFinal,
+      }, { onConflict: 'id' });
+      // Mantém nv_quiz no sessionStorage para o DashboardShell
+      sessionStorage.setItem('nv_quiz', JSON.stringify(diagFinal));
       sessionStorage.setItem('nv_diagnostico_atualizado', '1');
-      // Mantém nv_quiz para o DashboardShell usar como fallback
-      // Só remove depois que o dashboard carregou com sucesso
     } else {
-      // Sem sessão — mantém nv_quiz obrigatoriamente para o DashboardShell
+      // Sem sessão — vai para cadastro com dados salvos
       sessionStorage.setItem('nv_quiz', JSON.stringify(updated));
+      router.push('/cadastro?origem=diagnostico');
+      return;
     }
     router.push('/dashboard');
   };

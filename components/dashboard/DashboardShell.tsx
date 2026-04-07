@@ -164,19 +164,35 @@ export default function DashboardShell() {
       if (perfil?.diagnostico) {
         setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
         setPlanAtivo(perfil.plano ?? 'free');
-        // Restaura protoAtivo do banco
         if (perfil.diagnostico._protocoloAtivo) setProtoAtivo(true);
-        // Carrega protocolo IA salvo no diagnóstico
         if (perfil.diagnostico._protocoloIA) {
-          try {
-            setProtocoloIA(JSON.parse(perfil.diagnostico._protocoloIA));
-          } catch(e) {}
+          try { setProtocoloIA(JSON.parse(perfil.diagnostico._protocoloIA)); } catch(e) {}
         }
-      } else if (!sessionStorage.getItem('nv_quiz')) {
-        // Sem perfil no banco e sem quiz no sessionStorage
-        // Vai para diagnóstico para criar novo protocolo
-        router.replace('/diagnostico');
-        return;
+      } else {
+        // Sem perfil no banco — tenta carregar do sessionStorage
+        const raw = sessionStorage.getItem('nv_quiz');
+        if (!raw) {
+          // Sem nada — vai para diagnóstico
+          router.replace('/diagnostico');
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed?.q3?.length) { router.replace('/diagnostico'); return; }
+          // Tem quiz — cria perfil no banco agora
+          const { supabase } = await import('@/lib/supabase');
+          await supabase.from('usuarios').upsert({
+            id: session.user.id,
+            nome: parsed.nome || '',
+            plano: parsed._activePlan || parsed.plano || 'free',
+            diagnostico: parsed,
+          }, { onConflict: 'id' });
+          setAnswers({ ...parsed, _activePlan: parsed._activePlan || 'free' });
+          setPlanAtivo(parsed._activePlan || parsed.plano || 'free');
+          if (parsed._protocoloIA) {
+            try { setProtocoloIA(JSON.parse(parsed._protocoloIA)); } catch(e) {}
+          }
+        } catch { router.replace('/diagnostico'); return; }
       } else {
         try {
           const raw = sessionStorage.getItem('nv_quiz');
