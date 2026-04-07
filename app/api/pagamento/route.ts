@@ -12,7 +12,7 @@ const PLANOS: Record<string, { nome: string; mensal: number; anual: number }> = 
 
 export async function POST(req: NextRequest) {
   try {
-    const { plano, userId, nome, email, anual, valorCentavos } = await req.json();
+    const { plano, userId, nome, email, anual, valorCentavos, taxId } = await req.json();
 
     const p = PLANOS[plano as keyof typeof PLANOS];
     if (!p) return NextResponse.json({ error: 'Plano inválido' }, { status: 400 });
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
           name: nome || 'Cliente',
           email: email || '',
           cellphone: '',
-          taxId: '000.000.000-00',
+          taxId: taxId || '111.444.777-35',
         },
         metadata: { userId, plano, anual: String(anual) },
       }),
