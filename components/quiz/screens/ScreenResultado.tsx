@@ -49,8 +49,16 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
   const { items } = useMemo(() => buildProtocol(objs, peso, 1, false), [objs, peso]);
 
   useEffect(() => {
-    // Verifica sessão ativa ao carregar
-    getSession().then(session => { if (session) setHasSession(true); });
+    // Verifica sessão ativa ao carregar — só considera válida se usuário existe no banco
+    getSession().then(async session => {
+      if (session) {
+        const { supabase } = await import('@/lib/supabase');
+        const { data } = await supabase
+          .from('usuarios').select('id').eq('id', session.user.id).maybeSingle();
+        if (data) setHasSession(true);
+        // Se não existe no banco, não seta hasSession (mostra blur normalmente)
+      }
+    });
 
     let i = 0;
     const iv = setInterval(() => { i++; if (i < PHASES.length) setPhaseIdx(i); else clearInterval(iv); }, 900);

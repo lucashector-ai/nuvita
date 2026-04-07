@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
     const stripeKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeKey) return NextResponse.json({ error: 'Stripe não configurado' }, { status: 500 });
 
-    const { Stripe } = await import('stripe');
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' });
+    const Stripe = (await import('stripe')).default;
+    const stripe = new Stripe(stripeKey as string, { apiVersion: '2024-04-10' as any });
 
     const { plano, userId, email, anual } = await req.json();
 
