@@ -75,17 +75,30 @@ export default function QuizShell() {
       // Merge com dados existentes — preserva campos especiais
       const { supabase } = await import('@/lib/supabase');
       const { data: usuarioAtual } = await supabase
-        .from('usuarios').select('diagnostico').eq('id', session.user.id).single();
+        .from('usuarios').select('diagnostico, nome, plano').eq('id', session.user.id).maybeSingle();
       const diagAtual = usuarioAtual?.diagnostico || {};
-      const merged: Record<string,any> = { ...diagAtual, ...answers };
-      // Preserva campos especiais do banco
+      
+      // Merge: banco é base, respostas novas sobrescrevem
+      // mas campos não respondidos agora são preservados do banco
+      const merged: Record<string,any> = { ...diagAtual };
+      
+      // Aplica respostas novas — só sobrescreve se o campo foi realmente respondido
+      for (const [k, v] of Object.entries(answers as Record<string,any>)) {
+        if (v !== undefined && v !== null && v !== '') {
+          merged[k] = v;
+        }
+      }
+      
+      // Sempre preserva campos especiais do banco (plano, protocolo, etc)
       for (const k of Object.keys(diagAtual)) {
         if (k.startsWith('_')) merged[k] = diagAtual[k];
       }
-      // Preserva nome, sexo e email se não respondidos agora
-      if (!(answers as any).nome && diagAtual.nome) merged.nome = diagAtual.nome;
-      if (!(answers as any).sexo && diagAtual.sexo) merged.sexo = diagAtual.sexo;
-      if (!(answers as any).email && diagAtual.email) merged.email = diagAtual.email;
+      
+      // Garante que campos de identidade nunca são apagados
+      if (!merged.nome && diagAtual.nome) merged.nome = diagAtual.nome;
+      if (!merged.sexo && diagAtual.sexo) merged.sexo = diagAtual.sexo;
+      if (!merged.email && diagAtual.email) merged.email = diagAtual.email;
+      if (!merged.nome && usuarioAtual?.nome) merged.nome = usuarioAtual.nome;
       await salvarDiagnostico(session.user.id, merged);
       sessionStorage.removeItem('nv_quiz');
       sessionStorage.setItem('nv_diagnostico_atualizado', '1');
