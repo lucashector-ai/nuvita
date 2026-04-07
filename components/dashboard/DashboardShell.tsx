@@ -203,7 +203,7 @@ export default function DashboardShell() {
           } else {
             router.replace('/diagnostico');
           }
-        } catch { router.replace('/diagnostico'); }
+        } catch(e) { router.replace('/diagnostico'); }
       }
       // Mostra modal de boas-vindas na primeira vez
       const boasVindasVisto = sessionStorage.getItem('nv_boas_vindas');
