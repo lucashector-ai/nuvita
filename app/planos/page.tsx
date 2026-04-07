@@ -84,31 +84,26 @@ function PlanosContent() {
       return;
     }
 
-    // Plano pago — chama AbacatePay
+    // Plano pago — salva plano e vai para revisão
+    // (pagamento via AbacatePay será ativado com API key de produção)
     const quiz = sessionStorage.getItem("nv_quiz");
-    let nome = email;
+    let diagData: any = { email, plano: planoId, _activePlan: planoId };
     if (quiz) {
-      try { const d = JSON.parse(quiz); if (d.nome) nome = d.nome; } catch {}
+      try { diagData = { ...JSON.parse(quiz), email, plano: planoId, _activePlan: planoId }; }
+      catch {}
     }
+    const { data: perfilAtual } = await supabase
+      .from("usuarios").select("diagnostico").eq("id", userId).single();
+    const diagFinal = { ...(perfilAtual?.diagnostico || {}), ...diagData };
 
-    const res = await fetch("/api/pagamento", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        plano: planoId, userId, nome, email, anual,
-        valorMensal: anual
-          ? PLANOS.find(p => p.id === planoId)?.precoAnual
-          : PLANOS.find(p => p.id === planoId)?.preco,
-      }),
-    });
-    const data = await res.json();
+    await supabase.from("usuarios").upsert({
+      id: userId, plano: planoId, diagnostico: diagFinal,
+    }, { onConflict: "id" });
+
+    sessionStorage.setItem("nv_quiz", JSON.stringify(diagFinal));
+    sessionStorage.setItem("nv_pos_cadastro", "1");
     setLoading(null);
-
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert("Erro ao iniciar pagamento. Tente novamente.");
-    }
+    router.push("/revisao");
   };
 
   return (
