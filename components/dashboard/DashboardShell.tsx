@@ -150,7 +150,7 @@ export default function DashboardShell() {
   useEffect(() => {
     const init = async () => {
       const session = await getSession();
-      if (!session) { router.replace('/login'); return; }
+      if (!session) { router.replace('/cadastro'); return; }
       setUserId(session.user.id);
 
       // Verifica se voltou de um diagnóstico atualizado — força reler do banco
@@ -173,16 +173,10 @@ export default function DashboardShell() {
           } catch(e) {}
         }
       } else if (!sessionStorage.getItem('nv_quiz')) {
-        // Usuário sem diagnóstico → vai para diagnóstico
-        // Mas se veio do cadastro, não faz loop
-        const veioDoCadastro = sessionStorage.getItem('nv_pos_cadastro');
-        if (veioDoCadastro) {
-          sessionStorage.removeItem('nv_pos_cadastro');
-          // Deixa continuar com dados vazios
-        } else {
-          router.replace('/diagnostico');
-          return;
-        }
+        // Sem perfil no banco e sem quiz no sessionStorage
+        // Vai para diagnóstico para criar novo protocolo
+        router.replace('/diagnostico');
+        return;
       } else {
         try {
           const raw = sessionStorage.getItem('nv_quiz');
@@ -266,7 +260,7 @@ export default function DashboardShell() {
 
 
   const ml       = sidebarExpanded ? 'var(--sb-wx)' : 'var(--sb-w)';
-  const doLogout = async () => { await signOut(); router.replace('/login'); };
+  const doLogout = async () => { await signOut(); router.replace('/cadastro'); };
 
   return (
     <div style={{ display:'flex', minHeight:'100vh', background:'#F7F7F7' }}>

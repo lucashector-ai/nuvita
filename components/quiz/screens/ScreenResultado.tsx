@@ -176,26 +176,36 @@ export default function ScreenResultado({ answers, setAnswer, onLogin, onRevisao
             </p>
             <button
               onClick={async () => {
-                if (hasSession) {
-                  // Já tem conta — salva e vai para dashboard
-                  const session = await getSession();
-                  if (session) {
-                    await salvarDiagnostico(session.user.id, {
-                      ...answers,
-                      _protocoloIA: protIA ? JSON.stringify(protIA) : answers._protocoloIA
-                    });
-                    sessionStorage.removeItem('nv_quiz');
-                    sessionStorage.setItem('nv_diagnostico_atualizado', '1');
-                    onLogin();
-                    return;
-                  }
-                }
-                // Novo usuário: salva dados no sessionStorage e vai para cadastro
-                // O cadastro vai redirecionar para planos → pagamento → revisão → dashboard
+                // Salva quiz no sessionStorage sempre (fallback)
                 saveSession({
                   ...answers,
                   _protocoloIA: protIA ? JSON.stringify(protIA) : undefined,
                 });
+
+                if (hasSession) {
+                  const session = await getSession();
+                  if (session) {
+                    // Verifica se usuário existe no banco
+                    const { supabase } = await import('@/lib/supabase');
+                    const { data: perfil } = await supabase
+                      .from('usuarios').select('id').eq('id', session.user.id).maybeSingle();
+                    
+                    if (perfil) {
+                      // Usuário existe — salva diagnóstico e vai para dashboard
+                      await salvarDiagnostico(session.user.id, {
+                        ...answers,
+                        _protocoloIA: protIA ? JSON.stringify(protIA) : answers._protocoloIA
+                      });
+                      sessionStorage.setItem('nv_diagnostico_atualizado', '1');
+                      onLogin();
+                      return;
+                    } else {
+                      // Token existe mas usuário foi deletado do banco — faz logout
+                      await supabase.auth.signOut();
+                    }
+                  }
+                }
+                // Novo usuário ou sessão inválida — vai para cadastro
                 window.location.href = '/cadastro?origem=diagnostico';
               }}
               style={{ width:'100%', padding:'14px', background:'var(--green)', border:'none', borderRadius:12, color:'white', fontFamily:'inherit', fontSize:15, fontWeight:500, cursor:'pointer', transition:'opacity .15s', marginBottom:8 }}
