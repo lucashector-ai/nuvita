@@ -32,7 +32,8 @@ const TURNO_ICON = { 'Manhã':'🌅', 'Tarde':'☀️', 'Noite':'🌙', 'Qualque
 const TURNO_COLOR = { 'Manhã':'#EF9F27', 'Tarde':'#1D9E75', 'Noite':'#7F77DD', 'Qualquer horário':'#888780' };
 const TURNO_BG = { 'Manhã':'#FAEEDA', 'Tarde':'#E1F5EE', 'Noite':'#EEEDFE', 'Qualquer horário':'var(--bg2)' };
 
-export default function SectionProtocolo({ answers, items, peso, objs, dur, nivel }: Props) {
+export default function SectionProtocolo({ answers, items, peso, objs, dur, nivel, plan }: Props) {
+  const isFree = !plan || plan === 'free';
   const [modo,     setModo]     = useState<'timeline'|'lista'|'guia'>('timeline');
   const [expanded, setExpanded] = useState(new Set<string>());
   const nome = answers.nome?.toString() ?? '';
@@ -170,7 +171,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
             <div style={{ fontSize:11, color:'var(--gm)', fontWeight:500 }}>{items.length} compostos</div>
           </div>
           {items.map((item, i) => (
-            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ borderBottom:i<items.length-1?'1px solid var(--border)':'none' }}>
+            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ borderBottom:i<items.length-1?'1px solid var(--border)':'none', ...(isFree && i > 0 ? { filter:'blur(4px)', pointerEvents:'none', userSelect:'none', opacity:.7 } : {}) }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, padding:'1rem 1.25rem', cursor:'pointer' }}
                 onClick={() => toggle(`lista_${item.n}`)}>
                 <div style={{ width:40, height:40, background:'var(--gp)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 }}>
@@ -215,7 +216,7 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
       {modo === 'guia' && (
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {items.map(item => (
-            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ background:'#FFFFFF', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', borderRadius:14, padding:'1.25rem' }}>
+            <div key=<PeptideTooltip nome={item.n} emoji={item.e}>{item.n}</PeptideTooltip> style={{ background:'#FFFFFF', boxShadow:'0 1px 2px rgba(0,0,0,.04),0 2px 6px rgba(0,0,0,.03)', borderRadius:14, padding:'1.25rem', ...(isFree && i > 0 ? { filter:'blur(4px)', pointerEvents:'none', userSelect:'none', opacity:.7 } : {}) }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:'.875rem' }}>
                 <span style={{ fontSize:'1.5rem' }}>{item.e}</span>
                 <div>
