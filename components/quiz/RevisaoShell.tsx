@@ -98,7 +98,9 @@ export default function RevisaoShell() {
       }, { onConflict: 'id' });
       // Mantém nv_quiz no sessionStorage para o DashboardShell
       sessionStorage.setItem('nv_quiz', JSON.stringify(diagFinal));
+      // Flag para DashboardShell saber que precisa reler do banco
       sessionStorage.setItem('nv_diagnostico_atualizado', '1');
+      sessionStorage.setItem('nv_revisao_concluida', '1');
     } else {
       // Sem sessão — vai para cadastro com dados salvos
       sessionStorage.setItem('nv_quiz', JSON.stringify(updated));
