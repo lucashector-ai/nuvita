@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       metadata: { userId, plano, anual: String(anual) },
     };
 
-    const res = await fetch(`${ABACATE_API}/subscriptions/checkout`, {
+    const res = await fetch(`${ABACATE_API}/subscriptions/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
