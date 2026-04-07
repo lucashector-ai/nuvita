@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
           name: nome || 'Cliente',
           email: email || '',
           cellphone: '',
+          taxId: '000.000.000-00',
         },
         metadata: { userId, plano, anual: String(anual) },
       }),
