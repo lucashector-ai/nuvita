@@ -57,8 +57,12 @@ export async function upsertUsuario(userId: string, email: string, nome?: string
 export async function salvarDiagnostico(userId: string, diagnostico: any) {
   const { error } = await supabase
     .from('usuarios')
-    .update({ diagnostico, nome: diagnostico.nome || null, updated_at: new Date().toISOString() })
-    .eq('id', userId)
+    .upsert({
+      id: userId,
+      diagnostico,
+      nome: diagnostico.nome || null,
+      plano: diagnostico._activePlan || diagnostico.plano || 'free',
+    }, { onConflict: 'id' })
   if (error) throw error
 }
 
