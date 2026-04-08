@@ -104,10 +104,30 @@ export default function SectionConfig({ answers, plan, userId, onNavigate }: any
     })();
   }, []);
 
+  // ─ Carrega faturas do Stripe ─
+  const carregarFaturas = async (uid?: string) => {
+    const id = uid || userId_;
+    if (!id) return;
+    setLoadFaturas(true);
+    try {
+      const res = await fetch('/api/stripe/faturas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: id }),
+      });
+      const data = await res.json();
+      setFaturas(data.faturas || []);
+    } catch(e) {
+      const { data } = await supabase.from('pagamentos').select('*').eq('user_id', id).order('created_at', { ascending:false }).limit(12);
+      setFaturas(data || []);
+    }
+    setLoadFaturas(false);
+  };
+
   // ─ Carrega faturas quando entra na aba ─
   useEffect(() => {
     if (aba !== 'cobranca') return;
-    if (userId_) carregarFaturas();
+    if (userId_) carregarFaturas(userId_);
   }, [aba, userId_]);
 
   // ─ Salva preferências gerais ─
