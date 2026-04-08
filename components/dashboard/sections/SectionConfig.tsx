@@ -106,13 +106,8 @@ export default function SectionConfig({ answers, plan, userId, onNavigate }: any
 
   // ─ Carrega faturas quando entra na aba ─
   useEffect(() => {
-    if (aba !== 'cobranca' || !userId_) return;
-    (async () => {
-      setLoadFaturas(true);
-      const { data } = await supabase.from('pagamentos').select('*').eq('user_id', userId_).order('created_at', { ascending:false }).limit(12);
-      setFaturas(data || []);
-      setLoadFaturas(false);
-    })();
+    if (aba !== 'cobranca') return;
+    if (userId_) carregarFaturas();
   }, [aba, userId_]);
 
   // ─ Salva preferências gerais ─
@@ -435,6 +430,12 @@ export default function SectionConfig({ answers, plan, userId, onNavigate }: any
                     color:f.status==='paid'?'#15803D':f.status==='failed'?'#D85A30':'#B45309' }}>
                     {f.status==='paid'?'Pago':f.status==='failed'?'Recusado':'Pendente'}
                   </span>
+                  {f.pdf && (
+                    <a href={f.pdf} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize:11, color:'#6B7280', textDecoration:'none', padding:'3px 8px', borderRadius:6, border:'1px solid #E5E7EB', background:'white' }}>
+                      PDF
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
