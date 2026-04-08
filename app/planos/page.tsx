@@ -1,4 +1,9 @@
 "use client";
+export const metadata = {
+  title: 'Planos — Nuvita',
+  description: 'Plataforma de protocolos personalizados de peptídeos com diagnóstico por IA.',
+};
+
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";

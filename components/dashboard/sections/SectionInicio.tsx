@@ -32,6 +32,17 @@ const HUMOR_TEXTOS = ['Péssimo','Ruim','Neutro','Bem','Ótimo'];
 function getFase(s) { return FASES.find(f=>s>=f.s[0]&&s<=f.s[1])||FASES[0]; }
 function getMarco(s) { return MARCOS.find(m=>m.semana>s)||MARCOS[MARCOS.length-1]; }
 
+// Componente de toast simples
+function Toast({ msg, onClose }: any) {
+  return (
+    <div style={{ position:'fixed', bottom:24, right:24, background:'#111827', color:'white', padding:'12px 20px', borderRadius:12, fontSize:13, fontWeight:500, zIndex:999, display:'flex', alignItems:'center', gap:12, boxShadow:'0 4px 16px rgba(0,0,0,.2)', animation:'slideUp .3s ease' }}>
+      <style>{`@keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }`}</style>
+      {msg}
+      <button onClick={onClose} style={{ background:'none', border:'none', color:'rgba(255,255,255,.6)', cursor:'pointer', fontSize:16, lineHeight:1 }}>×</button>
+    </div>
+  );
+}
+
 export default function SectionInicio({ answers, items, peso, objs, dur, nivel, plan, protoAtivo, onStartProto, onNavigate }) {
   const nome      = answers.nome?.toString().split(' ')[0] ?? '';
   const semanas   = 1;

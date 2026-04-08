@@ -92,6 +92,10 @@ export async function carregarDiagnostico(userId: string) {
     .eq('id', userId)
     .maybeSingle()
   if (error || !data) return null
+  // Garante que diagnostico.nome nunca fica vazio se a coluna nome tem valor
+  if (data.nome && data.diagnostico && !data.diagnostico.nome) {
+    data.diagnostico = { ...data.diagnostico, nome: data.nome };
+  }
   return data
 }
 

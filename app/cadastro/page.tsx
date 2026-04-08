@@ -1,4 +1,9 @@
 "use client";
+export const metadata = {
+  title: 'Cadastro — Nuvita',
+  description: 'Plataforma de protocolos personalizados de peptídeos com diagnóstico por IA.',
+};
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
