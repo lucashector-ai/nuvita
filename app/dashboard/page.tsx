@@ -1,11 +1,6 @@
 // @ts-nocheck
 'use client';
 
-export const metadata = {
-  title: 'Dashboard — Nuvita',
-  description: 'Plataforma de protocolos personalizados de peptídeos com diagnóstico por IA.',
-};
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSession } from '@/lib/auth';

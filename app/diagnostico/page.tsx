@@ -5,10 +5,6 @@
 
 import QuizShell from '@/components/quiz/QuizShell';
 
-export const metadata = {
-  title: 'Diagnóstico — Nuvita',
-};
-
 export default function DiagnosticoPage() {
   return <QuizShell />;
 }
