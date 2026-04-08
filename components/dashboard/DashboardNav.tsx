@@ -181,7 +181,7 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
                     <div style={{ padding:'2rem', textAlign:'center', color:'var(--ts)', fontSize:13 }}>
                       Nenhuma notificação
                     </div>
-                  ) : notifs.map(n => (
+                  ) : notifs.slice(0, 5).map(n => (
                     <div key={n.id}
                       onClick={() => handleNotifClick(n)}
                       style={{
@@ -212,10 +212,19 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Avatar */}
+              {notifs.length > 0 && (
+                <div style={{ padding:'10px 16px', borderTop:'1px solid #E5E7EB', textAlign:'center' }}>
+                  <button
+                    onClick={() => { setShowNotifs(false); onNavigate('notificacoes'); }}
+                    style={{ fontSize:12, color:'var(--gm)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', fontWeight:500 }}>
+                    Ver todas as notificações →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        {/* Avatar */}
           <div ref={userRef} style={{ position:'relative' }}>
             <div onClick={() => setShowUserMenu(v => !v)}
               style={{ width:32, height:32, borderRadius:'50%', background:'var(--dark)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:500, cursor:'pointer', userSelect:'none' }}>
@@ -249,6 +258,15 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
                   </button>
                 </div>
               </div>
+              {notifs.length > 0 && (
+                <div style={{ padding:'10px 16px', borderTop:'1px solid #E5E7EB', textAlign:'center' }}>
+                  <button
+                    onClick={() => { setShowNotifs(false); onNavigate('notificacoes'); }}
+                    style={{ fontSize:12, color:'var(--gm)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', fontWeight:500 }}>
+                    Ver todas as notificações →
+                  </button>
+                </div>
+              )}
             )}
           </div>
         </div>

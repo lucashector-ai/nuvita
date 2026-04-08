@@ -94,6 +94,8 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
       });
       const data = await res.json();
       if (data.url) {
+        // Salva flag para retornar ao dashboard após pagamento (não para revisão)
+        sessionStorage.setItem('nv_retorno_pos_plano', 'dashboard');
         window.location.href = data.url;
       } else {
         alert('Erro ao iniciar pagamento: ' + (data.error || 'tente novamente'));

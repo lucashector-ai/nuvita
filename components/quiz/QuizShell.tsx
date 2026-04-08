@@ -69,26 +69,49 @@ export default function QuizShell() {
         .from('usuarios').select('diagnostico, nome, plano').eq('id', session.user.id).maybeSingle();
       const diagAtual = usuarioAtual?.diagnostico || dadosBanco || {};
 
-      // Merge: começa com dados do banco, aplica só o que foi efetivamente alterado
+      // MERGE INTELIGENTE: banco é a fonte da verdade
+      // Só sobrescreve campos que foram EXPLICITAMENTE alterados nesta sessão
+      // Campos sensíveis (nome, sexo, email, plano) nunca são apagados
+      const CAMPOS_IDENTIDADE = ['nome', 'sexo', 'email', 'q2'];
+      const CAMPOS_BLOQUEADOS = ['_activePlan', 'plano', '_protocoloIA', '_aceitosRevisao', '_removidos', '_protocoloAtivo', '_dataInicioProtocolo'];
+      
       const merged: Record<string,any> = { ...diagAtual };
+      
       for (const [k, v] of Object.entries(answers as Record<string,any>)) {
-        // Só sobrescreve se o valor é válido (não vazio, não null)
-        const ehValido = v !== undefined && v !== null && v !== '' && 
-          !(Array.isArray(v) && v.length === 0);
-        if (ehValido) merged[k] = v;
+        // Nunca sobrescreve campos bloqueados
+        if (CAMPOS_BLOQUEADOS.includes(k)) continue;
+        // Para campos de identidade: só atualiza se o novo valor é mais completo
+        if (CAMPOS_IDENTIDADE.includes(k)) {
+          const valorAtual = diagAtual[k];
+          const temValorNovo = v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0);
+          const temValorAtual = valorAtual !== undefined && valorAtual !== null && valorAtual !== '';
+          // Só substitui se tem valor novo E (não tem valor atual OU o novo é diferente e foi digitado)
+          if (temValorNovo && (!temValorAtual || v !== valorAtual)) {
+            merged[k] = v;
+          }
+          continue;
+        }
+        // Outros campos: sobrescreve se tem valor válido
+        if (v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0)) {
+          merged[k] = v;
+        }
       }
-      // NUNCA apaga esses campos — usa banco como fallback absoluto
+      
+      // GARANTIAS absolutas — nunca ficam vazios
       merged.nome  = merged.nome  || diagAtual.nome  || usuarioAtual?.nome || '';
       merged.sexo  = merged.sexo  || diagAtual.sexo  || '';
       merged.email = merged.email || diagAtual.email || session.user.email || '';
-      // Preserva TODOS campos _ do banco (plano, protocoloIA, aceitosRevisao, etc)
-      for (const k of Object.keys(diagAtual)) {
-        if (k.startsWith('_')) merged[k] = diagAtual[k];
-      }
-      // Preserva plano atual — nunca deixa voltar para free
+      
+      // Plano nunca regride
+      const RANK: Record<string,number> = { free:0, essencial:1, pro:2 };
       const planoAtual = usuarioAtual?.plano || diagAtual._activePlan || diagAtual.plano || 'free';
       merged._activePlan = planoAtual;
       merged.plano = planoAtual;
+      
+      // Preserva todos campos _ do banco
+      for (const k of Object.keys(diagAtual)) {
+        if (k.startsWith('_') && !merged[k]) merged[k] = diagAtual[k];
+      }
 
       await salvarDiagnostico(session.user.id, merged);
       saveSession(merged);

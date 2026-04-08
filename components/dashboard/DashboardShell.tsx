@@ -258,7 +258,7 @@ export default function DashboardShell() {
           {section==='config'       && <SectionConfig answers={answers} plan={plan} userId={userId}/>}
           {section==='consultas'       && <SectionConsultas userId={userId}/>}
           {section==='medico'       && <SectionMedico plan={plan} nome={nome} userId={userId} answers={answers} onNavigate={nav}/>}
-          {section==='calendario'   && <SectionCalendario items={items} peso={peso} protoAtivo={protoAtivo}/>}
+          {section==='calendario'   && <SectionCalendario items={itemsIAFiltrado || items} peso={peso} protoAtivo={protoAtivo}/>}
           {section==='perfil'       && <SectionPerfil answers={answers} plan={plan} onNavigate={nav} userId={userId} onPlanChange={setPlanAtivo}/>}
           {section==='diario' || section==='tracker'      && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Tracker de evolução' descricao='Registre peso, energia e sono ao longo do ciclo. Disponível a partir do Essencial.'><SectionTracker userId={userId}/></PlanLock>}
           {section==='diario'       && <PlanLock planoNecessario='essencial' planoAtual={plan} recurso='Diário de sintomas' descricao='Registre os efeitos percebidos em cada aplicação. Disponível a partir do Essencial.'><SectionDiario userId={userId}/></PlanLock>}

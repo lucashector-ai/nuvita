@@ -12,10 +12,14 @@ function SucessoContent() {
     const userId = params.get("userId");
     if (plano && userId) {
       supabase.from("usuarios").update({ plano }).eq("id", userId).then(() => {
-        setTimeout(() => router.replace("/revisao"), 3000);
+        const retorno = sessionStorage.getItem('nv_retorno_pos_plano');
+      sessionStorage.removeItem('nv_retorno_pos_plano');
+      setTimeout(() => router.replace(retorno === 'dashboard' ? '/dashboard' : '/revisao'), 3000);
       });
     } else {
-      setTimeout(() => router.replace("/revisao"), 3000);
+      const retorno = sessionStorage.getItem('nv_retorno_pos_plano');
+      sessionStorage.removeItem('nv_retorno_pos_plano');
+      setTimeout(() => router.replace(retorno === 'dashboard' ? '/dashboard' : '/revisao'), 3000);
     }
   }, []);
 

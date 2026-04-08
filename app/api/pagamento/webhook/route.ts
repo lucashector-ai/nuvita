@@ -26,35 +26,58 @@ export async function POST(req: NextRequest) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as any;
       const { userId, plano } = session.metadata || {};
-      console.log('Stripe webhook: checkout.session.completed', { userId, plano });
+      console.log('Stripe webhook: checkout.session.completed', { userId, plano, sub: session.subscription });
       if (userId && plano) {
-        // Atualiza plano na coluna e dentro do diagnóstico
+        // Pega o intervalo (mensal/anual) da subscription
+        let intervalo = 'mensal';
+        if (session.subscription) {
+          try {
+            const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+            const interval = sub.items?.data?.[0]?.plan?.interval;
+            intervalo = interval === 'year' ? 'anual' : 'mensal';
+          } catch(e) { console.error('Erro ao buscar subscription:', e); }
+        }
+
         const { data: perfil } = await supabaseAdmin
-          .from('usuarios').select('diagnostico').eq('id', userId).single();
+          .from('usuarios').select('diagnostico').eq('id', userId).maybeSingle();
         const diagAtualizado = {
           ...(perfil?.diagnostico || {}),
           plano,
           _activePlan: plano,
+          _planoIntervalo: intervalo,
+          _planoAssinaturaId: session.subscription || null,
+          _planoAtualizadoEm: new Date().toISOString(),
         };
         await supabaseAdmin.from('usuarios').update({
           plano,
           diagnostico: diagAtualizado,
         }).eq('id', userId);
-        console.log('Plano atualizado para', plano, 'userId', userId);
+        console.log('Plano atualizado:', { plano, intervalo, userId });
       }
     }
 
-    // Também escuta renovações de assinatura
     if (event.type === 'invoice.payment_succeeded') {
       const invoice = event.data.object as any;
-      const sub = invoice.subscription;
-      if (sub) {
-        // Busca a subscription para pegar metadata
-        const subscription = await stripe.subscriptions.retrieve(sub);
-        const { userId, plano } = subscription.metadata || {};
+      if (invoice.subscription) {
+        const sub = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const { userId, plano } = sub.metadata || {};
         if (userId && plano) {
           await supabaseAdmin.from('usuarios').update({ plano }).eq('id', userId);
         }
+      }
+    }
+    
+    if (event.type === 'customer.subscription.deleted') {
+      // Assinatura cancelada — volta para free
+      const sub = event.data.object as any;
+      const { userId } = sub.metadata || {};
+      if (userId) {
+        const { data: perfil } = await supabaseAdmin
+          .from('usuarios').select('diagnostico').eq('id', userId).maybeSingle();
+        await supabaseAdmin.from('usuarios').update({
+          plano: 'free',
+          diagnostico: { ...(perfil?.diagnostico || {}), plano: 'free', _activePlan: 'free' }
+        }).eq('id', userId);
       }
     }
 
