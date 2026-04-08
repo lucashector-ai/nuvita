@@ -135,12 +135,29 @@ export default function SectionConfig({ answers, plan, userId, onNavigate }: any
 
   // ─ Portal Stripe ─
   const abrirPortal = async () => {
+    // Garante que tem userId válido — relê da sessão se necessário
+    let uid = userId_;
+    if (!uid) {
+      const { data:{ user } } = await supabase.auth.getUser();
+      if (!user?.id) { alert('Sessão expirada. Faça login novamente.'); return; }
+      uid = user.id;
+      setUserId_(uid);
+    }
     setPortalLoading(true);
-    const res = await fetch('/api/stripe', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ userId:userId_ }) });
-    const data = await res.json();
-    setPortalLoading(false);
-    if (data.url) window.location.href = data.url;
-    else alert('Erro ao abrir portal: ' + (data.error || 'tente novamente'));
+    try {
+      const res = await fetch('/api/stripe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: uid }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert('Erro ao abrir portal: ' + (data.error || 'tente novamente'));
+    } catch(e: any) {
+      alert('Erro: ' + e.message);
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   // ─ Logout ─

@@ -180,7 +180,6 @@ export default function DashboardNav({
                   <div style={{ fontSize:11, color:'var(--ts)', marginTop:2 }}>{planLabel}</div>
                 </div>
                 {[
-                  { label:'Meu perfil', fn: () => { onOpenPerfil?.(); setShowUserMenu(false); } },
                   { label:'Configurações', fn: () => { onOpenConfig?.(); setShowUserMenu(false); } },
                   ...(planId !== 'pro' ? [{ label:'Ver planos', fn: () => { onOpenPlanos?.(); setShowUserMenu(false); } }] : []),
                 ].map(item => (
