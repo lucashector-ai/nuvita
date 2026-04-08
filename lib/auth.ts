@@ -68,12 +68,17 @@ export async function salvarDiagnostico(userId: string, diagnostico: any) {
     ? novoPlano 
     : planoAtual;
 
+  // Busca nome atual do banco para nunca sobrescrever com vazio
+  const nomeParaSalvar = (diagnostico.nome && diagnostico.nome.trim())
+    ? diagnostico.nome.trim()
+    : (atual?.nome || null);
+
   const { error } = await supabase
     .from('usuarios')
     .upsert({
       id: userId,
       diagnostico: { ...diagnostico, plano: planoFinal, _activePlan: planoFinal },
-      nome: diagnostico.nome || null,
+      nome: nomeParaSalvar,
       plano: planoFinal,
     }, { onConflict: 'id' })
   if (error) throw error
