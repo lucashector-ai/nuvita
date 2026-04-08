@@ -55,6 +55,7 @@ const SECTIONS = [
   ] },
   { label: 'Conta', items: [
     { id:'planos', icon:'M1 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1V4zM1 7h14', label:'Planos' },
+    { id:'ajuda', icon:'M8 1a7 7 0 100 14A7 7 0 008 1zM8 11v1M8 5a2 2 0 011.73 3C9 9 8 9.5 8 10', label:'Ajuda' },
     { id:'config', icon:'M8 5a3 3 0 100 6 3 3 0 000-6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.2 3.2l1 1M11.8 11.8l1 1M3.2 12.8l1-1M11.8 4.2l1-1', label:'Configurações' },
   ] },
 ];

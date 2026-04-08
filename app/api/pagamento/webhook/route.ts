@@ -12,6 +12,18 @@ export async function POST(req: NextRequest) {
     const { Stripe } = await import('stripe');
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-04-10' });
 
+
+  // Helper: envia email via API interna
+  const enviarEmail = async (tipo: string, email: string, dados: any) => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo, email, dados }),
+      });
+    } catch(e) { console.error('Email error:', e); }
+  };
+
     const body = await req.text();
     const sig = req.headers.get('stripe-signature')!;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -52,6 +64,17 @@ export async function POST(req: NextRequest) {
           plano,
           diagnostico: diagAtualizado,
         }).eq('id', userId);
+
+        // Envia email de confirmação de pagamento
+        const { data: userEmail } = await supabaseAdmin.auth.admin.getUserById(userId);
+        if (userEmail?.user?.email) {
+          await enviarEmail('pagamento-confirmado', userEmail.user.email, {
+            nome: diagAtualizado.nome || '',
+            plano,
+            intervalo,
+            valor: session.amount_total || 0,
+          });
+        }
         console.log('Plano atualizado:', { plano, intervalo, userId });
       }
     }
@@ -78,6 +101,19 @@ export async function POST(req: NextRequest) {
           plano: 'free',
           diagnostico: { ...(perfil?.diagnostico || {}), plano: 'free', _activePlan: 'free' }
         }).eq('id', userId);
+
+        // Envia email de cancelamento
+        const { data: cancelUser } = await supabaseAdmin.auth.admin.getUserById(userId);
+        if (cancelUser?.user?.email) {
+          const cancelEnd = sub.current_period_end
+            ? new Date((sub.current_period_end as number) * 1000).toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' })
+            : '';
+          await enviarEmail('cancelamento', cancelUser.user.email, {
+            nome: perfil?.diagnostico?.nome || '',
+            plano: perfil?.diagnostico?._activePlan || 'essencial',
+            dataFim: cancelEnd,
+          });
+        }
       }
     }
 

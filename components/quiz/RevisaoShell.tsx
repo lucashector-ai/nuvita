@@ -106,9 +106,23 @@ export default function RevisaoShell() {
       }, { onConflict: 'id' });
       // Mantém nv_quiz no sessionStorage para o DashboardShell
       sessionStorage.setItem('nv_quiz', JSON.stringify(diagFinal));
-      // Flag para DashboardShell saber que precisa reler do banco
       sessionStorage.setItem('nv_diagnostico_atualizado', '1');
       sessionStorage.setItem('nv_revisao_concluida', '1');
+
+      // Envia email de boas-vindas na primeira vez (se não tiver histórico)
+      const jaEnviou = localStorage.getItem('nv_bv_email');
+      if (!jaEnviou && session.user.email) {
+        localStorage.setItem('nv_bv_email', '1');
+        fetch('/api/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tipo: 'boas-vindas',
+            email: session.user.email,
+            dados: { nome: diagFinal.nome || '' },
+          }),
+        }).catch(() => {});
+      }
     } else {
       // Sem sessão — vai para cadastro com dados salvos
       sessionStorage.setItem('nv_quiz', JSON.stringify(updated));
