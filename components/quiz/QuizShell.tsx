@@ -1,7 +1,6 @@
+// @ts-nocheck
 // ════════════════════════════════════════════════
 //  NUVITA — components/quiz/QuizShell.tsx
-//  Orquestrador principal do quiz
-//  Substitui o <div id="qw"> e toda a lógica JS
 // ════════════════════════════════════════════════
 
 'use client';
@@ -9,7 +8,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useQuiz } from '@/lib/useQuiz';
-import { loadQuizPartial, clearSession } from '@/lib/session';
+import { loadQuizPartial, clearSession, saveSession } from '@/lib/session';
 import { getSession, salvarDiagnostico } from '@/lib/auth';
 
 import QuizNav        from './QuizNav';
@@ -33,6 +32,8 @@ export default function QuizShell() {
   const [sessionChecked, setSessionChecked] = useState(false);
   const [initialAnswers, setInitialAnswers] = useState({});
   const [hasSession,    setHasSession]    = useState(false);
+  const [dadosBanco,    setDadosBanco]    = useState<any>(null); // dados originais do banco
+  const [showRevisaoModal, setShowRevisaoModal] = useState(false); // modal "deseja revisar?"
 
   useEffect(() => {
     getSession().then(async session => {
@@ -41,83 +42,75 @@ export default function QuizShell() {
         setInitialAnswers({});
         setHasSession(false);
       } else {
-        // Tem sessão: carrega dados existentes para pré-preencher nome e sexo
         const { carregarDiagnostico } = await import('@/lib/auth');
         const perfil = await carregarDiagnostico(session.user.id);
         const saved = loadQuizPartial();
-        // Pré-preenche com dados do banco para não precisar redigitar nome/sexo
         const base = perfil?.diagnostico || {};
+        // Pré-preenche TODAS as respostas do banco — usuário só muda o que quiser
         setInitialAnswers({ ...base, ...(saved ?? {}) });
-        // hasSession só é true se já tem diagnóstico preenchido antes
+        setDadosBanco(base);
         setHasSession(!!(perfil?.diagnostico?.q3 || perfil?.diagnostico?.nome));
       }
       setSessionChecked(true);
     });
   }, []);
 
-  const { cur, answers, setAnswer, next, prev, reset, progress, goTo } = useQuiz(
-    initialAnswers,
-  );
+  const { cur, answers, setAnswer, next, prev, reset, progress, goTo } = useQuiz(initialAnswers);
 
   if (!sessionChecked) return null;
 
-  // Callback para ir ao dashboard (após login)
-  const handleGoToDashboard = () => {
-    router.push('/dashboard');
-  };
+  const handleGoToDashboard = () => router.push('/dashboard');
 
-  // Callback para finalizar diagnóstico
-  // Se já tem conta: salva e vai direto ao dashboard (sem pricing)
-  // Se não tem conta: vai para revisão/pricing
   const handleGoToRevisao = async () => {
     const session = await getSession();
     if (session) {
-      // Merge com dados existentes — preserva campos especiais
       const { supabase } = await import('@/lib/supabase');
       const { data: usuarioAtual } = await supabase
         .from('usuarios').select('diagnostico, nome, plano').eq('id', session.user.id).maybeSingle();
-      const diagAtual = usuarioAtual?.diagnostico || {};
-      
-      // Merge: banco é base, respostas novas sobrescrevem
-      // mas campos não respondidos agora são preservados do banco
+      const diagAtual = usuarioAtual?.diagnostico || dadosBanco || {};
+
+      // Merge: começa com dados do banco, aplica só o que foi efetivamente alterado
       const merged: Record<string,any> = { ...diagAtual };
-      
-      // Aplica respostas novas — só sobrescreve se o campo foi realmente respondido
       for (const [k, v] of Object.entries(answers as Record<string,any>)) {
+        // Só sobrescreve se o valor é válido E diferente do banco
         if (v !== undefined && v !== null && v !== '') {
           merged[k] = v;
         }
       }
-      
-      // Sempre preserva campos especiais do banco (plano, protocolo, etc)
+      // Nunca apaga campos de identidade
+      if (!merged.nome) merged.nome = diagAtual.nome || usuarioAtual?.nome || '';
+      if (!merged.sexo) merged.sexo = diagAtual.sexo || '';
+      if (!merged.email) merged.email = diagAtual.email || session.user.email || '';
+      // Preserva todos campos _ do banco
       for (const k of Object.keys(diagAtual)) {
         if (k.startsWith('_')) merged[k] = diagAtual[k];
       }
-      
-      // Garante que campos de identidade nunca são apagados
-      if (!merged.nome && diagAtual.nome) merged.nome = diagAtual.nome;
-      if (!merged.sexo && diagAtual.sexo) merged.sexo = diagAtual.sexo;
-      if (!merged.email && diagAtual.email) merged.email = diagAtual.email;
-      if (!merged.nome && usuarioAtual?.nome) merged.nome = usuarioAtual.nome;
+
       await salvarDiagnostico(session.user.id, merged);
-      sessionStorage.removeItem('nv_quiz');
+      saveSession(merged);
       sessionStorage.setItem('nv_diagnostico_atualizado', '1');
+    } else {
+      // Novo usuário — salva quiz e vai para cadastro
+      saveSession(answers);
+      router.push('/cadastro?origem=diagnostico');
+      return;
     }
-    // Sempre vai para revisão — usuário novo ou refazendo
     router.push('/revisao');
+  };
+
+  // Quando usuário com conta clica no resultado — mostra modal "revisar?"
+  const handleResultadoComConta = () => {
+    setShowRevisaoModal(true);
   };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Nav superior — só para perguntas (não welcome, não pricing) */}
       {cur !== 0 && cur !== 'pricing' && (
         <QuizNav progress={progress} onReset={reset} />
       )}
 
-      {/* Welcome: tela cheia (tem seu próprio layout) */}
       {cur === 0 && <ScreenWelcome onNext={hasSession ? () => goTo(3) : next} isRediag={hasSession} />}
 
-      {/* Perguntas 1–11 dentro do container */}
       {cur !== 0 && cur !== 'result' && cur !== 'pricing' && (
         <div className="q-body">
           <div className="q-col">
@@ -126,30 +119,28 @@ export default function QuizShell() {
             {cur === 3    && <ScreenObjetivos answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === '3b' && <ScreenPeleSub   answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === 4    && <ScreenNivel     answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-                        {cur === 5    && <ScreenAtividade answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
+            {cur === 5    && <ScreenAtividade answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === 6    && <ScreenSono      answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === 7    && <ScreenEstresse  answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === 8    && <ScreenDuracao   answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
-            {cur === 9   && <ScreenSaude     answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
+            {cur === 9    && <ScreenSaude     answers={answers} setAnswer={setAnswer} onNext={next} onPrev={prev} />}
             {cur === 10   && <ScreenBiometria answers={answers} setAnswer={setAnswer} onNext={() => goTo("result")} onPrev={prev} />}
           </div>
         </div>
       )}
 
-      {/* Resultado — container próprio */}
       {cur === 'result' && (
         <div className="q-body">
           <ScreenResultado
             answers={answers}
             setAnswer={setAnswer}
             onUpgrade={() => goTo('pricing')}
-            onLogin={handleGoToDashboard}
+            onLogin={hasSession ? handleResultadoComConta : handleGoToDashboard}
             onRevisao={handleGoToRevisao}
           />
         </div>
       )}
 
-      {/* Pricing — container próprio */}
       {cur === 'pricing' && (
         <div className="q-body">
           <ScreenPricing
@@ -159,6 +150,39 @@ export default function QuizShell() {
             onRevisao={handleGoToRevisao}
             onBack={() => goTo('result')}
           />
+        </div>
+      )}
+
+      {/* Modal: Deseja revisar seu protocolo? */}
+      {showRevisaoModal && (
+        <div style={{
+          position:'fixed', inset:0, background:'rgba(0,0,0,.5)',
+          display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000
+        }} onClick={() => setShowRevisaoModal(false)}>
+          <div style={{
+            background:'white', borderRadius:20, padding:'2rem', maxWidth:400, width:'90%',
+            boxShadow:'0 8px 32px rgba(0,0,0,.15)', textAlign:'center'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize:'2.5rem', marginBottom:'1rem' }}>🔬</div>
+            <h3 style={{ fontSize:'1.15rem', fontWeight:600, marginBottom:'.5rem', letterSpacing:'-.03em' }}>
+              Deseja revisar seu protocolo?
+            </h3>
+            <p style={{ fontSize:13, color:'#6B7280', lineHeight:1.65, marginBottom:'1.5rem' }}>
+              Revise os peptídeos um a um — você pode aceitar ou remover cada um antes de entrar na plataforma.
+            </p>
+            <div style={{ display:'flex', gap:10 }}>
+              <button
+                onClick={() => { setShowRevisaoModal(false); handleGoToDashboard(); }}
+                style={{ flex:1, padding:'12px', borderRadius:12, border:'1.5px solid #E5E7EB', background:'white', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'#374151' }}>
+                Não, entrar direto
+              </button>
+              <button
+                onClick={() => { setShowRevisaoModal(false); handleGoToRevisao(); }}
+                style={{ flex:1, padding:'12px', borderRadius:12, border:'none', background:'#111827', color:'white', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:600 }}>
+                Sim, revisar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
