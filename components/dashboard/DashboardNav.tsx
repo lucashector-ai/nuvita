@@ -158,71 +158,45 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
 
             {showNotifs && (
               <div style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:340, background:'#FFFFFF', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,.12)', zIndex:300, overflow:'hidden' }}>
-                {/* Header */}
                 <div style={{ padding:'12px 16px', borderBottom:'1px solid #E5E7EB', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div style={{ fontSize:13, fontWeight:600, color:'var(--tx)' }}>Notificações</div>
                   <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                     {unread > 0 && (
-                      <button onClick={marcarTodasLidas}
-                        style={{ fontSize:11, color:'var(--gm)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                      <button onClick={marcarTodasLidas} style={{ fontSize:11, color:'var(--gm)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
                         Marcar lidas
                       </button>
                     )}
-                    <button onClick={() => setShowNotifs(false)}
-                      style={{ fontSize:16, color:'var(--ts)', background:'none', border:'none', cursor:'pointer', lineHeight:1 }}>
-                      ×
-                    </button>
+                    <button onClick={() => setShowNotifs(false)} style={{ fontSize:16, color:'var(--ts)', background:'none', border:'none', cursor:'pointer', lineHeight:1 }}>×</button>
                   </div>
                 </div>
-
-                {/* Lista */}
-                <div style={{ maxHeight:400, overflowY:'auto' }}>
+                <div style={{ maxHeight:360, overflowY:'auto' }}>
                   {notifs.length === 0 ? (
-                    <div style={{ padding:'2rem', textAlign:'center', color:'var(--ts)', fontSize:13 }}>
-                      Nenhuma notificação
-                    </div>
+                    <div style={{ padding:'2rem', textAlign:'center', color:'var(--ts)', fontSize:13 }}>Nenhuma notificação</div>
                   ) : notifs.slice(0, 5).map(n => (
-                    <div key={n.id}
-                      onClick={() => handleNotifClick(n)}
-                      style={{
-                        display:'flex', gap:12, padding:'12px 16px',
-                        cursor:'pointer', transition:'background .1s',
-                        background: n.lida ? 'transparent' : 'rgba(29,158,117,.04)',
-                        borderBottom:'1px solid #F3F4F6',
-                      }}
+                    <div key={n.id} onClick={() => handleNotifClick(n)}
+                      style={{ display:'flex', gap:12, padding:'12px 16px', cursor:'pointer', transition:'background .1s', background: n.lida ? 'transparent' : 'rgba(29,158,117,.04)', borderBottom:'1px solid #F3F4F6' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
                       onMouseLeave={e => e.currentTarget.style.background = n.lida ? 'transparent' : 'rgba(29,158,117,.04)'}>
-                      {/* Ícone */}
-                      <div style={{ width:36, height:36, borderRadius:10, background:'#F3F4F6', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>
-                        {n.icon}
-                      </div>
-                      {/* Conteúdo */}
+                      <div style={{ width:36, height:36, borderRadius:10, background:'#F3F4F6', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>{n.icon}</div>
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:13, fontWeight: n.lida ? 400 : 600, color:'var(--tx)', marginBottom:2 }}>
-                          {n.titulo}
-                        </div>
+                        <div style={{ fontSize:13, fontWeight: n.lida ? 400 : 600, color:'var(--tx)', marginBottom:2 }}>{n.titulo}</div>
                         <div style={{ fontSize:12, color:'var(--ts)', lineHeight:1.4, marginBottom:4 }}>{n.texto}</div>
                         <div style={{ fontSize:11, color:'var(--ts)' }}>{formatDate(n.created_at)}</div>
                       </div>
-                      {/* Dot não lida */}
-                      {!n.lida && (
-                        <div style={{ width:8, height:8, borderRadius:'50%', background:'var(--green)', flexShrink:0, marginTop:4 }}/>
-                      )}
+                      {!n.lida && <div style={{ width:8, height:8, borderRadius:'50%', background:'var(--green)', flexShrink:0, marginTop:4 }}/>}
                     </div>
                   ))}
                 </div>
+                {notifs.length > 5 && (
+                  <div style={{ padding:'10px 16px', borderTop:'1px solid #F3F4F6', textAlign:'center' }}>
+                    <button onClick={() => { setShowNotifs(false); onNavigate && onNavigate('notificacoes'); }}
+                      style={{ fontSize:12, color:'var(--gm)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', fontWeight:500 }}>
+                      Ver todas as notificações →
+                    </button>
+                  </div>
+                )}
               </div>
-              {notifs.length > 0 && (
-                <div style={{ padding:'10px 16px', borderTop:'1px solid #E5E7EB', textAlign:'center' }}>
-                  <button
-                    onClick={() => { setShowNotifs(false); onNavigate('notificacoes'); }}
-                    style={{ fontSize:12, color:'var(--gm)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', fontWeight:500 }}>
-                    Ver todas as notificações →
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+            )}
         </div>
         {/* Avatar */}
           <div ref={userRef} style={{ position:'relative' }}>
