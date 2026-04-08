@@ -48,7 +48,7 @@ export type DashSection =
   'tracker'|'diario'|'historico'|'consistencia'|'analise'|
   'coach'|'ajuste'|'detector'|
   'simulador'|'rotina'|
-  'estoque'|'exportacao'|'planos'|'conta';
+  'estoque'|'exportacao'|'planos'|'conta'|'educacao'|'ajuda';
 
 const PLAN_LABEL: Record<string,string> = { free:'Conta gratuita', essencial:'Essencial', pro:'Pro ✦' };
 
@@ -229,7 +229,7 @@ export default function DashboardShell() {
     '/rotina':'rotina', '/calendario':'calendario', '/exportacao':'exportacao',
     '/configuracoes':'config', '/planos':'planos', '/perfil':'perfil',
     '/mapa':'mapa', '/medico':'medico', '/conta':'conta',
-    '/ia':'ia', '/calculadora':'calc', '/educacao':'educacao', '/ajuda':'ajuda',
+    '/ia':'ia', '/calculadora':'calc', '/educacao':'educacao', '/ajuda':'ajuda', '/educacao':'educacao', '/ajuda':'ajuda',
   };
 
   const nav      = (s: DashSection) => {
