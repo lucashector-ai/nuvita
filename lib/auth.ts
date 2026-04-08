@@ -57,7 +57,7 @@ export async function upsertUsuario(userId: string, email: string, nome?: string
 export async function salvarDiagnostico(userId: string, diagnostico: any) {
   // Lê o plano atual do banco antes de salvar — nunca deixa regredir
   const { data: atual } = await supabase
-    .from('usuarios').select('plano').eq('id', userId).maybeSingle();
+    .from('usuarios').select('plano, nome').eq('id', userId).maybeSingle();
   
   const planoAtual = atual?.plano || 'free';
   const novoPlano = diagnostico._activePlan || diagnostico.plano || planoAtual;
