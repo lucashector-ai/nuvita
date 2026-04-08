@@ -55,13 +55,26 @@ export async function upsertUsuario(userId: string, email: string, nome?: string
 
 // Salva diagnóstico no banco
 export async function salvarDiagnostico(userId: string, diagnostico: any) {
+  // Lê o plano atual do banco antes de salvar — nunca deixa regredir
+  const { data: atual } = await supabase
+    .from('usuarios').select('plano').eq('id', userId).maybeSingle();
+  
+  const planoAtual = atual?.plano || 'free';
+  const novoPlano = diagnostico._activePlan || diagnostico.plano || planoAtual;
+  
+  // Hierarquia: pro > essencial > free
+  const RANK: Record<string,number> = { free: 0, essencial: 1, pro: 2 };
+  const planoFinal = (RANK[novoPlano] || 0) >= (RANK[planoAtual] || 0) 
+    ? novoPlano 
+    : planoAtual;
+
   const { error } = await supabase
     .from('usuarios')
     .upsert({
       id: userId,
-      diagnostico,
+      diagnostico: { ...diagnostico, plano: planoFinal, _activePlan: planoFinal },
       nome: diagnostico.nome || null,
-      plano: diagnostico._activePlan || diagnostico.plano || 'free',
+      plano: planoFinal,
     }, { onConflict: 'id' })
   if (error) throw error
 }

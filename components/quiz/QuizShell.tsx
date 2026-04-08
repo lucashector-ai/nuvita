@@ -72,19 +72,23 @@ export default function QuizShell() {
       // Merge: começa com dados do banco, aplica só o que foi efetivamente alterado
       const merged: Record<string,any> = { ...diagAtual };
       for (const [k, v] of Object.entries(answers as Record<string,any>)) {
-        // Só sobrescreve se o valor é válido E diferente do banco
-        if (v !== undefined && v !== null && v !== '') {
-          merged[k] = v;
-        }
+        // Só sobrescreve se o valor é válido (não vazio, não null)
+        const ehValido = v !== undefined && v !== null && v !== '' && 
+          !(Array.isArray(v) && v.length === 0);
+        if (ehValido) merged[k] = v;
       }
-      // Nunca apaga campos de identidade
-      if (!merged.nome) merged.nome = diagAtual.nome || usuarioAtual?.nome || '';
-      if (!merged.sexo) merged.sexo = diagAtual.sexo || '';
-      if (!merged.email) merged.email = diagAtual.email || session.user.email || '';
-      // Preserva todos campos _ do banco
+      // NUNCA apaga esses campos — usa banco como fallback absoluto
+      merged.nome  = merged.nome  || diagAtual.nome  || usuarioAtual?.nome || '';
+      merged.sexo  = merged.sexo  || diagAtual.sexo  || '';
+      merged.email = merged.email || diagAtual.email || session.user.email || '';
+      // Preserva TODOS campos _ do banco (plano, protocoloIA, aceitosRevisao, etc)
       for (const k of Object.keys(diagAtual)) {
         if (k.startsWith('_')) merged[k] = diagAtual[k];
       }
+      // Preserva plano atual — nunca deixa voltar para free
+      const planoAtual = usuarioAtual?.plano || diagAtual._activePlan || diagAtual.plano || 'free';
+      merged._activePlan = planoAtual;
+      merged.plano = planoAtual;
 
       await salvarDiagnostico(session.user.id, merged);
       saveSession(merged);
