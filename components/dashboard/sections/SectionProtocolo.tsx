@@ -1,6 +1,6 @@
-import React from 'react';
 // @ts-nocheck
 'use client';
+import React from 'react';
 // CSS animation injected at runtime
 if (typeof document !== 'undefined' && !document.getElementById('nv-fade')) {
   const s = document.createElement('style');
