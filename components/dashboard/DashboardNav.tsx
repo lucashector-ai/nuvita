@@ -4,89 +4,56 @@ import { useState, useRef, useEffect } from 'react';
 import type { DashSection } from './DashboardShell';
 import { supabase } from '@/lib/supabase';
 
-export default function DashboardNav({ section='inicio', planLabel, nome, planId, onMenuOpen, onNavigate, onLogout, onOpenPerfil, onOpenConfig, userId, answers, onOpenPlanos }) {
+export default function DashboardNav({
+  section='inicio', planLabel, nome, planId, onMenuOpen,
+  onNavigate, onLogout, onOpenPerfil, onOpenConfig, userId, answers, onOpenPlanos
+}) {
   const isHome = section === 'inicio';
-  const [notifs, setNotifs]           = useState([]);
-  const [showNotifs, setShowNotifs]   = useState(false);
+  const [notifs, setNotifs]         = useState([]);
+  const [showNotifs, setShowNotifs] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const notifsRef = useRef(null);
   const userRef   = useRef(null);
   const unread    = notifs.filter(n => !n.lida).length;
   const initial   = nome && nome !== '—' ? nome.charAt(0).toUpperCase() : '?';
 
-  // Carrega notificações do banco
   const carregarNotifs = async () => {
     if (!userId) return;
-    const { data } = await supabase
-      .from('notificacoes')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(20);
+    const { data } = await supabase.from('notificacoes')
+      .select('*').eq('user_id', userId)
+      .order('created_at', { ascending: false }).limit(20);
     if (data) setNotifs(data);
   };
 
-  // Cria notificações automáticas se não existirem hoje
   const gerarNotifsDiarias = async () => {
     if (!userId) return;
     const hoje = new Date().toISOString().split('T')[0];
-    
-    // Verifica adesão de hoje
-    const { data: adesao } = await supabase
-      .from('adesao_diaria')
-      .select('id,completo')
-      .eq('user_id', userId)
-      .eq('data', hoje)
-      .maybeSingle();
-
+    const { data: adesao } = await supabase.from('adesao_diaria')
+      .select('id,completo').eq('user_id', userId).eq('data', hoje).maybeSingle();
     if (!adesao?.completo) {
-      // Verifica se já existe esta notif hoje
-      const { data: existe } = await supabase
-        .from('notificacoes')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('titulo', 'Protocolo de hoje')
-        .gte('created_at', hoje + 'T00:00:00')
-        .maybeSingle();
-
+      const { data: existe } = await supabase.from('notificacoes').select('id')
+        .eq('user_id', userId).eq('titulo', 'Protocolo de hoje')
+        .gte('created_at', hoje + 'T00:00:00').maybeSingle();
       if (!existe) {
         await supabase.from('notificacoes').insert({
-          user_id: userId,
-          icon: '💉',
-          titulo: 'Protocolo de hoje',
-          texto: 'Você ainda não registrou as aplicações de hoje.',
-          action: 'diario',
+          user_id: userId, icon: '💉', titulo: 'Protocolo de hoje',
+          texto: 'Você ainda não registrou as aplicações de hoje.', action: 'diario',
         });
       }
     }
-
-    // Boas-vindas — uma vez por usuário
-    const { data: bv } = await supabase
-      .from('notificacoes')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('titulo', 'Bem-vindo à Nuvita!')
-      .maybeSingle();
-
+    const { data: bv } = await supabase.from('notificacoes').select('id')
+      .eq('user_id', userId).eq('titulo', 'Bem-vindo à Nuvita!').maybeSingle();
     if (!bv) {
       await supabase.from('notificacoes').insert({
-        user_id: userId,
-        icon: '🎉',
-        titulo: 'Bem-vindo à Nuvita!',
-        texto: 'Seu protocolo personalizado está pronto. Comece hoje!',
-        action: 'inicio',
+        user_id: userId, icon: '🎉', titulo: 'Bem-vindo à Nuvita!',
+        texto: 'Seu protocolo personalizado está pronto. Comece hoje!', action: 'inicio',
       });
     }
-
     await carregarNotifs();
   };
 
-  useEffect(() => {
-    if (!userId) return;
-    gerarNotifsDiarias();
-  }, [userId, section]);
+  useEffect(() => { if (!userId) return; gerarNotifsDiarias(); }, [userId, section]);
 
-  // Fecha ao clicar fora
   useEffect(() => {
     const handler = (e) => {
       if (notifsRef.current && !notifsRef.current.contains(e.target)) setShowNotifs(false);
@@ -96,17 +63,12 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Marca todas como lidas
   const marcarTodasLidas = async () => {
-    await supabase
-      .from('notificacoes')
-      .update({ lida: true })
-      .eq('user_id', userId)
-      .eq('lida', false);
+    await supabase.from('notificacoes').update({ lida: true })
+      .eq('user_id', userId).eq('lida', false);
     setNotifs(p => p.map(n => ({ ...n, lida: true })));
   };
 
-  // Clica em uma notificação
   const handleNotifClick = async (n) => {
     await supabase.from('notificacoes').update({ lida: true }).eq('id', n.id);
     setNotifs(p => p.map(x => x.id === n.id ? { ...x, lida: true } : x));
@@ -114,7 +76,6 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
     setShowNotifs(false);
   };
 
-  // Formata data relativa
   const formatDate = (iso) => {
     const d = new Date(iso);
     const now = new Date();
@@ -143,10 +104,10 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
 
         {/* Direita */}
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+
           {/* Notificações */}
           <div ref={notifsRef} style={{ position:'relative' }}>
-            <button
-              onClick={() => { setShowNotifs(v => !v); if (!showNotifs) marcarTodasLidas(); }}
+            <button onClick={() => { setShowNotifs(v => !v); if (!showNotifs) marcarTodasLidas(); }}
               style={{ position:'relative', width:36, height:36, borderRadius:10, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>
               🔔
               {unread > 0 && (
@@ -158,6 +119,7 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
 
             {showNotifs && (
               <div style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:340, background:'#FFFFFF', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,.12)', zIndex:300, overflow:'hidden' }}>
+                {/* Header */}
                 <div style={{ padding:'12px 16px', borderBottom:'1px solid #E5E7EB', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div style={{ fontSize:13, fontWeight:600, color:'var(--tx)' }}>Notificações</div>
                   <div style={{ display:'flex', gap:8, alignItems:'center' }}>
@@ -169,6 +131,8 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
                     <button onClick={() => setShowNotifs(false)} style={{ fontSize:16, color:'var(--ts)', background:'none', border:'none', cursor:'pointer', lineHeight:1 }}>×</button>
                   </div>
                 </div>
+
+                {/* Lista — máximo 5 */}
                 <div style={{ maxHeight:360, overflowY:'auto' }}>
                   {notifs.length === 0 ? (
                     <div style={{ padding:'2rem', textAlign:'center', color:'var(--ts)', fontSize:13 }}>Nenhuma notificação</div>
@@ -177,7 +141,9 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
                       style={{ display:'flex', gap:12, padding:'12px 16px', cursor:'pointer', transition:'background .1s', background: n.lida ? 'transparent' : 'rgba(29,158,117,.04)', borderBottom:'1px solid #F3F4F6' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
                       onMouseLeave={e => e.currentTarget.style.background = n.lida ? 'transparent' : 'rgba(29,158,117,.04)'}>
-                      <div style={{ width:36, height:36, borderRadius:10, background:'#F3F4F6', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>{n.icon}</div>
+                      <div style={{ width:36, height:36, borderRadius:10, background:'#F3F4F6', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>
+                        {n.icon}
+                      </div>
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:13, fontWeight: n.lida ? 400 : 600, color:'var(--tx)', marginBottom:2 }}>{n.titulo}</div>
                         <div style={{ fontSize:12, color:'var(--ts)', lineHeight:1.4, marginBottom:4 }}>{n.texto}</div>
@@ -187,6 +153,8 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
                     </div>
                   ))}
                 </div>
+
+                {/* Ver todas */}
                 {notifs.length > 5 && (
                   <div style={{ padding:'10px 16px', borderTop:'1px solid #F3F4F6', textAlign:'center' }}>
                     <button onClick={() => { setShowNotifs(false); onNavigate && onNavigate('notificacoes'); }}
@@ -197,14 +165,14 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
                 )}
               </div>
             )}
-        </div>
-        {/* Avatar */}
+          </div>
+
+          {/* Avatar */}
           <div ref={userRef} style={{ position:'relative' }}>
             <div onClick={() => setShowUserMenu(v => !v)}
               style={{ width:32, height:32, borderRadius:'50%', background:'var(--dark)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:500, cursor:'pointer', userSelect:'none' }}>
               {initial}
             </div>
-
             {showUserMenu && (
               <div style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:200, background:'#FFFFFF', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,.12)', zIndex:300, overflow:'hidden' }}>
                 <div style={{ padding:'10px 14px', borderBottom:'1px solid #E5E7EB' }}>
@@ -232,17 +200,9 @@ export default function DashboardNav({ section='inicio', planLabel, nome, planId
                   </button>
                 </div>
               </div>
-              {notifs.length > 0 && (
-                <div style={{ padding:'10px 16px', borderTop:'1px solid #E5E7EB', textAlign:'center' }}>
-                  <button
-                    onClick={() => { setShowNotifs(false); onNavigate('notificacoes'); }}
-                    style={{ fontSize:12, color:'var(--gm)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', fontWeight:500 }}>
-                    Ver todas as notificações →
-                  </button>
-                </div>
-              )}
             )}
           </div>
+
         </div>
       </div>
     </nav>
