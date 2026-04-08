@@ -20,59 +20,43 @@ const Icon = ({ path, size = 16 }: { path: string; size?: number }) => (
 );
 
 const SECTIONS = [
-  {
-    label: null,
-    items: [
-      { id:'inicio',      icon:'M2 6.5L8 2l6 4.5V13a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z', label:'Início' },
-      { id:'protocolo',   icon:'M2 4h12M2 7h8M2 10h5', label:'Protocolo' },
-    ]
-  },
-  {
-    label: 'Progresso',
-    items: [
-      { id:'diario',      icon:'M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h6M5 9h4', label:'Diário' },
-      { id:'consistencia',icon:'M2 10l3-3 3 3 4-5 2 2', label:'Consistência' },
-      { id:'analise',     icon:'M2 12h2v-3H2v3zM6 12h2V7H6v5zM10 12h2V4h-2v8zM1 13h14', label:'Análise' },
-      { id:'historico',   icon:'M8 1v6l3 3M8 1a7 7 0 100 14A7 7 0 008 1', label:'Histórico' },
-      { id:'calendario',  icon:'M1 5h14v9a1 1 0 01-1 1H2a1 1 0 01-1-1V5zM1 5V4a1 1 0 011-1h12a1 1 0 011 1v1M5 3V1M11 3V1', label:'Calendário' },
-    ]
-  },
-  {
-    label: 'Ferramentas',
-    items: [
-      { id:'coach',       icon:'M8 2a3 3 0 100 6 3 3 0 000-6zM2.5 14a5.5 5.5 0 0111 0', label:'IA' },
-      { id:'ajuste',      icon:'M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M10.4 10.4l1.4 1.4M3.2 12.8l1.4-1.4M10.4 5.6l1.4-1.4M8 5a3 3 0 100 6', label:'Ajuste Auto' },
-      { id:'detector',    icon:'M8 2L2 14h12L8 2zM8 7v3M8 11.5v.5', label:'Detector' },
-      { id:'simulador',   icon:'M8 1a7 7 0 100 14A7 7 0 008 1zM8 5v4l2 2', label:'Simulador' },
-    ]
-  },
-  {
-    label: 'Gestão',
-    items: [
-      { id:'rotina',      icon:'M3 5h10M3 8h7M3 11h4M1 2h14a1 1 0 011 1v11a1 1 0 01-1 1H1a1 1 0 01-1-1V3a1 1 0 011-1', label:'Rotina' },
-      { id:'estoque',     icon:'M3 2h10l2 3v9a1 1 0 01-1 1H2a1 1 0 01-1-1V5L3 2zM2 5h12M8 8v5M6 10h4', label:'Estoque' },
-      { id:'exportacao',  icon:'M8 2v9M5 8l3 3 3-3M2 13h12', label:'Exportar' },
-    ]
-  },
-  {
-    label: 'Biblioteca',
-    items: [
-      { id:'lib',         icon:'M3 2h10a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM6 2v13M6 7h6', label:'Biblioteca' },
-      { id:'calc',        icon:'M3 2h10a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h2M9 6h2M5 9h2M9 9h2M5 12h2M9 12h2', label:'Calculadora' },
-      { id:'mapa',        icon:'M8 2C5.2 2 3 4.2 3 7c0 4 5 9 5 9s5-5 5-9c0-2.8-2.2-5-5-5zm0 6.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z', label:'Mapa' },
-    ]
-  },
-  {
-    label: 'Conta',
-    items: [
-      { id:'consultas', icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', label:'Consultas', accentBg:'#E0F2FE', accentColor:'#0369A1' },
-    { id:'medico',      icon:'M8 2a3 3 0 100 6A3 3 0 008 2zM2.5 14a5.5 5.5 0 0111 0M8 10v4M6 12h4', label:'Médico', proOnly: true },
-      { id:'perfil',      icon:'M8 2a3 3 0 100 6A3 3 0 008 2zM2.5 14a5.5 5.5 0 0111 0', label:'Perfil' },
-      { id:'planos',      icon:'M1 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1V4zM1 7h14', label:'Planos' },
-      { id:'conta',       icon:'M8 1a7 7 0 100 14A7 7 0 008 1zM5 8h6M8 5v6', label:'Conta' },
-      { id:'config',      icon:'M8 5a3 3 0 100 6 3 3 0 000-6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.2 3.2l1 1M11.8 11.8l1 1M3.2 12.8l1-1M11.8 4.2l1-1', label:'Config' },
-    ]
-  },
+  { label: null, items: [
+    { id:'inicio',    icon:'M2 6.5L8 2l6 4.5V13a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z', label:'Início' },
+    { id:'protocolo', icon:'M2 4h12M2 7h8M2 10h5', label:'Protocolo' },
+    { id:'ia',        icon:'M8 2a3 3 0 100 6 3 3 0 000-6zM2.5 14a5.5 5.5 0 0111 0', label:'IA' },
+  ] },
+  { label: 'Progresso', items: [
+    { id:'diario',       icon:'M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h6M5 9h4', label:'Diário' },
+    { id:'consistencia', icon:'M2 10l3-3 3 3 4-5 2 2', label:'Consistência' },
+    { id:'analise',      icon:'M2 12h2v-3H2v3zM6 12h2V7H6v5zM10 12h2V4h-2v8zM1 13h14', label:'Análise' },
+    { id:'historico',    icon:'M8 1v6l3 3M8 1a7 7 0 100 14A7 7 0 008 1', label:'Histórico' },
+    { id:'calendario',   icon:'M1 5h14v9a1 1 0 01-1 1H2a1 1 0 01-1-1V5zM1 5V4a1 1 0 011-1h12a1 1 0 011 1v1M5 3V1M11 3V1', label:'Calendário' },
+  ] },
+  { label: 'Ferramentas IA', items: [
+    { id:'coach',     icon:'M2 2h12a1 1 0 011 1v7a1 1 0 01-1 1H8l-3 3V11H3a1 1 0 01-1-1V3a1 1 0 011-1', label:'Coach IA' },
+    { id:'ajuste',    icon:'M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M10.4 10.4l1.4 1.4M3.2 12.8l1.4-1.4M10.4 5.6l1.4-1.4M8 5a3 3 0 100 6', label:'Ajuste Auto' },
+    { id:'detector',  icon:'M8 2L2 14h12L8 2zM8 7v3M8 11.5v.5', label:'Detector' },
+    { id:'simulador', icon:'M8 1a7 7 0 100 14A7 7 0 008 1zM8 5v4l2 2', label:'Simulador' },
+  ] },
+  { label: 'Gestão', items: [
+    { id:'rotina',     icon:'M3 5h10M3 8h7M3 11h4M1 2h14a1 1 0 011 1v11a1 1 0 01-1 1H1a1 1 0 01-1-1V3a1 1 0 011-1', label:'Rotina' },
+    { id:'estoque',    icon:'M3 2h10l2 3v9a1 1 0 01-1 1H2a1 1 0 01-1-1V5L3 2zM2 5h12M8 8v5M6 10h4', label:'Estoque' },
+    { id:'exportacao', icon:'M8 2v9M5 8l3 3 3-3M2 13h12', label:'Exportar' },
+  ] },
+  { label: 'Educação', items: [
+    { id:'educacao', icon:'M2 2h12a1 1 0 011 1v10a1 1 0 01-1 1H2a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h6M5 9h4M5 12h2', label:'Educação' },
+    { id:'lib',      icon:'M3 2h10a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM6 2v13M6 7h6', label:'Biblioteca' },
+    { id:'calc',     icon:'M3 2h10a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h2M9 6h2M5 9h2M9 9h2M5 12h2M9 12h2', label:'Calculadora' },
+    { id:'mapa',     icon:'M8 2C5.2 2 3 4.2 3 7c0 4 5 9 5 9s5-5 5-9c0-2.8-2.2-5-5-5zm0 6.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z', label:'Mapa' },
+  ] },
+  { label: 'Médico', items: [
+    { id:'medico',   icon:'M8 2a3 3 0 100 6A3 3 0 008 2zM2.5 14a5.5 5.5 0 0111 0M8 10v4M6 12h4', label:'Médico Parceiro', proOnly:true },
+    { id:'consultas',icon:'M1 3h14a1 1 0 011 1v8a1 1 0 01-1 1H1a1 1 0 01-1-1V4a1 1 0 011-1zM5 7h6M5 10h3', label:'Consultas' },
+  ] },
+  { label: 'Conta', items: [
+    { id:'planos', icon:'M1 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1V4zM1 7h14', label:'Planos' },
+    { id:'config', icon:'M8 5a3 3 0 100 6 3 3 0 000-6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.2 3.2l1 1M11.8 11.8l1 1M3.2 12.8l1-1M11.8 4.2l1-1', label:'Configurações' },
+  ] },
 ];
 
 // Cores por categoria — estilo da referência

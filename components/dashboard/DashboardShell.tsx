@@ -200,7 +200,7 @@ export default function DashboardShell() {
     consistencia:'/consistencia', coach:'/coach', ajuste:'/ajuste',
     simulador:'/simulador', lib:'/biblioteca', estoque:'/estoque',
     rotina:'/rotina', calendario:'/calendario', exportacao:'/exportacao',
-    config:'/configuracoes', planos:'/planos', perfil:'/perfil',
+    config:'/configuracoes', planos:'/planos', perfil:'/perfil', educacao:'/educacao',
     mapa:'/mapa', medico:'/medico', conta:'/conta',
     ia:'/ia', calc:'/calculadora',
   };
