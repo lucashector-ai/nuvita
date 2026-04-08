@@ -152,8 +152,25 @@ export default function DashboardShell() {
 
 
   if (!ready) return (
-    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ fontSize:13, color:'var(--ts)' }}>Carregando...</div>
+    <div style={{ display:'flex', minHeight:'100vh', background:'#F7F7F7' }}>
+      {/* Sidebar skeleton */}
+      <div style={{ width:'var(--sb-w)', background:'#F7F7F7', borderRight:'1px solid #E5E7EB', flexShrink:0 }}/>
+      {/* Content skeleton */}
+      <div style={{ flex:1, padding:'20px 24px', marginLeft:'var(--sb-w)' }}>
+        <div style={{ maxWidth:900, margin:'0 auto' }}>
+          <style>{`@keyframes skeleton-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }`}</style>
+          {/* Nav skeleton */}
+          <div style={{ height:56, marginBottom:24, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:8 }}>
+            <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%)', backgroundSize:'200% 100%', animation:'skeleton-shimmer 1.5s infinite' }}/>
+            <div style={{ width:32, height:32, borderRadius:'50%', background:'linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%)', backgroundSize:'200% 100%', animation:'skeleton-shimmer 1.5s infinite' }}/>
+          </div>
+          {[['60%', 22], ['40%', 13], ['100%', 80], ['100%', 120]].map(([w, h], i) => (
+            <div key={i} style={{ background:'white', borderRadius:14, padding:'1.5rem', marginBottom:'1rem', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
+              <div style={{ width:w, height:h, borderRadius:8, background:'linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%)', backgroundSize:'200% 100%', animation:'skeleton-shimmer 1.5s infinite' }}/>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 

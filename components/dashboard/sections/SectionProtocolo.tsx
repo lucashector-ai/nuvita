@@ -1,3 +1,4 @@
+import React from 'react';
 // @ts-nocheck
 'use client';
 // CSS animation injected at runtime
@@ -32,7 +33,28 @@ const TURNO_ICON = { 'Manhã':'🌅', 'Tarde':'☀️', 'Noite':'🌙', 'Qualque
 const TURNO_COLOR = { 'Manhã':'#EF9F27', 'Tarde':'#1D9E75', 'Noite':'#7F77DD', 'Qualquer horário':'#888780' };
 const TURNO_BG = { 'Manhã':'#FAEEDA', 'Tarde':'#E1F5EE', 'Noite':'#EEEDFE', 'Qualquer horário':'var(--bg2)' };
 
-export default function SectionProtocolo({ answers, items, peso, objs, dur, nivel, plan }: Props) {
+export default function SectionProtocolo({ answers, items, peso, objs, dur, nivel, plan, userId }: Props) {
+  const [compartilhando, setCompartilhando] = React.useState(false);
+  const [linkCopiado, setLinkCopiado] = React.useState(false);
+
+  const compartilhar = async () => {
+    setCompartilhando(true);
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      const { data: { user } } = await supabase.auth.getUser();
+      const res = await fetch('/api/compartilhar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        await navigator.clipboard.writeText(data.url);
+        setLinkCopiado(true);
+        setTimeout(() => setLinkCopiado(false), 3000);
+      }
+    } catch(e) {} finally { setCompartilhando(false); }
+  };
   const isFree = !plan || plan === 'free';
   const [modo,     setModo]     = useState<'timeline'|'lista'|'guia'>('timeline');
   const [expanded, setExpanded] = useState(new Set<string>());
