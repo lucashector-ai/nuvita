@@ -72,45 +72,33 @@ export default function QuizShell() {
       // MERGE INTELIGENTE: banco é a fonte da verdade
       // Só sobrescreve campos que foram EXPLICITAMENTE alterados nesta sessão
       // Campos sensíveis (nome, sexo, email, plano) nunca são apagados
-      const CAMPOS_IDENTIDADE = ['nome', 'sexo', 'email', 'q2'];
-      const CAMPOS_BLOQUEADOS = ['_activePlan', 'plano', '_protocoloIA', '_aceitosRevisao', '_removidos', '_protocoloAtivo', '_dataInicioProtocolo'];
+      // Campos que NUNCA podem ser sobrescritos pelo quiz
+      const CAMPOS_BLOQUEADOS = new Set(['_activePlan', 'plano', '_protocoloIA', '_aceitosRevisao', '_removidos', '_protocoloAtivo', '_dataInicioProtocolo', 'nome', 'sexo', 'email', 'q2']);
       
+      // Começa com todos os dados do banco
       const merged: Record<string,any> = { ...diagAtual };
       
+      // Só aplica respostas do quiz que NÃO são campos bloqueados
       for (const [k, v] of Object.entries(answers as Record<string,any>)) {
-        // Nunca sobrescreve campos bloqueados
-        if (CAMPOS_BLOQUEADOS.includes(k)) continue;
-        // Campos de identidade: NUNCA sobrescreve com valor vazio
-        if (CAMPOS_IDENTIDADE.includes(k)) {
-          const temValorNovo = v !== undefined && v !== null && typeof v === 'string' && v.trim() !== '';
-          if (temValorNovo) merged[k] = v;
-          // Se vazio, mantém o valor do banco (não faz nada)
-          continue;
-        }
-        // Outros campos: sobrescreve se tem valor válido
+        if (CAMPOS_BLOQUEADOS.has(k)) continue;
         if (v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0)) {
           merged[k] = v;
         }
       }
       
-      // GARANTIAS absolutas — nome/sexo/email NUNCA são apagados
-      // Prioridade: banco > answers > auth email
-      // Não usa answers.nome se for vazio/undefined (usuário pulou a tela)
-      const nomeRespondido = (answers as any).nome && (answers as any).nome.trim() !== '';
-      const sexoRespondido = (answers as any).sexo && (answers as any).sexo.trim() !== '';
-      merged.nome  = nomeRespondido ? (answers as any).nome : (diagAtual.nome || usuarioAtual?.nome || '');
-      merged.sexo  = sexoRespondido ? (answers as any).sexo : (diagAtual.sexo || '');
-      merged.email = merged.email || diagAtual.email || session.user.email || '';
+      // Identidade: SEMPRE do banco, nunca do quiz (quiz pula essas telas)
+      merged.nome  = diagAtual.nome  || usuarioAtual?.nome  || '';
+      merged.sexo  = diagAtual.sexo  || '';
+      merged.email = diagAtual.email || session.user.email  || '';
       
       // Plano nunca regride
-      const RANK: Record<string,number> = { free:0, essencial:1, pro:2 };
       const planoAtual = usuarioAtual?.plano || diagAtual._activePlan || diagAtual.plano || 'free';
       merged._activePlan = planoAtual;
       merged.plano = planoAtual;
       
       // Preserva todos campos _ do banco
       for (const k of Object.keys(diagAtual)) {
-        if (k.startsWith('_') && !merged[k]) merged[k] = diagAtual[k];
+        if (k.startsWith('_')) merged[k] = diagAtual[k];
       }
 
       await salvarDiagnostico(session.user.id, merged);
