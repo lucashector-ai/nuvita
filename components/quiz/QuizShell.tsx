@@ -35,27 +35,30 @@ export default function QuizShell() {
   const [dadosBanco,    setDadosBanco]    = useState<any>(null); // dados originais do banco
   const [showRevisaoModal, setShowRevisaoModal] = useState(false); // modal "deseja revisar?"
 
+  const { cur, answers, setAnswer, next, prev, reset, progress, goTo } = useQuiz(initialAnswers);
+
   useEffect(() => {
     getSession().then(async session => {
       if (!session) {
         clearSession();
-        setInitialAnswers({});
         setHasSession(false);
       } else {
         const { carregarDiagnostico } = await import('@/lib/auth');
         const perfil = await carregarDiagnostico(session.user.id);
         const saved = loadQuizPartial();
         const base = perfil?.diagnostico || {};
-        // Pré-preenche TODAS as respostas do banco — usuário só muda o que quiser
-        setInitialAnswers({ ...base, ...(saved ?? {}) });
+        const merged = { ...base, ...(saved ?? {}) };
         setDadosBanco(base);
         setHasSession(!!(perfil?.diagnostico?.q3 || perfil?.diagnostico?.nome));
+        // CRÍTICO: chama setAnswer para popular o useQuiz com dados do banco
+        // isso garante que answers.nome existe mesmo quando usuário pula telas
+        if (Object.keys(merged).length > 0) {
+          setAnswer(merged);
+        }
       }
       setSessionChecked(true);
     });
   }, []);
-
-  const { cur, answers, setAnswer, next, prev, reset, progress, goTo } = useQuiz(initialAnswers);
 
   if (!sessionChecked) return null;
 
