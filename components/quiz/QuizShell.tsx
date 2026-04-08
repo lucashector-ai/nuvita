@@ -80,15 +80,11 @@ export default function QuizShell() {
       for (const [k, v] of Object.entries(answers as Record<string,any>)) {
         // Nunca sobrescreve campos bloqueados
         if (CAMPOS_BLOQUEADOS.includes(k)) continue;
-        // Para campos de identidade: só atualiza se o novo valor é mais completo
+        // Campos de identidade: NUNCA sobrescreve com valor vazio
         if (CAMPOS_IDENTIDADE.includes(k)) {
-          const valorAtual = diagAtual[k];
-          const temValorNovo = v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0);
-          const temValorAtual = valorAtual !== undefined && valorAtual !== null && valorAtual !== '';
-          // Só substitui se tem valor novo E (não tem valor atual OU o novo é diferente e foi digitado)
-          if (temValorNovo && (!temValorAtual || v !== valorAtual)) {
-            merged[k] = v;
-          }
+          const temValorNovo = v !== undefined && v !== null && typeof v === 'string' && v.trim() !== '';
+          if (temValorNovo) merged[k] = v;
+          // Se vazio, mantém o valor do banco (não faz nada)
           continue;
         }
         // Outros campos: sobrescreve se tem valor válido
@@ -97,9 +93,13 @@ export default function QuizShell() {
         }
       }
       
-      // GARANTIAS absolutas — nunca ficam vazios
-      merged.nome  = merged.nome  || diagAtual.nome  || usuarioAtual?.nome || '';
-      merged.sexo  = merged.sexo  || diagAtual.sexo  || '';
+      // GARANTIAS absolutas — nome/sexo/email NUNCA são apagados
+      // Prioridade: banco > answers > auth email
+      // Não usa answers.nome se for vazio/undefined (usuário pulou a tela)
+      const nomeRespondido = (answers as any).nome && (answers as any).nome.trim() !== '';
+      const sexoRespondido = (answers as any).sexo && (answers as any).sexo.trim() !== '';
+      merged.nome  = nomeRespondido ? (answers as any).nome : (diagAtual.nome || usuarioAtual?.nome || '');
+      merged.sexo  = sexoRespondido ? (answers as any).sexo : (diagAtual.sexo || '');
       merged.email = merged.email || diagAtual.email || session.user.email || '';
       
       // Plano nunca regride
