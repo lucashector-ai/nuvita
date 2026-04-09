@@ -71,6 +71,24 @@ export default function DashboardShell() {
     };
     return URL_MAP[window.location.pathname] || 'inicio';
   });
+    const [section, setSection] = useState<DashSection>('inicio');
+
+  // Lê pathname na montagem para setar section correta
+  useEffect(() => {
+    const MAP: Record<string,DashSection> = {
+      '/dashboard':'inicio', '/protocolo':'protocolo', '/diario':'diario',
+      '/analise':'analise', '/historico':'historico', '/detector':'detector',
+      '/consistencia':'consistencia', '/coach':'coach', '/ajuste':'ajuste',
+      '/simulador':'simulador', '/biblioteca':'lib', '/estoque':'estoque',
+      '/rotina':'rotina', '/calendario':'calendario', '/exportacao':'exportacao',
+      '/configuracoes':'config', '/planos':'planos', '/perfil':'perfil',
+      '/mapa':'mapa', '/medico':'medico', '/conta':'conta',
+      '/ia':'ia', '/calculadora':'calc', '/educacao':'educacao', '/ajuda':'ajuda',
+    };
+    const s = MAP[window.location.pathname];
+    if (s) setSection(s);
+  }, []);
+
   const [sidebarOpen,     setSidebarOpen]     = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [protoAtivo,      setProtoAtivo]      = useState(false);
