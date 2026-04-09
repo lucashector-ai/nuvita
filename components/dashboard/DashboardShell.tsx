@@ -39,6 +39,8 @@ import MobileNav           from './MobileNav';
 import BoasVindasModal     from './modals/BoasVindasModal';
 import SectionPlanos       from './sections/SectionPlanos';
 import SectionConta        from './sections/SectionConta';
+import SectionEducacao     from './sections/SectionEducacao';
+import SectionAjuda        from './sections/SectionAjuda';
 import { useNotificacoes } from '@/lib/useNotificacoes';
 import PlanLock          from '@/components/ui/PlanLock';
 
@@ -46,7 +48,7 @@ export type DashSection =
   'inicio'|'protocolo'|'ia'|'calc'|'lib'|'config'|
   'medico'|'consultas'|'calendario'|'perfil'|
   'tracker'|'diario'|'historico'|'consistencia'|'analise'|
-  'coach'|'ajuste'|'detector'|
+  'coach'|'ajuste'|'educacao'|'ajuda'|'detector'|
   'simulador'|'rotina'|
   'estoque'|'exportacao'|'planos'|'conta'|'educacao'|'ajuda';
 
@@ -236,7 +238,7 @@ export default function DashboardShell() {
     rotina:'/rotina', calendario:'/calendario', exportacao:'/exportacao',
     config:'/configuracoes', planos:'/planos', perfil:'/perfil', educacao:'/educacao', ajuda:'/ajuda',
     mapa:'/mapa', medico:'/medico', conta:'/conta',
-    ia:'/ia', calc:'/calculadora',
+    ia:'/ia', calc:'/calculadora', educacao:'/educacao', ajuda:'/ajuda',
   };
   const URL_TO_SECTION: Record<string,DashSection> = {
     '/dashboard':'inicio', '/protocolo':'protocolo', '/diario':'diario',
@@ -310,6 +312,8 @@ export default function DashboardShell() {
           {section==='exportacao'   && <SectionExportacao answers={answers} items={itemsIAFiltrado || items} peso={peso} plan={plan}/>}
           {section==='planos'        && <SectionPlanos planoAtual={plan} userId={userId} onPlanChange={setPlanAtivo} onNavigate={nav}/>}
           {section==='conta'         && <SectionConta planoAtual={plan} userId={userId} answers={answers} onNavigate={nav}/>}
+          {section==='educacao' && <SectionEducacao answers={answers} onNavigate={nav}/>}
+          {section==='ajuda' && <SectionAjuda onNavigate={nav}/>}
         </div>
       </div>
       {showBoasVindas && (
