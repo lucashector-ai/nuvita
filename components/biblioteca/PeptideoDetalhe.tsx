@@ -14,7 +14,6 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [artigoModal, setArtigoModal] = useState<any>(null);
   const [aba, setAba] = useState<'visao'|'protocolo'|'pesquisa'|'sinergia'>('visao');
-  const [artigoAberto, setArtigoAberto] = useState<any>(null);
 
   useEffect(() => {
     supabase.from('peptideos').select('*').eq('slug', slug).single().then(({ data }) => {
@@ -100,50 +99,6 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--bg)' }}>
-      {/* Modal de artigo científico */}
-      {artigoAberto && (
-        <div onClick={() => setArtigoAberto(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.65)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:20, backdropFilter:'blur(4px)' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:'white', borderRadius:20, maxWidth:640, width:'100%', maxHeight:'85vh', overflow:'auto', boxShadow:'0 24px 64px rgba(0,0,0,.4)' }}>
-            <div style={{ padding:'1.5rem 1.5rem 0', position:'sticky', top:0, background:'white' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:'1rem' }}>
-                <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                  {(() => { const b = BADGES_TIPO[artigoAberto.tipo] || { label:'Estudo', cor:'#374151', bg:'#F3F4F6' }; return (
-                    <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:100, background:b.bg, color:b.cor }}>{b.label}</span>
-                  ); })()}
-                  <span style={{ fontSize:11, padding:'3px 10px', borderRadius:100, background:'#F3F4F6', color:'#6B7280' }}>
-                    {artigoAberto.journal} · {artigoAberto.ano}
-                  </span>
-                </div>
-                <button onClick={() => setArtigoAberto(null)} style={{ width:32, height:32, borderRadius:8, border:'none', background:'#F3F4F6', cursor:'pointer', fontSize:20, color:'#6B7280', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
-              </div>
-              <div style={{ height:1, background:'#F3F4F6' }}/>
-            </div>
-            <div style={{ padding:'1.25rem 1.5rem 1.5rem' }}>
-              <h3 style={{ fontSize:'1rem', fontWeight:700, color:'#111827', lineHeight:1.5, marginBottom:6, letterSpacing:'-.02em' }}>{artigoAberto.titulo}</h3>
-              <p style={{ fontSize:12, color:'#9CA3AF', marginBottom:'1.25rem' }}>{artigoAberto.autores}</p>
-              <div style={{ borderRadius:12, background:'#F9FAFB', border:'1px solid #F3F4F6', padding:'1.25rem', marginBottom:'1.25rem' }}>
-                <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'#9CA3AF', marginBottom:10 }}>🇧🇷 Resumo traduzido</div>
-                <p style={{ fontSize:14, color:'#374151', lineHeight:1.8, margin:0 }}>{artigoAberto.traducao}</p>
-              </div>
-              <div style={{ background:'#FEF3C7', borderRadius:8, padding:'10px 14px', marginBottom:'1.25rem', fontSize:12, color:'#92400E', lineHeight:1.6 }}>
-                ⚠️ <strong>Importante:</strong> Este resumo é traduzido e informativo. Para uso clínico, leia o artigo original completo e consulte um profissional de saúde.
-              </div>
-              <div style={{ display:'flex', gap:8 }}>
-                <a href={artigoAberto.url} target="_blank" rel="noopener noreferrer"
-                  style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 16px', borderRadius:10, background:'#111827', color:'white', fontSize:13, fontWeight:600, textDecoration:'none' }}>
-                  📄 Ver artigo original →
-                </a>
-                {artigoAberto.pmid && (
-                  <a href={'https://pubmed.ncbi.nlm.nih.gov/' + artigoAberto.pmid + '/'} target="_blank" rel="noopener noreferrer"
-                    style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 16px', borderRadius:10, border:'1.5px solid #E5E7EB', background:'white', color:'#374151', fontSize:13, fontWeight:500, textDecoration:'none' }}>
-                    🔬 PubMed
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Hero escuro */}
       <div style={{ background:'linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 60%, #16213e 100%)', padding:'0 0 0', position:'relative' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'2rem 2rem 0' }}>
@@ -370,15 +325,26 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
                     </div>
                   );
                 })()}
-                {/* Referências textuais legadas */}
+                {/* Referências textuais — cards clicáveis */}
                 {p.pesquisas?.length > 0 && (
                   <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                    {p.pesquisas.map((r: string, i: number) => (
-                      <div key={i} className="dc" style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
-                        <div style={{ width:40, height:40, borderRadius:10, background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 }}>🔗</div>
-                        <div style={{ flex:1 }}><div style={{ fontSize:13, color:'var(--tx)', lineHeight:1.75 }}>{r}</div></div>
-                      </div>
-                    ))}
+                    {p.pesquisas.map((r: string, i: number) => {
+                      const doiM = r.match(/10\.\d{4,}[\/\w.%:;()+\-]+/);
+                      const urlM = r.match(/https?:\/\/\S+/);
+                      const url = urlM ? urlM[0].replace(/[.,;)]+$/, '') : doiM ? 'https://doi.org/' + doiM[0] : null;
+                      const artObj = { titulo: r, autores: '', journal: '', ano: '', url, pmid: null, tipo: 'pesquisa_original', traducao: r };
+                      return (
+                        <button key={i} onClick={() => url && setArtigoModal(artObj)}
+                          className="dc"
+                          style={{ display:'flex', gap:14, alignItems:'flex-start', cursor: url ? 'pointer' : 'default', textAlign:'left', fontFamily:'inherit', width:'100%', opacity: url ? 1 : 0.8 }}>
+                          <div style={{ width:40, height:40, borderRadius:10, background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 }}>{url ? '📄' : '🔗'}</div>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:13, color:'var(--tx)', lineHeight:1.75 }}>{r}</div>
+                            {url && <div style={{ marginTop:6, fontSize:11, color:'#4ade80', fontWeight:600 }}>Clique para abrir artigo →</div>}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
                 {!p.pesquisas?.length && !p.estudos_links && (
