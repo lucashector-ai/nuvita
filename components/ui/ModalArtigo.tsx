@@ -1,5 +1,6 @@
 // @ts-nocheck
 'use client';
+import React from 'react';
 
 const BADGE_TIPO: Record<string, { label: string; cor: string; bg: string }> = {
   ensaio_clinico_fase3: { label: 'Fase III RCT', cor: '#166534', bg: '#DCFCE7' },

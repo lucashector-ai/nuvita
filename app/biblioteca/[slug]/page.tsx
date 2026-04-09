@@ -1,5 +1,6 @@
 // @ts-nocheck
 'use client';
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useParams, useRouter } from 'next/navigation';
