@@ -99,6 +99,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--bg)' }}>
+      {renderModal()}
       {/* Hero escuro */}
       <div style={{ background:'linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 60%, #16213e 100%)', padding:'0 0 0', position:'relative' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'2rem 2rem 0' }}>
