@@ -59,7 +59,7 @@ export default function SectionCalendario({ items, peso, protoAtivo }: any) {
       setPeps(items.map(norm));
       return;
     }
-    // Fallback: carrega do banco
+    // Fallback: carrega do banco (só usado se items não vier do DashboardShell)
     (async () => {
       try {
         const { data:{user} } = await supabase.auth.getUser();
