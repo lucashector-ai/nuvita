@@ -12,7 +12,6 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
   const router = useRouter();
   const [p, setP] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [artigoModal, setArtigoModal] = useState<any>(null);
   const [aba, setAba] = useState<'visao'|'protocolo'|'pesquisa'|'sinergia'>('visao');
 
   useEffect(() => {
@@ -57,13 +56,7 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
     extensao_trial:       { label: 'Extensão de Trial',   cor: '#166534', bg: '#DCFCE7' },
     meta_analise:         { label: 'Meta-análise',        cor: '#7C3AED', bg: '#EDE9FE' },
   };
-
-
-  // Modal artigo científico
-  const renderModal = () => {
-    if (!artigoModal) return null;
-    const BADGES: any = { ensaio_clinico_fase3:{label:'Fase III RCT',cor:'#166534',bg:'#DCFCE7'}, ensaio_clinico:{label:'Ensaio Clínico',cor:'#1E40AF',bg:'#DBEAFE'}, revisao_sistematica:{label:'Revisão Sistemática',cor:'#6B21A8',bg:'#F3E8FF'}, revisao:{label:'Revisão',cor:'#92400E',bg:'#FEF3C7'}, pesquisa_original:{label:'Pesquisa Original',cor:'#0E7490',bg:'#CFFAFE'}, extensao_trial:{label:'Extensão de Trial',cor:'#166534',bg:'#DCFCE7'} };
-    const b = BADGES[artigoModal.tipo] || {label:'Estudo',cor:'#374151',bg:'#F3F4F6'};
+const b = BADGES[artigoModal.tipo] || {label:'Estudo',cor:'#374151',bg:'#F3F4F6'};
     return (
       <div onClick={() => setArtigoModal(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.65)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:20, backdropFilter:'blur(4px)' }}>
         <div onClick={e => e.stopPropagation()} style={{ background:'white', borderRadius:20, maxWidth:640, width:'100%', maxHeight:'85vh', overflow:'auto', boxShadow:'0 24px 64px rgba(0,0,0,.4)' }}>
@@ -99,7 +92,6 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--bg)' }}>
-      {renderModal()}
       {/* Hero escuro */}
       <div style={{ background:'linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 60%, #16213e 100%)', padding:'0 0 0', position:'relative' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'2rem 2rem 0' }}>
@@ -303,9 +295,9 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
                       {links.map((est: any, i: number) => {
                         const b = BADGES[est.tipo] || {label:'Estudo',cor:'#374151',bg:'#F3F4F6'};
                         return (
-                          <button key={i} onClick={() => setArtigoModal(est)}
+                          <a key={i} href={est.url} target="_blank" rel="noopener noreferrer"
                             className="dc"
-                            style={{ display:'flex', gap:14, alignItems:'flex-start', cursor:'pointer', textAlign:'left', fontFamily:'inherit', width:'100%', transition:'border-color .15s' }}
+                            style={{ display:'flex', gap:14, alignItems:'flex-start', cursor:'pointer', textDecoration:'none', width:'100%', transition:'border-color .15s' }}
                             onMouseEnter={e => (e.currentTarget as any).style.borderColor='#0F6E56'}
                             onMouseLeave={e => (e.currentTarget as any).style.borderColor='var(--border)'}
                           >
@@ -318,9 +310,9 @@ export default function PeptideoDetalhe({ slug }: { slug: string }) {
                               <div style={{ fontSize:13, fontWeight:600, color:'var(--tx)', marginBottom:4, lineHeight:1.4 }}>{est.titulo}</div>
                               <div style={{ fontSize:12, color:'var(--ts)', marginBottom:6 }}>{est.autores}</div>
                               <div style={{ fontSize:12, color:'var(--tm)', lineHeight:1.6, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{est.traducao}</div>
-                              <div style={{ marginTop:8, fontSize:11, color:'#0F6E56', fontWeight:600 }}>Clique para ler o resumo traduzido →</div>
+                              <div style={{ marginTop:8, fontSize:11, color:'#0F6E56', fontWeight:600 }}>Abrir no PubMed →</div>
                             </div>
-                          </button>
+                          </a>
                         );
                       })}
                     </div>
