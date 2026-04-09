@@ -71,7 +71,6 @@ export default function DashboardShell() {
     };
     return URL_MAP[window.location.pathname] || 'inicio';
   });
-    const [section, setSection] = useState<DashSection>('inicio');
 
   // Lê pathname na montagem para setar section correta
   useEffect(() => {
