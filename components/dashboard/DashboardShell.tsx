@@ -67,7 +67,7 @@ export default function DashboardShell() {
       '/rotina':'rotina', '/calendario':'calendario', '/exportacao':'exportacao',
       '/configuracoes':'config', '/planos':'planos', '/perfil':'perfil',
       '/mapa':'mapa', '/medico':'medico', '/conta':'conta',
-      '/ia':'ia', '/calculadora':'calc',
+      '/ia':'ia', '/calculadora':'calc', '/educacao':'educacao', '/ajuda':'ajuda',
     };
     return URL_MAP[window.location.pathname] || 'inicio';
   });
