@@ -53,13 +53,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ text: '⚠️ IA não configurada' }, { status: 503 });
     }
 
-    // Auth obrigatória — protege custo da chave Anthropic contra abuso
+    // Auth opcional — usuário logado tem limite maior, anônimo tem limite menor
     const user = await getUserFromRequest(req);
-    if (!user) return unauthorized();
-
-    // Rate limit por usuário
     const ip = getClientIp(req);
-    const rl = rateLimit(`ia:${user.id}:${ip}`, 20, 60_000);
+
+    // Rate limit: logado = 20/min, anônimo = 3/min (protege custo da chave)
+    const rlKey = user ? `ia:${user.id}` : `ia:anon:${ip}`;
+    const rlLimit = user ? 20 : 3;
+    const rl = rateLimit(rlKey, rlLimit, 60_000);
     if (!rl.allowed) {
       return NextResponse.json(
         { text: '⚠️ Muitas requisições — aguarde um instante' },

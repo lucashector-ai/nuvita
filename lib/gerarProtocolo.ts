@@ -1,5 +1,5 @@
 import type { QuizAnswers } from '@/types'
-import { apiFetch } from './apiClient'
+// usa fetch direto pois usuário pode não estar logado ainda
 
 export interface PeptideoIA {
   nome: string
@@ -25,8 +25,9 @@ export interface ProtocoloIA {
 export async function gerarProtocoloComIA(answers: QuizAnswers): Promise<ProtocoloIA | null> {
   try {
     const contexto = montarContexto(answers)
-    const res = await apiFetch('/api/ia', {
+    const res = await fetch('/api/ia', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         system: `Você é um especialista clínico em peptídeos terapêuticos da Nuvita.
 
