@@ -101,6 +101,7 @@ export default function SectionDetector({ userId, answers }: any) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          context: 'Você está no Detector de Inconsistência. Analise os padrões do usuário e identifique falhas, sintomas fora do esperado ou comportamentos que possam comprometer o protocolo.',
           system: 'Você é o Detector IA da Nuvita. Analise as inconsistências e dê recomendações práticas e diretas em 2-3 frases. Foque no que o usuário deve fazer AGORA.',
           messages: [{ role: 'user', content: `Inconsistências detectadas: ${alertas.map(a=>a.titulo).join('; ')}. Adesão nos últimos 7 dias: ${ad.filter(a=>a.aplicado).length}/${ad.length} dias. Dê uma recomendação acionável.` }],
         }),

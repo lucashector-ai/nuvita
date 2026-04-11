@@ -19,6 +19,7 @@ export default function SectionAjuste({ answers, userId }: any) {
       const res = await fetch('/api/ia', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
+          context: 'Você está na seção de Ajuste Automático. O usuário quer reajustar seu protocolo com base na evolução e nos resultados percebidos até agora.',
           system:`Você é o Coach IA da Nuvita. Com base nos sintomas e motivo, sugira ajustes específicos no protocolo de peptídeos. Seja direto. Máximo 3 parágrafos.`,
           messages:[{role:'user', content:`Motivo: ${motivoForm}\nSintomas: ${sintomas.join(', ')}`}],
         }),
