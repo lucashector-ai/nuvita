@@ -121,6 +121,15 @@ export default function DashboardShell() {
       setUserId(session.user.id);
 
       const perfil = await carregarDiagnostico(session.user.id);
+
+      // Verifica se o usuário ainda existe no banco
+      // (pode ter sido deletado pelo admin)
+      if (!perfil && !sessionStorage.getItem('nv_quiz')) {
+        await signOut();
+        router.replace('/cadastro');
+        return;
+      }
+
       if (perfil?.diagnostico) {
         setAnswers({ ...perfil.diagnostico, _activePlan: perfil.plano });
         setPlanAtivo(perfil.plano ?? 'free');
