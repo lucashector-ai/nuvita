@@ -96,14 +96,17 @@ export default function RevisaoShell() {
         _protocoloAtivo: true,
         _dataInicioProtocolo: new Date().toISOString().split('T')[0],
       };
-      // Usa UPSERT para garantir que o registro existe
+      // Usa UPSERT para garantir que o registro existe.
+      // SEGURANÇA: NÃO escrever `plano` aqui — coluna controlada pelo webhook.
+      // Strip de plano/_activePlan do JSON do diagnóstico para não dar
+      // ao cliente a sensação de que pode auto-upgrade.
+      const { plano: _p, _activePlan: _ap, ...diagSeguro } = diagFinal as any;
       const { supabase } = await import('@/lib/supabase');
       await supabase.from('usuarios').upsert({
         id: session.user.id,
         email: session.user.email || updated.email || '',
         nome: updated.nome || '',
-        plano: updated._activePlan || updated.plano || 'free',
-        diagnostico: diagFinal,
+        diagnostico: diagSeguro,
       }, { onConflict: 'id' });
       // Mantém nv_quiz no sessionStorage para o DashboardShell
       sessionStorage.setItem('nv_quiz', JSON.stringify(diagFinal));

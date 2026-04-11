@@ -54,32 +54,32 @@ export async function upsertUsuario(userId: string, email: string, nome?: string
 }
 
 // Salva diagnóstico no banco
+//
+// SEGURANÇA: a coluna `plano` NUNCA é escrita aqui. O plano é
+// authoritativamente controlado pelo webhook do Stripe (server-side com
+// service_role). Qualquer tentativa de escrever `plano` pelo cliente é
+// adicionalmente bloqueada por trigger no Postgres (ver supabase_security_rls.sql).
+//
+// Os campos `plano`/`_activePlan` são REMOVIDOS do diagnóstico antes de salvar
+// para evitar que o cliente se auto-upgrade alterando o JSON.
 export async function salvarDiagnostico(userId: string, diagnostico: any) {
-  // Lê o plano atual do banco antes de salvar — nunca deixa regredir
+  // Lê o nome atual do banco antes de salvar (para não sobrescrever com vazio)
   const { data: atual } = await supabase
-    .from('usuarios').select('plano, nome').eq('id', userId).maybeSingle();
-  
-  const planoAtual = atual?.plano || 'free';
-  const novoPlano = diagnostico._activePlan || diagnostico.plano || planoAtual;
-  
-  // Hierarquia: pro > essencial > free
-  const RANK: Record<string,number> = { free: 0, essencial: 1, pro: 2 };
-  const planoFinal = (RANK[novoPlano] || 0) >= (RANK[planoAtual] || 0) 
-    ? novoPlano 
-    : planoAtual;
+    .from('usuarios').select('nome').eq('id', userId).maybeSingle();
 
-  // Busca nome atual do banco para nunca sobrescrever com vazio
   const nomeParaSalvar = (diagnostico.nome && diagnostico.nome.trim())
     ? diagnostico.nome.trim()
     : (atual?.nome || null);
+
+  // Strip de campos sensíveis vindos do cliente — nunca confiar no plano vindo do JSON
+  const { plano: _ignorePlano, _activePlan: _ignoreActive, ...diagnosticoSeguro } = diagnostico;
 
   const { error } = await supabase
     .from('usuarios')
     .upsert({
       id: userId,
-      diagnostico: { ...diagnostico, plano: planoFinal, _activePlan: planoFinal },
+      diagnostico: diagnosticoSeguro,
       nome: nomeParaSalvar,
-      plano: planoFinal,
     }, { onConflict: 'id' })
   if (error) throw error
 }
@@ -99,10 +99,8 @@ export async function carregarDiagnostico(userId: string) {
   return data
 }
 
-export async function trocarPlano(userId: string, novoPlano: string) {
-  const { error } = await supabase
-    .from('usuarios')
-    .update({ plano: novoPlano })
-    .eq('id', userId)
-  if (error) throw error
-}
+// REMOVIDO: trocarPlano() era inseguro — permitia ao próprio cliente
+// alterar a coluna `plano`. Qualquer mudança de plano agora passa por:
+//   1. Stripe Checkout via /api/pagamento (cria sessão)
+//   2. Webhook em /api/pagamento/webhook (atualiza com service_role)
+//   3. Painel admin via /api/admin (ação change_plan, autenticado)

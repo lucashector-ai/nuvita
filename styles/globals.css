@@ -161,9 +161,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 .imc-info { font-size: 13px; color: var(--tm); margin-top: -.75rem; margin-bottom: 1.5rem; }
 
 .scale-row { display: flex; gap: 7px; margin-bottom: 1.75rem; }
-.sc { flex: 1; aspect-ratio: 1; background: #FFFFFF;  border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; transition: all .13s; font-size: 1.1rem; font-weight: 500; color: var(--tm);  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);}
+.sc { flex: 1; aspect-ratio: 1; background: #FFFFFF; border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; transition: all .13s; font-size: 1.1rem; font-weight: 500; color: var(--tm); box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);}
 .sc:hover { border-color: var(--border2); }
-.sc.sel { border-color: var(--green); background: #F2FCF7; color: var(--tx); }
+.sc.sel { border: 1.5px solid var(--green); background: #F2FCF7; color: var(--tx); }
 .sc-l { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; color: var(--ts); }
 .sc.sel .sc-l { color: var(--gm); }
 
@@ -178,7 +178,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
 
 .pele-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.75rem; }
 @media(max-width:480px) { .pele-sub-grid { grid-template-columns: 1fr; } }
-.pele-sub-opt { padding: .875rem 1rem; background: #FFFFFF; border: 1.5px solid var(--border); border-radius: 11px; font-size: 13px; font-weight: 500; color: var(--tm); cursor: pointer; transition: all .13s; }
+.pele-sub-opt { padding: .875rem 1rem; background: #FFFFFF; border: 1px solid var(--border); border: 1.5px solid var(--border); border-radius: 11px; font-size: 13px; font-weight: 500; color: var(--tm); cursor: pointer; transition: all .13s; }
 .pele-sub-opt:hover { border-color: var(--border2); color: var(--tx); }
 .pele-sub-opt.sel { border-color: var(--green); background: #F2FCF7; color: var(--dark); }
 

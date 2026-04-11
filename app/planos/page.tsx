@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/apiClient";
 
 const PLANOS = [
   {
@@ -58,26 +59,29 @@ function PlanosContent() {
     setLoading(planoId);
 
     if (planoId === "free") {
-      // Plano free — salva diagnóstico completo e vai para revisão
+      // Plano free — salva diagnóstico (SEM coluna `plano`, que é authoritative
+      // do servidor). Strip de _activePlan/plano do diagnóstico para não criar
+      // ilusão no JSON.
       const quiz = sessionStorage.getItem("nv_quiz");
-      let diagData: any = { email, plano: "free", _activePlan: "free" };
+      let diagData: any = { email };
       if (quiz) {
-        try { diagData = { ...JSON.parse(quiz), email, plano: "free", _activePlan: "free" }; }
-        catch {}
+        try {
+          const { plano: _p, _activePlan: _ap, ...rest } = JSON.parse(quiz);
+          diagData = { ...rest, email };
+        } catch {}
       }
-      // Lê diagnóstico existente para não sobrescrever dados do banco
       const { data: perfilAtual } = await supabase
         .from("usuarios").select("diagnostico").eq("id", userId).single();
       const diagFinal = { ...(perfilAtual?.diagnostico || {}), ...diagData };
-      
+
+      // NÃO incluir `plano` no upsert — a coluna é controlada pelo webhook.
+      // Para usuários novos, o default da coluna no SQL é 'free'.
       await supabase.from("usuarios").upsert({
         id: userId,
         email: email || '',
-        plano: "free",
         diagnostico: diagFinal,
       }, { onConflict: "id" });
-      
-      // Garante que sessionStorage também está atualizado
+
       sessionStorage.setItem("nv_quiz", JSON.stringify(diagFinal));
       sessionStorage.setItem("nv_pos_cadastro", "1");
       setLoading(null);
@@ -85,11 +89,11 @@ function PlanosContent() {
       return;
     }
 
-    // Plano pago — chama Stripe Checkout
-    const res = await fetch("/api/pagamento", {
+    // Plano pago — chama Stripe Checkout via apiFetch (Bearer token).
+    // userId/email vêm do token no servidor — não precisa enviar no body.
+    const res = await apiFetch("/api/pagamento", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plano: planoId, userId, email, anual }),
+      body: JSON.stringify({ plano: planoId, anual }),
     });
     const data = await res.json();
     setLoading(null);

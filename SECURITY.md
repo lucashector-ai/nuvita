@@ -1,9 +1,14 @@
 # Nuvita — Auditoria e Hardening de Segurança
 
-Data: 2026-04-11
+Data: 2026-04-11 (rev. 2)
 
 Documento que resume a auditoria de segurança feita no projeto e todas as
 correções aplicadas. Use-o como checklist para o deploy em produção.
+
+> **Rev. 2:** Após a primeira rodada de fixes, fiz uma segunda auditoria
+> e encontrei **mais 5 vulnerabilidades críticas de billing-bypass** que
+> permitiriam a qualquer usuário se auto-promover ao plano Pro sem pagar.
+> Veja a seção "Achados da rev. 2" abaixo.
 
 ---
 
@@ -158,6 +163,104 @@ custo (financial DoS) ou travar o serviço.
 - Rate limit por usuário (15/min em `/api/chat`, 20/min em `/api/ia`).
 - `MAX_MESSAGES = 30` e `MAX_CHARS_TOTAL = 20.000`.
 - Erros não vazam mais detalhes internos para o cliente.
+
+---
+
+## 1.bis Achados da rev. 2 — Billing bypass / escalação de plano
+
+Toda a primeira rodada protegeu as **rotas de API**. Mas a app também
+escreve direto na tabela `usuarios` via cliente Supabase anônimo (RLS é a
+única defesa nesse caminho). Encontrei 5 caminhos onde o cliente
+controlava a coluna `plano`:
+
+### 1.bis.1 `/pagamento/sucesso?plano=pro&userId=X` — upgrade grátis via URL
+**Severidade:** Crítica · **CVSS estimado:** 9.4
+
+[app/pagamento/sucesso/page.tsx](app/pagamento/sucesso/page.tsx) lia
+`plano` e `userId` da query string e fazia
+`supabase.from("usuarios").update({ plano }).eq("id", userId)`. Bastava
+visitar a URL com `?plano=pro&userId=<seu-uuid>` para virar Pro sem pagar
+um centavo. (Pior: a página é pública, não exige sequer estar logado para
+chamar o update — depende só da RLS.)
+
+**Correção:** removida toda a lógica de update do banco. A página agora
+só mostra o feedback visual e redireciona. O plano só muda via webhook do
+Stripe (que valida HMAC com `STRIPE_WEBHOOK_SECRET`).
+
+### 1.bis.2 `lib/auth.ts → salvarDiagnostico` — escalação na hierarquia
+**Severidade:** Crítica · **CVSS estimado:** 9.1
+
+```ts
+const RANK = { free: 0, essencial: 1, pro: 2 };
+const planoFinal = (RANK[novoPlano] || 0) >= (RANK[planoAtual] || 0)
+  ? novoPlano
+  : planoAtual;
+```
+
+A função aceitava qualquer `plano`/`_activePlan` no JSON do diagnóstico
+vindo do cliente e gravava na coluna `plano`. A "proteção" era um bloqueio
+de **downgrade** — mas escalação para cima (free → pro) era explicitamente
+permitida! Bastava chamar:
+
+```js
+await salvarDiagnostico(userId, { _activePlan: 'pro' });
+```
+
+**Correção:** salvarDiagnostico agora **strip** os campos `plano` e
+`_activePlan` antes de salvar e **nunca** escreve a coluna `plano`. A
+única forma de mudar o plano é via webhook Stripe.
+
+### 1.bis.3 `lib/auth.ts → trocarPlano` — função inerentemente insegura
+**Severidade:** Alta · **CVSS estimado:** 8.0
+
+```ts
+export async function trocarPlano(userId: string, novoPlano: string) {
+  await supabase.from('usuarios').update({ plano: novoPlano }).eq('id', userId);
+}
+```
+
+Qualquer caller cliente podia mudar o próprio plano. **Removida.**
+
+### 1.bis.4 `cadastro/page.tsx`, `planos/page.tsx`, `RevisaoShell.tsx`, `DashboardShell.tsx` — upserts com `plano`
+**Severidade:** Alta · **CVSS estimado:** 7.5
+
+Quatro fluxos do cliente faziam:
+```js
+await supabase.from("usuarios").upsert({ id, plano: parsed._activePlan, ... });
+```
+
+Onde `parsed._activePlan` vinha do `sessionStorage` (manipulável pelo
+usuário no DevTools). Mesmo padrão de billing-bypass.
+
+**Correção:** todos os 4 caminhos foram refatorados para **omitir a
+coluna `plano`** do upsert. A coluna agora tem `DEFAULT 'free'` no SQL,
+então usuários novos começam free e só podem mudar via webhook.
+
+### 1.bis.5 Defesa em profundidade no banco — trigger Postgres
+**Severidade:** Crítica · **CVSS estimado:** 9.5 (caso as outras falhas voltem)
+
+Como camada extra, [supabase_security_rls.sql](supabase_security_rls.sql)
+agora cria um **trigger BEFORE UPDATE** em `usuarios.plano` que rejeita
+qualquer mudança vinda das roles `anon` ou `authenticated`. Só conexões
+com `service_role` (API server-side) podem alterar `plano`:
+
+```sql
+CREATE OR REPLACE FUNCTION public.protect_plano_column()
+RETURNS trigger AS $$
+BEGIN
+  IF current_user IN ('anon', 'authenticated') THEN
+    IF NEW.plano IS DISTINCT FROM OLD.plano THEN
+      RAISE EXCEPTION 'plano só pode ser alterado pelo servidor (current_user=%)', current_user
+        USING ERRCODE = '42501';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+Isso garante que mesmo que um futuro fix introduza outro vetor de
+escalação no cliente, **o Postgres recusa**.
 
 ---
 

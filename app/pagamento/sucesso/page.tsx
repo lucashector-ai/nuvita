@@ -1,27 +1,20 @@
 "use client";
 import { Suspense, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
+// SEGURANÇA: esta página NÃO atualiza mais o plano no banco.
+// Antes lia `plano` e `userId` da query string e fazia update direto via
+// supabase anon — qualquer um podia visitar /pagamento/sucesso?plano=pro&userId=X
+// e ganhar upgrade gratuito. Agora o plano só muda via webhook do Stripe
+// (verificado por assinatura HMAC em /api/pagamento/webhook).
 function SucessoContent() {
   const router = useRouter();
-  const params = useSearchParams();
 
   useEffect(() => {
-    const plano = params.get("plano");
-    const userId = params.get("userId");
-    if (plano && userId) {
-      supabase.from("usuarios").update({ plano }).eq("id", userId).then(() => {
-        const retorno = sessionStorage.getItem('nv_retorno_pos_plano');
-      sessionStorage.removeItem('nv_retorno_pos_plano');
-      setTimeout(() => router.replace(retorno === 'dashboard' ? '/dashboard' : '/revisao'), 3000);
-      });
-    } else {
-      const retorno = sessionStorage.getItem('nv_retorno_pos_plano');
-      sessionStorage.removeItem('nv_retorno_pos_plano');
-      setTimeout(() => router.replace(retorno === 'dashboard' ? '/dashboard' : '/revisao'), 3000);
-    }
-  }, []);
+    const retorno = sessionStorage.getItem('nv_retorno_pos_plano');
+    sessionStorage.removeItem('nv_retorno_pos_plano');
+    setTimeout(() => router.replace(retorno === 'dashboard' ? '/dashboard' : '/revisao'), 3000);
+  }, [router]);
 
   return (
     <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#F7F7F7" }}>

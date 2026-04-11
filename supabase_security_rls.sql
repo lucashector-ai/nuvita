@@ -29,23 +29,32 @@ CREATE POLICY "usuarios_update_own" ON public.usuarios
   FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
 -- Trigger para impedir o usuário comum de alterar `plano` diretamente.
+-- Usa `current_user` (papel Postgres da conexão atual). No Supabase:
+--   anon          → conexões anônimas
+--   authenticated → conexões com JWT de usuário
+--   service_role  → conexões backend (webhook, /api/* server-side)
+-- Apenas service_role pode alterar a coluna `plano`.
 CREATE OR REPLACE FUNCTION public.protect_plano_column()
 RETURNS trigger AS $$
 BEGIN
-  -- service_role bypassa RLS, então OLD.plano = NEW.plano só se valida no contexto user
-  IF current_setting('role', true) = 'authenticated' THEN
+  IF current_user IN ('anon', 'authenticated') THEN
     IF NEW.plano IS DISTINCT FROM OLD.plano THEN
-      RAISE EXCEPTION 'plano só pode ser alterado pelo servidor';
+      RAISE EXCEPTION 'plano só pode ser alterado pelo servidor (current_user=%)', current_user
+        USING ERRCODE = '42501'; -- insufficient_privilege
     END IF;
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 DROP TRIGGER IF EXISTS protect_plano ON public.usuarios;
 CREATE TRIGGER protect_plano
   BEFORE UPDATE OF plano ON public.usuarios
   FOR EACH ROW EXECUTE FUNCTION public.protect_plano_column();
+
+-- Garante que a coluna plano tenha default 'free' (assim INSERTs do cliente
+-- que omitem plano funcionam, e o cliente nunca precisa setar plano).
+ALTER TABLE public.usuarios ALTER COLUMN plano SET DEFAULT 'free';
 
 -- ─── Tabelas com user_id (escopo de propriedade simples) ──────
 -- Aplica o mesmo padrão a TODAS as tabelas que têm coluna user_id.

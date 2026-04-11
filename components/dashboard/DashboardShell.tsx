@@ -135,12 +135,13 @@ export default function DashboardShell() {
           const parsed = JSON.parse(raw);
           if (!parsed?.q3?.length) { router.replace('/diagnostico'); return; }
           const { supabase } = await import('@/lib/supabase');
+          // SEGURANÇA: NÃO escrever `plano` — coluna controlada pelo webhook.
+          const { plano: _p, _activePlan: _ap, ...diagSeguro } = parsed as any;
           await supabase.from('usuarios').upsert({
             id: session.user.id,
             email: session.user.email || parsed.email || '',
             nome: parsed.nome || '',
-            plano: parsed._activePlan || parsed.plano || 'free',
-            diagnostico: parsed,
+            diagnostico: diagSeguro,
           }, { onConflict: 'id' });
           setAnswers({ ...parsed, _activePlan: parsed._activePlan || 'free' });
           setPlanAtivo(parsed._activePlan || parsed.plano || 'free');

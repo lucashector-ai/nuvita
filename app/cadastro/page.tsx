@@ -57,10 +57,11 @@ function CadastroContent() {
           diagData = { ...d, nome, email };
         } catch {}
       }
+      // SEGURANÇA: NÃO escrever `plano` aqui. A coluna tem default 'free'
+      // no SQL e só pode ser alterada pelo webhook do Stripe (service_role).
       await supabase.from("usuarios").upsert({
         id: data.user.id,
         nome,
-        plano: "free",
         diagnostico: diagData,
       });
       // Atualiza sessionStorage com merge
