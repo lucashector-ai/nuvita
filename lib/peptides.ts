@@ -47,6 +47,16 @@ const CJC1295: Peptide = {
   ck: false, doseStr: fixedDose('100–200 mcg'),
 };
 
+
+const TIRZEPATIDE: Peptide = {
+  n: 'Tirzepatide', m: 'Agonista duplo GIP+GLP-1 — emagrecimento, saciedade, controle glicêmico',
+  e: '🔥', why: 'O mais eficaz disponível para perda de gordura — reduz apetite, estimula lipólise e melhora metabolismo',
+  freq: '1x/semana', timing: 'Mesmo dia da semana', route: 'SC',
+  cycle: '12–24 semanas', rest: 'A critério médico',
+  how: 'Dose inicial 2,5 mg/semana com titulação gradual a cada 4 semanas. Supervisão médica recomendada.',
+  ck: true, doseStr: fixedDose('2,5–15 mg/sem'),
+};
+
 const SEMAGLUTIDE: Peptide = {
   n: 'Semaglutide', m: 'Agonista GLP-1 — saciedade, perda de gordura, controle glicêmico',
   e: '🔥', why: 'Reduz apetite e estimula lipólise seletiva',
@@ -157,7 +167,7 @@ const PT141: Peptide = {
 
 // ─── Mapa por objetivo ────────────────────────────────────
 export const PEPTIDES: Record<ObjectiveKey, Peptide[]> = {
-  gordura:     [SEMAGLUTIDE, AOD9604, IPAMORELIN, CJC1295],
+  gordura:     [TIRZEPATIDE, AOD9604, IPAMORELIN, CJC1295],
   massa:       [IPAMORELIN, CJC1295, MK677, IGF1LR3, BPC157],
   recuperacao: [BPC157, TB500, IPAMORELIN, CJC1295],
   sono:        [IPAMORELIN, DSIP, EPITALON, MK677],
