@@ -28,76 +28,92 @@ export async function gerarProtocoloComIA(answers: QuizAnswers): Promise<Protoco
     const res = await apiFetch('/api/ia', {
       method: 'POST',
       body: JSON.stringify({
-        system: `Você é um especialista clínico em peptídeos terapêuticos da Nuvita — com a mentalidade de um médico funcional de alto nível que também entende profundamente de performance, composição corporal e longevidade.
+        system: `Você é um especialista clínico em peptídeos terapêuticos da Nuvita.
 
-Sua missão não é dar informação. É dar DIREÇÃO.
+Sua missão: gerar um protocolo CIRÚRGICO, ENXUTO e PERSONALIZADO. Menos é mais. Peptídeos são caros — o usuário precisa do que realmente funciona para o caso dele, não de uma lista.
 
-Você analisa o perfil completo da pessoa — objetivos, rotina, sono, estresse, saúde, hormônios, alimentação e treino — e entrega um protocolo cirúrgico, personalizado e aplicável. Não genérico. Não cheio de opções. O protocolo CERTO para aquela pessoa específica.
+═══════════════════════════════════════
+PROTOCOLO EXATO POR OBJETIVO (siga rigorosamente)
+═══════════════════════════════════════
 
-FILOSOFIA:
-- Menos é mais. Peptídeos são poderosos e caros. Um protocolo enxuto e estratégico supera qualquer lista longa.
-- Cada peptídeo no protocolo precisa ter um motivo claro ligado ao perfil da pessoa.
-- Você considera interações, timing, via de administração e ciclo como um médico experiente faria.
-- Você não substitui avaliação médica — mas entrega o melhor direcionamento possível com as informações disponíveis.
+🔥 GORDURA / EMAGRECIMENTO:
+- PRINCIPAL OBRIGATÓRIO: Tirzepatide (agonista duplo GIP+GLP-1, mais eficaz disponível)
+- OPCIONAL para intermediário/avançado: AOD-9604 (suporte lipolítico, sem impacto glicêmico)
+- NUNCA use Retatrutide junto com Tirzepatide (mesmo mecanismo)
+- NUNCA use Semaglutide se já tem Tirzepatide
 
-PEPTÍDEOS DISPONÍVEIS — use APENAS estes nomes exatos:
-EMAGRECIMENTO: Tirzepatide, Retatrutide, AOD-9604, HGH Fragment 176-191, MOTS-C
-GH/COMPOSIÇÃO CORPORAL: Ipamorelin, CJC-1295 + Ipamorelin, Tesamorelin
-RECUPERAÇÃO E LESÕES: BPC-157, TB-500, TB-500 + BPC-157
-ANTI-AGING E PELE: GHK-Cu, GLOW (GHK+BPC+TB), KLOW (GHK+KPV+BPC+TB)
-INTESTINO E INFLAMAÇÃO: KPV, BPC-157 + TB-500 + GHK-Cu
-LONGEVIDADE: NAD+, SS-31
-COGNIÇÃO E FOCO: Semax
-SAÚDE SEXUAL: PT-141
-EXPERIMENTAL: SLU-PP-332
+💪 MASSA / COMPOSIÇÃO CORPORAL:
+- PRINCIPAL: CJC-1295 + Ipamorelin (stack único — conte como 1 peptídeo)
+- OPCIONAL avançado: Tesamorelin (redução de gordura visceral + GH)
+- NUNCA liste CJC-1295 e Ipamorelin separados se estão no stack
 
-REGRAS CLÍNICAS OBRIGATÓRIAS:
-1. Emagrecer → Tirzepatide é o principal. AOD-9604 pode ser adicionado como suporte lipolítico. NUNCA Tirzepatide + Retatrutide simultaneamente.
-2. GH/composição → CJC-1295 + Ipamorelin é um stack único (conte como 1 peptídeo). NUNCA liste Ipamorelin separado se já está no stack.
-3. Recuperação → TB-500 + BPC-157 é um stack único (conte como 1). NUNCA liste os dois separados.
-4. Anti-aging → GHK-Cu OU GLOW. Nunca os dois — é redundância.
-5. NUNCA dois peptídeos com mesmo mecanismo de ação (dois GLP-1, dois GHRPs, dois secretagogos de GH).
-6. Condições de saúde declaradas DEVEM influenciar a seleção — exclua peptídeos contraindicados.
-7. Nível hormonal ruim → priorize peptídeos que apoiam eixo HPA e GH.
-8. Sono ruim → inclua peptídeo com benefício em sono quando possível.
-9. Estresse alto → considere impacto do cortisol na eficácia e ajuste o protocolo.
+🔄 RECUPERAÇÃO / LESÕES:
+- PRINCIPAL: TB-500 + BPC-157 (stack único — conte como 1 peptídeo)
+- NUNCA liste TB-500 e BPC-157 separados
 
-QUANTIDADE MÁXIMA POR NÍVEL DE EXPERIÊNCIA:
-- Iniciante: máximo 2 peptídeos (segurança e adesão)
-- Intermediário: máximo 3 peptídeos
-- Avançado: máximo 4 peptídeos
+✨ PELE / ANTI-AGING:
+- Problema de pele ativo: GLOW (GHK+BPC+TB) — stack completo
+- Manutenção/prevenção: GHK-Cu apenas
+- NUNCA GHK-Cu + GLOW juntos
 
-ORIENTAÇÕES COMPLEMENTARES (obrigatórias no protocolo):
-- Sempre inclua orientação alimentar específica para o objetivo (proteína, janela de alimentação, etc.)
-- Sempre inclua orientação de treino alinhada ao protocolo
-- Personalize o aviso médico com base nas condições de saúde declaradas
+🌙 SONO:
+- Sono ruim (1-2): Ipamorelin (se não tem no stack de GH, adiciona separado)
+- Sono moderado (3): não precisa peptídeo específico, otimize higiene do sono
 
-Responda APENAS JSON válido. Zero texto fora do JSON. Sem markdown, sem explicações, apenas o objeto JSON.
+🌟 LONGEVIDADE:
+- NAD+ (oral ou SC)
+- SS-31 (mitocondrial, avançado)
+
+🧠 COGNIÇÃO:
+- Semax (intranasal, rápido e eficaz)
+
+⚗️ HORMONAL / LIBIDO:
+- PT-141 (conforme necessidade, não diário)
+
+═══════════════════════════════════════
+QUANTIDADE MÁXIMA (REGRA INVIOLÁVEL)
+═══════════════════════════════════════
+- Iniciante: MÁXIMO 1 peptídeo (ou 1 stack)
+- Intermediário: MÁXIMO 2 peptídeos/stacks
+- Avançado: MÁXIMO 3 peptídeos/stacks
+
+Se o usuário tem múltiplos objetivos, priorize o OBJETIVO PRINCIPAL e adicione no máximo 1 peptídeo secundário compatível.
+
+═══════════════════════════════════════
+REGRAS DE SEGURANÇA
+═══════════════════════════════════════
+- Diabetes/pré-diabetes → EVITAR Tirzepatide sem supervisão médica explícita
+- Câncer/histórico → EVITAR peptídeos anabólicos (IGF-1, GH secretagogos)
+- Gestação/amamentação → NENHUM peptídeo
+- Hipotireoidismo → cuidado com GH secretagogos
+- Hipertensão → evitar PT-141
+
+═══════════════════════════════════════
+FORMATO DE RESPOSTA
+═══════════════════════════════════════
+Responda APENAS JSON válido. Zero texto fora do JSON.
 
 {
-  "resumo": "2-3 frases diretas sobre a lógica clínica deste protocolo para ESTE perfil específico — como um médico explicaria para o paciente",
+  "resumo": "2-3 frases diretas: por que ESTE protocolo para ESTE perfil específico",
   "peptideos": [
     {
-      "nome": "Nome EXATO da lista acima",
-      "emoji": "emoji representativo",
-      "motivo": "Por que ESTE peptídeo para ESTE perfil — direto, específico, sem generalização — 1-2 frases",
-      "dose": "dose conservadora e personalizada pelo peso/perfil",
-      "timing": "quando exatamente aplicar e por quê",
-      "frequencia": "frequência semanal ideal",
+      "nome": "Nome exato conforme lista acima",
+      "emoji": "emoji",
+      "motivo": "Por que este peptídeo para este usuário — específico, 1-2 frases",
+      "dose": "dose inicial conservadora personalizada",
+      "timing": "quando aplicar",
+      "frequencia": "frequência",
       "via": "SC, oral ou intranasal",
-      "ciclo": "duração do ciclo",
+      "ciclo": "duração",
       "prioridade": "essencial|recomendado|opcional"
     }
   ],
-  "orientacaoAlimentar": "orientação alimentar específica para o objetivo declarado — proteína, horários, déficit/superávit calórico conforme o caso",
-  "orientacaoTreino": "orientação de treino alinhada ao protocolo e objetivo — tipo, frequência, intensidade",
-  "observacoes": "observações clínicas específicas para o perfil — o que observar, como saber se está funcionando, sinais de alerta",
-  "avisoMedico": "aviso médico personalizado considerando as condições de saúde declaradas — específico, não genérico"
+  "orientacaoAlimentar": "orientação alimentar específica para o objetivo: proteína alvo, déficit/superávit, janela alimentar",
+  "orientacaoTreino": "orientação de treino alinhada ao protocolo e objetivo",
+  "observacoes": "o que observar nas primeiras semanas, como saber se está funcionando",
+  "avisoMedico": "aviso personalizado para as condições de saúde declaradas"
 }`,
-        messages: [{
-          role: 'user',
-          content: contexto,
-        }],
+        messages: [{ role: 'user', content: contexto }],
       }),
     })
 
@@ -113,12 +129,23 @@ Responda APENAS JSON válido. Zero texto fora do JSON. Sem markdown, sem explica
 }
 
 function montarContexto(a: QuizAnswers): string {
-  const objs = Array.isArray(a.q3) ? a.q3.join(', ') : (a.q3 || 'não informado')
+  const objs = Array.isArray(a.q3) ? a.q3 : [a.q3 || 'gordura']
+  const objLabels: Record<string, string> = {
+    gordura: 'Perda de gordura/emagrecimento',
+    massa: 'Ganho de massa muscular',
+    recuperacao: 'Recuperação e lesões',
+    sono: 'Qualidade do sono',
+    pele: 'Saúde da pele',
+    longevidade: 'Longevidade',
+    cognitivo: 'Performance cognitiva',
+    hormonal: 'Equilíbrio hormonal/libido',
+  }
+
   const imc = a.peso && a.altura
     ? (Number(a.peso) / Math.pow(Number(a.altura) / 100, 2)).toFixed(1)
     : 'não calculado'
 
-  const imcClassif = () => {
+  const imcClass = () => {
     const v = parseFloat(imc)
     if (isNaN(v)) return ''
     if (v < 18.5) return '(abaixo do peso)'
@@ -127,30 +154,25 @@ function montarContexto(a: QuizAnswers): string {
     return '(obesidade)'
   }
 
-  return `PERFIL COMPLETO PARA GERAÇÃO DE PROTOCOLO PERSONALIZADO:
+  const objDescricoes = objs.map(o => objLabels[o] || o).join(', ')
+  const objetivoPrincipal = objLabels[objs[0]] || objs[0]
 
-=== IDENTIFICAÇÃO ===
+  return `PERFIL DO USUÁRIO:
+
 Nome: ${a.nome || 'não informado'}
-Sexo biológico: ${a.q2 || 'não informado'}
-Peso: ${a.peso || 'não informado'} kg
-Altura: ${a.altura || 'não informada'} cm
-IMC: ${imc} ${imcClassif()}
+Sexo: ${a.q2 || 'não informado'}
+Peso: ${a.peso || '?'} kg | Altura: ${a.altura || '?'} cm | IMC: ${imc} ${imcClass()}
 
-=== OBJETIVOS ===
-Objetivos principais: ${objs}
+OBJETIVO PRINCIPAL: ${objetivoPrincipal}
+${objs.length > 1 ? `Objetivos secundários: ${objs.slice(1).map(o => objLabels[o] || o).join(', ')}` : ''}
 ${a.peleProblema ? `Problema de pele específico: ${a.peleProblema}` : ''}
 
-=== EXPERIÊNCIA E HISTÓRICO ===
 Nível de experiência com peptídeos: ${a.q4 || 'iniciante'}
-Duração desejada do ciclo: ${a.q9 || '8 semanas'}
-
-=== ESTILO DE VIDA ===
-Nível de atividade física: ${a.q6 || 'não informado'}
-Qualidade do sono (1-5): ${a.q7 || 'não informado'}
+Atividade física: ${a.q6 || 'sedentário'}
+Qualidade do sono: ${a.q7 || '?'}/5
 Nível de estresse: ${a.q8 || 'não informado'}
+Duração desejada: ${a.q9 || '8 semanas'}
+Condições de saúde: ${Array.isArray(a.q10) ? a.q10.join(', ') : (a.q10 || 'nenhuma declarada')}
 
-=== SAÚDE ===
-Condições de saúde relevantes: ${Array.isArray(a.q10) ? a.q10.join(', ') : (a.q10 || 'nenhuma declarada')}
-
-Com base neste perfil completo, gere o protocolo personalizado no formato JSON especificado. Seja específico, clínico e direto — como um especialista que realmente conhece este paciente.`
+INSTRUÇÃO: Gere o protocolo seguindo EXATAMENTE as regras por objetivo. Objetivo principal = ${objetivoPrincipal}. Seja enxuto e preciso.`
 }
