@@ -122,7 +122,7 @@ export default function QuizShell() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', background: '#F7F7F7' }}>
       {cur !== 0 && cur !== 'pricing' && (
         <QuizNav progress={progress} onReset={reset} />
       )}
