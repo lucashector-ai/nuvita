@@ -1,25 +1,35 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin, getUserFromRequest, unauthorized } from '@/lib/serverAuth';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
   try {
-    const { userId, subscription } = await req.json();
-    if (!userId) return NextResponse.json({ error: 'missing userId' }, { status: 400 });
+    const ip = getClientIp(req);
+    const rl = rateLimit(`push:${ip}`, 20, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
+    // Autorização: derivamos userId do token, ignoramos qualquer userId vindo do body.
+    const user = await getUserFromRequest(req);
+    if (!user) return unauthorized();
+
+    const { subscription } = await req.json();
+
+    const supabase = getSupabaseAdmin();
+    await supabase.from('notificacoes_config').upsert(
+      {
+        user_id: user.id,
+        push_subscription: subscription || { registered: true },
+        push_ativo: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id' },
     );
-
-    await supabase.from('notificacoes_config').upsert({
-      user_id: userId,
-      push_subscription: subscription || { registered: true },
-      push_ativo: true,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    console.error('Push error:', e?.message);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

@@ -1,5 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserFromRequest, isInternalCaller, unauthorized, forbidden } from '@/lib/serverAuth';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
 
 // Templates de email em HTML
 const templates: Record<string, (data: any) => { subject: string; html: string }> = {
@@ -249,17 +251,49 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   }),
 };
 
+// Templates que SÓ podem ser disparados internamente (webhook Stripe, cron, admin)
+// Nunca devem ser invocáveis pelo usuário final, mesmo autenticado.
+const INTERNAL_ONLY_TIPOS = new Set([
+  'pagamento-confirmado',
+  'pagamento-falhou',
+  'cancelamento',
+  'renovacao-lembrete',
+  'reengajamento',
+  'exclusao-conta',
+]);
+
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit por IP para conter abuso/spam
+    const ip = getClientIp(req);
+    const rl = rateLimit(`email:${ip}`, 10, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } });
+    }
+
     const { tipo, email, dados } = await req.json();
 
-    if (!tipo || !email) {
+    if (!tipo || !email || typeof tipo !== 'string' || typeof email !== 'string') {
       return NextResponse.json({ error: 'tipo e email são obrigatórios' }, { status: 400 });
     }
 
     const template = templates[tipo];
     if (!template) {
       return NextResponse.json({ error: `Template "${tipo}" não encontrado` }, { status: 400 });
+    }
+
+    // Autorização:
+    //  - Caller interno (webhook/cron com x-internal-secret) → libera
+    //  - Caller externo: precisa estar autenticado E só pode mandar para o próprio email
+    //  - Templates "INTERNAL_ONLY" só podem ser enviados internamente
+    const internal = isInternalCaller(req);
+    if (!internal) {
+      const user = await getUserFromRequest(req);
+      if (!user) return unauthorized();
+      if (INTERNAL_ONLY_TIPOS.has(tipo)) return forbidden('Template restrito');
+      if (!user.email || user.email.toLowerCase() !== String(email).toLowerCase()) {
+        return forbidden('Só é possível enviar emails para o próprio endereço');
+      }
     }
 
     const { subject, html } = template(dados || {});

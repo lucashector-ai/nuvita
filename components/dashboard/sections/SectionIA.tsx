@@ -4,6 +4,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { QuizAnswers, ObjectiveKey } from '@/types';
 import { OBJECTIVE_LABELS } from '@/types';
+import { apiFetch } from '@/lib/apiClient';
 
 interface Props { answers: QuizAnswers; objs: ObjectiveKey[]; }
 
@@ -32,8 +33,8 @@ export default function SectionIA({ answers, objs }: Props) {
     setMessages(p => [...p, { role:'user', text:msg, time:now() }]);
     setLoading(true);
     try {
-      const res = await fetch('/api/ia', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+      const res = await apiFetch('/api/ia', {
+        method:'POST',
         body: JSON.stringify({
           context: 'Você está gerando o protocolo personalizado inicial do usuário. Este é o momento mais importante — use todas as informações do diagnóstico para criar um protocolo preciso e estratégico.',
           system:`Você é a IA Nuvita, especialista em peptídeos. Usuário: objetivos=${objs?.map(o=>OBJECTIVE_LABELS[o]).join(', ')||'perda de gordura'}, peso=${answers.peso??75}kg. Responda em português, seja direto. Sobre onde comprar: pureza ≥98%, laudo COA, farmácia de manipulação. Não substitui avaliação médica.`,

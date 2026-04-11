@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { apiFetch } from '@/lib/apiClient';
 
 const SUGESTOES = [
   'Quais são os efeitos colaterais do BPC-157?',
@@ -31,17 +32,11 @@ export default function SectionCoach({ answers, items, userId }: any) {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/chat', {
+      const res = await apiFetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type':'application/json' },
         body: JSON.stringify({
-          message: msg,
-          context: {
-            nome,
-            objetivo: answers?.q3,
-            nivel: answers?.q4,
-            protocolo: items?.map(i => i.n).join(', '),
-          }
+          system: `Você é o Coach IA da Nuvita. Usuário: nome=${nome}, objetivo=${answers?.q3}, nível=${answers?.q4}. Protocolo atual: ${items?.map(i => i.n).join(', ')}. Responda em português, direto e empático.`,
+          messages: [{ role: 'user', content: msg }],
         })
       });
       const data = await res.json();

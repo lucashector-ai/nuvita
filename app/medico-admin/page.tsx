@@ -8,7 +8,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
 );
 
-const SENHA = process.env.NEXT_PUBLIC_MEDICO_TOKEN || 'nuvita_medico_2026';
+// IMPORTANTE: o token de médico não é mais embutido no bundle.
+// O login agora é validado server-side via /api/admin (header x-admin-token),
+// reaproveitando o segredo ADMIN_TOKEN. Se o usuário precisar de papéis
+// distintos (admin vs médico), criar um MEDICO_TOKEN dedicado e uma rota
+// /api/medico/login que valida server-side com timingSafeEqual.
+const SS_MEDICO_TOKEN = 'nv_medico_token';
 
 const DIAS_CONFIG = [
   { id:0, label:'Domingo' },
@@ -72,9 +77,27 @@ export default function MedicoAdmin() {
     if (auth) { carregarConsultas(); carregarDisponibilidade(); }
   }, [auth]);
 
-  const login = () => {
-    if (senha === SENHA) { setAuth(true); sessionStorage.setItem('nv_medico','1'); }
-    else { setSenhaErro(true); setTimeout(() => setSenhaErro(false), 2000); }
+  const login = async () => {
+    if (!senha) { setSenhaErro(true); return; }
+    // Valida o token contra o servidor — mesmo segredo do painel admin.
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': senha },
+        body: JSON.stringify({ action: 'stats' }),
+      });
+      if (res.ok) {
+        sessionStorage.setItem(SS_MEDICO_TOKEN, senha);
+        sessionStorage.setItem('nv_medico', '1');
+        setAuth(true);
+      } else {
+        setSenhaErro(true);
+        setTimeout(() => setSenhaErro(false), 2000);
+      }
+    } catch {
+      setSenhaErro(true);
+      setTimeout(() => setSenhaErro(false), 2000);
+    }
   };
 
   const carregarConsultas = async () => {

@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client';
 import { useState } from 'react';
+import { apiFetch } from '@/lib/apiClient';
 
 const PLANOS = [
   {
@@ -80,16 +81,11 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
       const { data: { user } } = await supabase.auth.getUser();
       const { data: perfil } = await supabase.from('usuarios').select('diagnostico').eq('id', userId).single();
 
-      const res = await fetch('/api/pagamento', {
+      const res = await apiFetch('/api/pagamento', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           plano: plano.id,
-          userId,
-          nome: perfil?.diagnostico?.nome || '',
-          email: user?.email || '',
           anual,
-          valorCentavos: anual ? plano.precoAnual : plano.precoMensal,
         }),
       });
       const data = await res.json();

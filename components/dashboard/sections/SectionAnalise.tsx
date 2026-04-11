@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { apiFetch } from '@/lib/apiClient';
 
 function SparkLine({ data, cor, label, unidade }: any) {
   if (!data || data.length < 2) return null;
@@ -89,9 +90,8 @@ export default function SectionAnalise({ userId, answers, objs }: any) {
       const diasAtivos   = ad.filter(a => a.aplicado).length;
       const adesaoPct    = ad.length > 0 ? Math.round((diasAtivos / ad.length) * 100) : 0;
 
-      const res = await fetch('/api/ia', {
+      const res = await apiFetch('/api/ia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system: 'Você é o Coach IA da Nuvita. Analise o progresso do usuário e forneça insights diretos e personalizados em português. Máximo 3 parágrafos curtos. Seja específico com os números.',
           messages: [{ role: 'user', content: `Dados do usuário:

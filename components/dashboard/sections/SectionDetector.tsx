@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { apiFetch } from '@/lib/apiClient';
 
 export default function SectionDetector({ userId, answers }: any) {
   const [alertas,   setAlertas]   = useState<any[]>([]);
@@ -97,9 +98,8 @@ export default function SectionDetector({ userId, answers }: any) {
   const gerarAnaliseIA = async (alertas: any[], ad: any[], tr: any[]) => {
     setAnalisando(true);
     try {
-      const res = await fetch('/api/ia', {
+      const res = await apiFetch('/api/ia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           context: 'Você está no Detector de Inconsistência. Analise os padrões do usuário e identifique falhas, sintomas fora do esperado ou comportamentos que possam comprometer o protocolo.',
           system: 'Você é o Detector IA da Nuvita. Analise as inconsistências e dê recomendações práticas e diretas em 2-3 frases. Foque no que o usuário deve fazer AGORA.',

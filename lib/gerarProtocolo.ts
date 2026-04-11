@@ -1,4 +1,5 @@
 import type { QuizAnswers } from '@/types'
+import { apiFetch } from './apiClient'
 
 export interface PeptideoIA {
   nome: string
@@ -22,9 +23,8 @@ export interface ProtocoloIA {
 export async function gerarProtocoloComIA(answers: QuizAnswers): Promise<ProtocoloIA | null> {
   try {
     const contexto = montarContexto(answers)
-    const res = await fetch('/api/ia', {
+    const res = await apiFetch('/api/ia', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         system: `Você é especialista em peptídeos terapêuticos da Nuvita. Gere protocolos ENXUTOS e INTELIGENTES. Menos é mais — peptídeos são caros.
 

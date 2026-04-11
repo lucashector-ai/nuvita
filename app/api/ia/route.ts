@@ -1,8 +1,14 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { getUserFromRequest, unauthorized } from '@/lib/serverAuth';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const apiKey = process.env.ANTHROPIC_API_KEY;
+const client = apiKey ? new Anthropic({ apiKey }) : null;
+
+const MAX_MESSAGES = 30;
+const MAX_CHARS_TOTAL = 20_000;
 
 const SYSTEM_BASE = `Você é o Assistente de Inteligência Aplicada a Protocolos de Peptídeos da Nuvita.
 
@@ -43,10 +49,36 @@ SEU ESTILO:
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || 'unknown';
-    console.log('IA request from:', ip);
+    if (!client) {
+      return NextResponse.json({ text: '⚠️ IA não configurada' }, { status: 503 });
+    }
+
+    // Auth obrigatória — protege custo da chave Anthropic contra abuso
+    const user = await getUserFromRequest(req);
+    if (!user) return unauthorized();
+
+    // Rate limit por usuário
+    const ip = getClientIp(req);
+    const rl = rateLimit(`ia:${user.id}:${ip}`, 20, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { text: '⚠️ Muitas requisições — aguarde um instante' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+      );
+    }
 
     const { system, messages, context } = await req.json();
+
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
+      return NextResponse.json({ text: '⚠️ messages inválido' }, { status: 400 });
+    }
+    const totalChars =
+      JSON.stringify(messages).length +
+      (system ? String(system).length : 0) +
+      (context ? String(context).length : 0);
+    if (totalChars > MAX_CHARS_TOTAL) {
+      return NextResponse.json({ text: '⚠️ Payload muito grande' }, { status: 413 });
+    }
 
     // Monta system prompt: base global + contexto específico da tela (opcional)
     const systemFinal = context
@@ -65,6 +97,7 @@ export async function POST(req: NextRequest) {
     const text = msg.content.find(b => b.type === 'text')?.text || '';
     return NextResponse.json({ text });
   } catch (e: any) {
-    return NextResponse.json({ text: '⚠️ Erro na IA: ' + e.message }, { status: 500 });
+    console.error('IA error:', e?.message);
+    return NextResponse.json({ text: '⚠️ Erro ao processar requisição' }, { status: 500 });
   }
 }

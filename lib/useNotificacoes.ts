@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
+import { apiFetch } from './apiClient';
 
 interface Opts { userId: string|null; email: string; nome: string; emailAtivo: boolean; pushAtivo: boolean; }
 
@@ -36,10 +37,9 @@ export function useNotificacoes({ userId, email, nome, emailAtivo, pushAtivo }: 
       const reg = await navigator.serviceWorker.register('/sw.js');
       await navigator.serviceWorker.ready;
       // Sem VAPID key por enquanto — apenas registra o SW
-      await fetch('/api/push', {
+      await apiFetch('/api/push', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, subscription: { registered: true } }),
+        body: JSON.stringify({ subscription: { registered: true } }),
       });
     } catch (e) { console.warn('[Push]', e); }
   }, [userId, pushAtivo]);
@@ -55,7 +55,7 @@ export function useNotificacoes({ userId, email, nome, emailAtivo, pushAtivo }: 
       if (!ci && emailAtivo && hora >= 14 && hora <= 20) {
         const k = `nv_ne_ci_${hoje}`;
         if (!localStorage.getItem(k)) {
-          fetch('/api/notify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, nome, tipo:'checkin_lembrete' }) });
+          apiFetch('/api/notify', { method:'POST', body: JSON.stringify({ email, nome, tipo:'checkin_lembrete' }) });
           localStorage.setItem(k, '1');
         }
       }
@@ -66,7 +66,7 @@ export function useNotificacoes({ userId, email, nome, emailAtivo, pushAtivo }: 
       if ((!ades || ades.length === 0) && emailAtivo) {
         const k = `nv_ne_pt_${hoje}`;
         if (!localStorage.getItem(k)) {
-          fetch('/api/notify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, nome, tipo:'protocolo_lembrete' }) });
+          apiFetch('/api/notify', { method:'POST', body: JSON.stringify({ email, nome, tipo:'protocolo_lembrete' }) });
           localStorage.setItem(k, '1');
         }
       }
@@ -90,7 +90,7 @@ export function useNotificacoes({ userId, email, nome, emailAtivo, pushAtivo }: 
           if (diasRestantes <= 10 && emailAtivo) {
             const k = `nv_ne_est_${item.nome}_${hoje}`;
             if (!localStorage.getItem(k)) {
-              fetch('/api/notify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, nome, tipo:'estoque_critico', dados:{ peptideo:item.nome, dias:diasRestantes } }) });
+              apiFetch('/api/notify', { method:'POST', body: JSON.stringify({ email, nome, tipo:'estoque_critico', dados:{ peptideo:item.nome, dias:diasRestantes } }) });
               localStorage.setItem(k, '1');
             }
           }

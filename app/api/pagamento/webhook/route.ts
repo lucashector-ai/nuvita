@@ -13,12 +13,19 @@ export async function POST(req: NextRequest) {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-04-10' });
 
 
-  // Helper: envia email via API interna
+  // Helper: envia email via API interna usando segredo INTERNAL_API_SECRET.
+  // Se INTERNAL_API_SECRET não estiver configurado, o email não será enviado
+  // (a rota /api/email rejeita callers não-internos para templates de pagamento).
   const enviarEmail = async (tipo: string, email: string, dados: any) => {
     try {
+      const secret = process.env.INTERNAL_API_SECRET;
+      if (!secret) {
+        console.warn('INTERNAL_API_SECRET não configurado — email do webhook não enviado');
+        return;
+      }
       await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/email`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-internal-secret': secret },
         body: JSON.stringify({ tipo, email, dados }),
       });
     } catch(e) { console.error('Email error:', e); }

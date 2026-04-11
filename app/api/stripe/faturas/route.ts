@@ -1,22 +1,25 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserFromRequest, unauthorized } from '@/lib/serverAuth';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await req.json();
-    if (!userId || typeof userId !== 'string' || userId.length < 10) {
-      return NextResponse.json({ faturas: [] });
+    const ip = getClientIp(req);
+    const rl = rateLimit(`stripe-faturas:${ip}`, 20, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } });
     }
+
+    // Autorização — só listamos faturas do user autenticado.
+    const user = await getUserFromRequest(req);
+    if (!user) return unauthorized();
+    if (!user.email) return NextResponse.json({ faturas: [] });
 
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2024-04-10' as any });
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-    const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
-    if (!userData?.user?.email) return NextResponse.json({ faturas: [] });
-
-    const customers = await stripe.customers.list({ email: userData.user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     if (!customers.data.length) return NextResponse.json({ faturas: [] });
 
     const invoices = await stripe.invoices.list({ customer: customers.data[0].id, limit: 24 });

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { apiFetch } from '@/lib/apiClient';
 
 export default function SectionAjuste({ answers, userId }: any) {
   const [tab,        setTab]        = useState<'sugestoes'|'reajuste'|'historico'>('sugestoes');
@@ -16,8 +17,8 @@ export default function SectionAjuste({ answers, userId }: any) {
     if (!motivoForm) return;
     setLoadingIA(true);
     try {
-      const res = await fetch('/api/ia', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+      const res = await apiFetch('/api/ia', {
+        method:'POST',
         body: JSON.stringify({
           context: 'Você está na seção de Ajuste Automático. O usuário quer reajustar seu protocolo com base na evolução e nos resultados percebidos até agora.',
           system:`Você é o Coach IA da Nuvita. Com base nos sintomas e motivo, sugira ajustes específicos no protocolo de peptídeos. Seja direto. Máximo 3 parágrafos.`,

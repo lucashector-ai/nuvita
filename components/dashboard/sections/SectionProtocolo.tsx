@@ -13,6 +13,7 @@ import PeptideTooltip from '@/components/ui/PeptideTooltip';
 import { useState } from 'react';
 import type { QuizAnswers, Peptide, ObjectiveKey } from '@/types';
 import { OBJECTIVE_LABELS, DURACAO_LABELS, NIVEL_LABELS } from '@/types';
+import { apiFetch } from '@/lib/apiClient';
 
 interface Props {
   answers: QuizAnswers; items: Peptide[]; peso: number;
@@ -41,11 +42,9 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
     setCompartilhando(true);
     try {
       const { supabase } = await import('@/lib/supabase');
-      const { data: { user } } = await supabase.auth.getUser();
-      const res = await fetch('/api/compartilhar', {
+      const res = await apiFetch('/api/compartilhar', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id }),
+        body: JSON.stringify({}),
       });
       const data = await res.json();
       if (data.url) {

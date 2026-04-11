@@ -2,6 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { apiFetch } from '@/lib/apiClient';
 import { OBJECTIVE_LABELS, DURACAO_LABELS, NIVEL_LABELS } from '@/types';
 
 // ─── Ícones SVG inline ───────────────────────────────────
@@ -110,10 +111,9 @@ export default function SectionConfig({ answers, plan, userId, onNavigate }: any
     if (!id) return;
     setLoadFaturas(true);
     try {
-      const res = await fetch('/api/stripe/faturas', {
+      const res = await apiFetch('/api/stripe/faturas', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: id }),
+        body: JSON.stringify({}),
       });
       const data = await res.json();
       setFaturas(data.faturas || []);
@@ -160,10 +160,9 @@ export default function SectionConfig({ answers, plan, userId, onNavigate }: any
     }
     setPortalLoading(true);
     try {
-      const res = await fetch('/api/stripe', {
+      const res = await apiFetch('/api/stripe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: uid }),
+        body: JSON.stringify({}),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;

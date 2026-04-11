@@ -1,32 +1,66 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import {
+  getSupabaseAdmin,
+  getUserFromRequest,
+  isAdminUser,
+  hasValidAdminToken,
+  unauthorized,
+  forbidden,
+} from '@/lib/serverAuth';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
 
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'nuvita_admin_2026';
+// Autorização: aceita DOIS modos —
+// 1) Sessão Supabase do usuário cujo email está em ADMIN_EMAILS
+// 2) Header `x-admin-token` cujo valor bate com ADMIN_TOKEN (server-only)
+// Nunca mais ler token via body / query / NEXT_PUBLIC_*.
+async function authorize(req: NextRequest): Promise<{ ok: true } | { ok: false; res: NextResponse }> {
+  // Tenta sessão Supabase + allowlist de email
+  const user = await getUserFromRequest(req);
+  if (user && (await isAdminUser(user))) return { ok: true };
 
-function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder'
-  );
+  // Fallback: header server-only
+  if (hasValidAdminToken(req)) return { ok: true };
+
+  return { ok: false, res: unauthorized() };
 }
 
 export async function POST(req: NextRequest) {
-  const { token, action, payload } = await req.json();
-
-  if (token !== ADMIN_TOKEN) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // Rate limit por IP (defesa contra brute-force do token)
+  const ip = getClientIp(req);
+  const rl = rateLimit(`admin:${ip}`, 30, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    );
   }
+
+  const auth = await authorize(req);
+  if (!auth.ok) return auth.res;
+
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
+  }
+
+  const { action, payload } = body || {};
+  if (!action || typeof action !== 'string') {
+    return NextResponse.json({ error: 'action obrigatória' }, { status: 400 });
+  }
+
+  const admin = getSupabaseAdmin();
 
   try {
     switch (action) {
-
       case 'list_users': {
-        const { data: { users }, error } = await getSupabaseAdmin().auth.admin.listUsers();
+        const { data: { users }, error } = await admin.auth.admin.listUsers();
         if (error) throw error;
-        // Enriquece com dados do banco
-        const { data: perfis } = await getSupabaseAdmin()
-          .from('usuarios').select('id, diagnostico, plano, created_at');
+        const { data: perfis } = await admin
+          .from('usuarios')
+          .select('id, diagnostico, plano, created_at');
         const mapa = Object.fromEntries((perfis || []).map(p => [p.id, p]));
         const enriched = users.map(u => ({
           id: u.id,
@@ -41,43 +75,56 @@ export async function POST(req: NextRequest) {
       }
 
       case 'delete_user': {
-        const { userId } = payload;
-        // Apaga todos os dados do usuário
+        const userId = String(payload?.userId || '');
+        if (!userId) return NextResponse.json({ error: 'userId obrigatório' }, { status: 400 });
         await Promise.all([
-          getSupabaseAdmin().from('usuarios').delete().eq('id', userId),
-          getSupabaseAdmin().from('agendamentos').delete().eq('user_id', userId),
-          getSupabaseAdmin().from('notificacoes').delete().eq('user_id', userId),
-          getSupabaseAdmin().from('diario_entries').delete().eq('user_id', userId),
-          getSupabaseAdmin().from('estoque_usuario').delete().eq('user_id', userId),
-          getSupabaseAdmin().from('rotina_personalizada').delete().eq('user_id', userId),
-          getSupabaseAdmin().from('check_ins').delete().eq('user_id', userId),
-          getSupabaseAdmin().from('adesao_diaria').delete().eq('user_id', userId),
+          admin.from('usuarios').delete().eq('id', userId),
+          admin.from('agendamentos').delete().eq('user_id', userId),
+          admin.from('notificacoes').delete().eq('user_id', userId),
+          admin.from('diario_entries').delete().eq('user_id', userId),
+          admin.from('estoque_usuario').delete().eq('user_id', userId),
+          admin.from('rotina_personalizada').delete().eq('user_id', userId),
+          admin.from('check_ins').delete().eq('user_id', userId),
+          admin.from('adesao_diaria').delete().eq('user_id', userId),
         ]);
-        // Deleta da autenticação
-        const { error } = await getSupabaseAdmin().auth.admin.deleteUser(userId);
+        const { error } = await admin.auth.admin.deleteUser(userId);
         if (error) throw error;
         return NextResponse.json({ ok: true });
       }
 
       case 'change_plan': {
-        const { userId, plano } = payload;
-        const { data: perfil } = await getSupabaseAdmin()
-          .from('usuarios').select('diagnostico').eq('id', userId).single();
-        await getSupabaseAdmin().from('usuarios').update({
-          plano,
-          diagnostico: { ...perfil?.diagnostico, _activePlan: plano }
-        }).eq('id', userId);
+        const userId = String(payload?.userId || '');
+        const plano = String(payload?.plano || '');
+        const PLANOS_VALIDOS = ['free', 'essencial', 'pro'];
+        if (!userId || !PLANOS_VALIDOS.includes(plano)) {
+          return NextResponse.json({ error: 'Parâmetros inválidos' }, { status: 400 });
+        }
+        const { data: perfil } = await admin
+          .from('usuarios')
+          .select('diagnostico')
+          .eq('id', userId)
+          .single();
+        await admin
+          .from('usuarios')
+          .update({
+            plano,
+            diagnostico: { ...perfil?.diagnostico, _activePlan: plano },
+          })
+          .eq('id', userId);
         return NextResponse.json({ ok: true });
       }
 
       case 'stats': {
-        const { data: { users } } = await getSupabaseAdmin().auth.admin.listUsers();
-        const { data: perfis } = await getSupabaseAdmin().from('usuarios').select('plano');
-        const { data: agendamentos } = await getSupabaseAdmin().from('agendamentos').select('id, status');
-        const { data: notifs } = await getSupabaseAdmin().from('notificacoes').select('id');
+        const { data: { users } } = await admin.auth.admin.listUsers();
+        const { data: perfis } = await admin.from('usuarios').select('plano');
+        const { data: agendamentos } = await admin.from('agendamentos').select('id, status');
+        const { data: notifs } = await admin.from('notificacoes').select('id');
 
         const planos = { free: 0, essencial: 0, pro: 0 };
-        (perfis || []).forEach((p: any) => { const k = p.plano as keyof typeof planos; if (k in planos) planos[k]++; });
+        (perfis || []).forEach((p: any) => {
+          const k = p.plano as keyof typeof planos;
+          if (k in planos) planos[k]++;
+        });
 
         return NextResponse.json({
           totalUsuarios: users.length,
@@ -89,17 +136,33 @@ export async function POST(req: NextRequest) {
       }
 
       case 'send_notification': {
-        const { userId, titulo, texto, icon, todos } = payload;
+        const { userId, titulo, texto, icon, todos } = payload || {};
+        if (!titulo || !texto) {
+          return NextResponse.json({ error: 'titulo e texto obrigatórios' }, { status: 400 });
+        }
         if (todos) {
-          const { data: { users } } = await getSupabaseAdmin().auth.admin.listUsers();
-          await Promise.all(users.map(u =>
-            getSupabaseAdmin().from('notificacoes').insert({
-              user_id: u.id, icon: icon || '📢', titulo, texto, action: 'inicio'
-            })
-          ));
+          const { data: { users } } = await admin.auth.admin.listUsers();
+          await Promise.all(
+            users.map(u =>
+              admin.from('notificacoes').insert({
+                user_id: u.id,
+                icon: icon || '📢',
+                titulo,
+                texto,
+                action: 'inicio',
+              }),
+            ),
+          );
         } else {
-          await getSupabaseAdmin().from('notificacoes').insert({
-            user_id: userId, icon: icon || '📢', titulo, texto, action: 'inicio'
+          if (!userId) {
+            return NextResponse.json({ error: 'userId obrigatório' }, { status: 400 });
+          }
+          await admin.from('notificacoes').insert({
+            user_id: userId,
+            icon: icon || '📢',
+            titulo,
+            texto,
+            action: 'inicio',
           });
         }
         return NextResponse.json({ ok: true });
@@ -110,6 +173,6 @@ export async function POST(req: NextRequest) {
     }
   } catch (err: any) {
     console.error('Admin API error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

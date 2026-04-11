@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { apiFetch } from '@/lib/apiClient';
 
 export default function SectionHistorico({ userId, answers }: any) {
   const [entries,   setEntries]   = useState<any[]>([]);
@@ -43,9 +44,8 @@ export default function SectionHistorico({ userId, answers }: any) {
   const gerarResumoIA = async (tr: any[], ad: any[]) => {
     setGerandoIA(true);
     try {
-      const res = await fetch('/api/ia', {
+      const res = await apiFetch('/api/ia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system: 'Você é o Coach IA da Nuvita. Crie um resumo conciso do histórico do usuário em 2 parágrafos. Destaque padrões, conquistas e áreas de melhoria.',
           messages: [{ role: 'user', content: `Histórico: ${tr.length} registros de tracker, ${ad.filter(a=>a.aplicado).length}/${ad.length} dias de adesão ao protocolo. Peso: ${tr.filter(e=>e.peso)[0]?.peso || 'não registrado'}kg inicial, ${tr.filter(e=>e.peso).slice(-1)[0]?.peso || 'não registrado'}kg atual. Energia média: ${tr.length ? (tr.reduce((s,e)=>s+(e.energia||0),0)/tr.length).toFixed(1) : '?'}/10.` }],

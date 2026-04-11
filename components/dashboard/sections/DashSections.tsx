@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { QuizAnswers, ObjectiveKey } from '@/types';
 import { OBJECTIVE_LABELS } from '@/types';
 import { CALC_PEPTIDES } from '@/lib/peptides';
+import { apiFetch } from '@/lib/apiClient';
 
 /* ── Sugestões IA ── */
 const IA_SUGGESTIONS = [
@@ -34,8 +35,8 @@ export function SectionIA({ answers, objs }: IAProps) {
     setLoading(true);
     try {
       const objetivos = objs.map(o => OBJECTIVE_LABELS[o]).join(', ');
-      const res = await fetch('/api/ia', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+      const res = await apiFetch('/api/ia', {
+        method:'POST',
         body: JSON.stringify({
           system:`Você é a IA Nuvita, especialista em peptídeos. Usuário: objetivos=${objetivos}, peso=${answers.peso ?? 75}kg. Responda em português, seja direto e útil. Sobre onde comprar: fale sobre pureza ≥98%, laudo COA, farmácia de manipulação. Não indique marcas. Não substitui avaliação médica.`,
           messages:[{role:'user',content:msg}],

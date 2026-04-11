@@ -2,17 +2,35 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-const TOKEN = process.env.NEXT_PUBLIC_ADMIN_TOKEN || 'nuvita_admin_2026';
+// IMPORTANTE: o token de admin é digitado pelo usuário no login e mantido
+// SOMENTE em sessionStorage. Nunca mais é exposto via NEXT_PUBLIC_* no bundle.
+// O servidor (rota /api/admin) compara contra ADMIN_TOKEN (env server-only)
+// usando timingSafeEqual.
+const SS_KEY = 'nv_admin_token';
 
 const PLAN_COLOR = { free:'#6B7280', essencial:'#0F6E56', pro:'#7C3AED' };
 const PLAN_BG    = { free:'#F3F4F6', essencial:'#DCFCE7', pro:'#F5F3FF' };
 
+function getStoredToken(): string {
+  if (typeof window === 'undefined') return '';
+  return sessionStorage.getItem(SS_KEY) || '';
+}
+
 async function api(action: string, payload?: any) {
+  const token = getStoredToken();
   const res = await fetch('/api/admin', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: TOKEN, action, payload }),
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'x-admin-token': token } : {}),
+    },
+    body: JSON.stringify({ action, payload }),
   });
+  if (res.status === 401) {
+    sessionStorage.removeItem(SS_KEY);
+    sessionStorage.removeItem('nv_admin');
+    if (typeof window !== 'undefined') window.location.reload();
+  }
   return res.json();
 }
 
@@ -42,9 +60,31 @@ export default function AdminPanel() {
     if (auth) { carregarStats(); carregarUsuarios(); }
   }, [auth]);
 
-  const login = () => {
-    if (senha === TOKEN) { setAuth(true); sessionStorage.setItem('nv_admin','1'); }
-    else { setSenhaErro(true); setTimeout(() => setSenhaErro(false), 2000); }
+  const login = async () => {
+    // Valida o token contra o servidor (constant-time) ANTES de aceitar.
+    // O token nunca é exposto via NEXT_PUBLIC_*; só vive em sessionStorage
+    // depois que o servidor confirmou que é válido.
+    if (!senha) { setSenhaErro(true); return; }
+    sessionStorage.setItem(SS_KEY, senha);
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': senha },
+        body: JSON.stringify({ action: 'stats' }),
+      });
+      if (res.ok) {
+        setAuth(true);
+        sessionStorage.setItem('nv_admin', '1');
+      } else {
+        sessionStorage.removeItem(SS_KEY);
+        setSenhaErro(true);
+        setTimeout(() => setSenhaErro(false), 2000);
+      }
+    } catch {
+      sessionStorage.removeItem(SS_KEY);
+      setSenhaErro(true);
+      setTimeout(() => setSenhaErro(false), 2000);
+    }
   };
 
   const carregarStats = async () => {

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loadSession, saveSession } from '@/lib/session';
 import { buildProtocol } from '@/lib/peptides';
+import { apiFetch } from '@/lib/apiClient';
 
 interface PeptideoRevisao {
   n: string; e: string; m: string; why?: string;
@@ -113,9 +114,8 @@ export default function RevisaoShell() {
       const jaEnviou = localStorage.getItem('nv_bv_email');
       if (!jaEnviou && session.user.email) {
         localStorage.setItem('nv_bv_email', '1');
-        fetch('/api/email', {
+        apiFetch('/api/email', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             tipo: 'boas-vindas',
             email: session.user.email,
@@ -149,9 +149,8 @@ export default function RevisaoShell() {
     if (!item || aiText) return;
     setAiLoading(true);
     try {
-      const res = await fetch('/api/ia', {
+      const res = await apiFetch('/api/ia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system: 'Especialista em peptídeos. Responda em português, direto e empático.',
           messages: [{ role: 'user', content: `Em 2 frases, por que ${item.n} foi incluído para: ${answers.q3?.join(', ')}?` }],
