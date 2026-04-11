@@ -396,6 +396,40 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
           </a>
         </div>
 
+
+        {/* ══ BANNER IA ══ */}
+        <div style={{ gridColumn:'1/-1', background:'linear-gradient(135deg, #0F1A2E 0%, #1A2F4A 50%, #0F2A1A 100%)', borderRadius:18, padding:'1.5rem 2rem', display:'flex', alignItems:'center', gap:'1.5rem', boxShadow:'0 4px 20px rgba(0,0,0,.12)', cursor:'pointer', transition:'transform .15s', position:'relative', overflow:'hidden' }}
+          onClick={() => onNavigate('ia')}
+          onMouseEnter={e => e.currentTarget.style.transform='translateY(-2px)'}
+          onMouseLeave={e => e.currentTarget.style.transform='none'}>
+          <div style={{ position:'absolute', top:-40, right:-40, width:180, height:180, borderRadius:'50%', background:'radial-gradient(circle, rgba(34,197,94,.25) 0%, transparent 70%)', pointerEvents:'none' }}/>
+          <div style={{ width:56, height:56, borderRadius:16, background:'rgba(34,197,94,.15)', border:'1px solid rgba(34,197,94,.3)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.8rem', flexShrink:0 }}>🧬</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+              <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'#22C55E', background:'rgba(34,197,94,.15)', padding:'2px 8px', borderRadius:100 }}>IA Especialista</div>
+              <div style={{ width:6, height:6, borderRadius:'50%', background:'#22C55E' }}/>
+            </div>
+            <div style={{ fontSize:15, fontWeight:600, color:'white', marginBottom:4, letterSpacing:'-.02em' }}>Converse com sua IA especialista em peptídeos</div>
+            <div style={{ fontSize:12, color:'rgba(255,255,255,.6)', lineHeight:1.6 }}>Treinada exclusivamente para peptídeos terapêuticos. Tira dúvidas sobre dose, timing, combinações e muito mais — de forma personalizada para o seu protocolo.</div>
+          </div>
+          <div style={{ flexShrink:0, fontSize:13, fontWeight:500, color:'#22C55E' }}>Conversar →</div>
+        </div>
+
+        {/* ══ BANNER APRENDIZADO ══ */}
+        <div style={{ gridColumn:'1/-1', background:'white', borderRadius:18, padding:'1.5rem 2rem', display:'flex', alignItems:'center', gap:'1.5rem', boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', cursor:'pointer', transition:'transform .15s', border:'1px solid var(--border)', position:'relative', overflow:'hidden' }}
+          onClick={() => onNavigate('lib')}
+          onMouseEnter={e => e.currentTarget.style.transform='translateY(-2px)'}
+          onMouseLeave={e => e.currentTarget.style.transform='none'}>
+          <div style={{ position:'absolute', top:-20, right:60, width:120, height:120, borderRadius:'50%', background:'radial-gradient(circle, rgba(124,58,237,.08) 0%, transparent 70%)', pointerEvents:'none' }}/>
+          <div style={{ width:56, height:56, borderRadius:16, background:'#F5F3FF', border:'1px solid #DDD6FE', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.8rem', flexShrink:0 }}>📚</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'#7C3AED', marginBottom:4 }}>Plataforma de Estudo</div>
+            <div style={{ fontSize:15, fontWeight:600, color:'var(--tx)', marginBottom:4, letterSpacing:'-.02em' }}>Aprenda com profundidade sobre peptídeos</div>
+            <div style={{ fontSize:12, color:'var(--ts)', lineHeight:1.6 }}>Uma plataforma de aprendizado completa. Acesse a Biblioteca com mais de 20 peptídeos documentados, pesquisas e guias práticos para usar com segurança e estratégia.</div>
+          </div>
+          <div style={{ flexShrink:0, fontSize:13, fontWeight:500, color:'#7C3AED' }}>Explorar →</div>
+        </div>
+
               </div>
     </>
   );

@@ -160,7 +160,8 @@ export default function DashboardShell() {
         } catch(e) { router.replace('/diagnostico'); return; }
       }
 
-      const boasVindasVisto = sessionStorage.getItem('nv_boas_vindas');
+      // Modal só aparece UMA vez por conta (localStorage persiste entre sessões)
+      const boasVindasVisto = localStorage.getItem('nv_boas_vindas_' + session.user.id);
       if (!boasVindasVisto) setShowBoasVindas(true);
       setReady(true);
     };

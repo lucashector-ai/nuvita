@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 interface Props {
   nome: string;
+  userId?: string;
   onClose: (temPeptideo: boolean) => void;
 }
 
@@ -14,7 +15,7 @@ const FONTES = [
   { ico:'👨‍⚕️', titulo:'Via médico', desc:'Médicos de medicina integrativa podem prescrever e indicar farmácias de manipulação ou importadoras.' },
 ];
 
-export default function BoasVindasModal({ nome, onClose }: Props) {
+export default function BoasVindasModal({ nome, userId, onClose }: Props) {
   const [step, setStep] = useState<'welcome'|'nao_tem'>('welcome');
 
   return (
@@ -38,7 +39,10 @@ export default function BoasVindasModal({ nome, onClose }: Props) {
                 Você já tem os peptídeos em mãos?
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                <button onClick={() => onClose(true)}
+                <button onClick={() => {
+                  if (userId) localStorage.setItem('nv_boas_vindas_' + userId, '1');
+                  onClose(true);
+                }}
                   style={{ padding:'12px 16px', borderRadius:12, border:'2px solid var(--green)', background:'var(--gp)', cursor:'pointer', fontFamily:'inherit', fontSize:14, fontWeight:500, color:'var(--gm)', display:'flex', alignItems:'center', gap:10 }}>
                   <span style={{ fontSize:'1.3rem' }}>✅</span>
                   <div style={{ textAlign:'left' }}>
@@ -83,7 +87,9 @@ export default function BoasVindasModal({ nome, onClose }: Props) {
             <div style={{ background:'var(--gp)', border:'1px solid rgba(29,158,117,.2)', borderRadius:12, padding:'1rem 1.25rem', marginBottom:'1.5rem', fontSize:12, color:'var(--gm)', lineHeight:1.65 }}>
               💡 Entre na comunidade do WhatsApp da Nuvita para receber indicações de fornecedores confiáveis.
             </div>
-            <button onClick={() => onClose(false)} className="btn btn-d fw" style={{ fontSize:14, padding:'13px' }}>
+            <button onClick={() => onClose(false)} className="btn btn-d fw" style={{ fontSize:14, padding:'13px' }} onClick={() => {
+              if (userId) localStorage.setItem('nv_boas_vindas_' + userId, '1');
+            }}>
               Entendi — vou acessar a plataforma
             </button>
           </>
