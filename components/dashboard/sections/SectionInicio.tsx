@@ -360,7 +360,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
         </div>
 
         {/* ══ BANNER IA ══ */}
-        <div style={{ gridColumn:'1/-1', background:'linear-gradient(135deg, #0F1A2E 0%, #1A2F4A 50%, #0F2A1A 100%)', borderRadius:18, padding:'1.5rem 2rem', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'1rem', boxShadow:'0 4px 20px rgba(0,0,0,.12)', cursor:'pointer', transition:'transform .15s', position:'relative', overflow:'hidden' }}
+        <div style={{ background:'linear-gradient(135deg, #0F1A2E 0%, #1A2F4A 50%, #0F2A1A 100%)', borderRadius:18, padding:'1.5rem 2rem', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'1rem', boxShadow:'0 4px 20px rgba(0,0,0,.12)', cursor:'pointer', transition:'transform .15s', position:'relative', overflow:'hidden' }}
           onClick={() => onNavigate('ia')}
           onMouseEnter={e => e.currentTarget.style.transform='translateY(-2px)'}
           onMouseLeave={e => e.currentTarget.style.transform='none'}>
@@ -378,7 +378,7 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
         </div>
 
         {/* ══ BANNER APRENDIZADO ══ */}
-        <div style={{ gridColumn:'1/-1', background:'white', borderRadius:18, padding:'1.5rem 2rem', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'1rem', boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', cursor:'pointer', transition:'transform .15s', border:'1px solid var(--border)', position:'relative', overflow:'hidden' }}
+        <div style={{ background:'white', borderRadius:18, padding:'1.5rem 2rem', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'1rem', boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)', cursor:'pointer', transition:'transform .15s', border:'1px solid var(--border)', position:'relative', overflow:'hidden' }}
           onClick={() => onNavigate('lib')}
           onMouseEnter={e => e.currentTarget.style.transform='translateY(-2px)'}
           onMouseLeave={e => e.currentTarget.style.transform='none'}>

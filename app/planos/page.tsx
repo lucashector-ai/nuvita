@@ -331,30 +331,39 @@ function PlanosContent() {
               }}>{p.desc}</div>
 
               <button
-                onClick={() => !ehPlanoAtual && selecionarPlano(p.id)}
-                disabled={!!loading || ehPlanoAtual}
+                onClick={() => {
+                  if (ehPlanoAtual && p.id === 'free') { selecionarPlano('free'); return; }
+                  if (!ehPlanoAtual) selecionarPlano(p.id);
+                }}
+                disabled={!!loading || (ehPlanoAtual && p.id !== 'free')}
                 style={{
                   width: "100%", padding: "12px",
                   borderRadius: 12, border: "none",
-                  cursor: (loading || ehPlanoAtual) ? "not-allowed" : "pointer",
+                  cursor: (loading || (ehPlanoAtual && p.id !== 'free')) ? "not-allowed" : "pointer",
                   fontFamily: "inherit", fontSize: 14, fontWeight: 600, marginBottom: "1.25rem",
-                  background: ehPlanoAtual
-                    ? "#DCFCE7"
-                    : p.destaque ? "white" : p.cor,
-                  color: ehPlanoAtual
-                    ? "#15803D"
-                    : p.destaque ? "#111827" : "white",
+                  background: (ehPlanoAtual && p.id === 'free')
+                    ? "#22C55E"
+                    : ehPlanoAtual
+                      ? "#DCFCE7"
+                      : p.destaque ? "white" : p.cor,
+                  color: (ehPlanoAtual && p.id === 'free')
+                    ? "white"
+                    : ehPlanoAtual
+                      ? "#15803D"
+                      : p.destaque ? "#111827" : "white",
                   opacity: loading && !isLoading ? 0.6 : 1,
                   transition: "opacity .15s",
                 }}
               >
                 {isLoading
                   ? "Aguarde..."
-                  : ehPlanoAtual
-                    ? "Plano atual"
-                    : preco === 0
-                      ? "Começar grátis →"
-                      : `Assinar ${p.nome} →`}
+                  : ehPlanoAtual && p.id === 'free'
+                    ? "Continuar na plataforma →"
+                    : ehPlanoAtual
+                      ? "Plano atual"
+                      : preco === 0
+                        ? "Começar grátis →"
+                        : `Assinar ${p.nome} →`}
               </button>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
