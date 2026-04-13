@@ -117,6 +117,100 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
         ))}
       </div>
 
+      {/* ══ CRONOGRAMA DO CICLO ══ */}
+      {(() => {
+        const protIA = answers._protocoloIA ? (() => { try { return JSON.parse(answers._protocoloIA); } catch { return null; } })() : null;
+        const totalSemanas = dur === '4sem' ? 4 : dur === '8sem' ? 8 : dur === '12sem' ? 12 : 24;
+        const fases = [
+          { semanas: [1, Math.floor(totalSemanas * 0.2)], titulo: 'Adaptação', cor: '#F59E0B', bg: '#FEF3C7', desc: 'O corpo se ajusta ao peptídeo. Possível leve desconforto ou variação de energia.' },
+          { semanas: [Math.floor(totalSemanas * 0.2) + 1, Math.floor(totalSemanas * 0.5)], titulo: 'Ativação', cor: '#0EA5E9', bg: '#E0F2FE', desc: 'O protocolo começa a agir. Primeiros sinais de resposta — mais disposição, menos apetite.' },
+          { semanas: [Math.floor(totalSemanas * 0.5) + 1, Math.floor(totalSemanas * 0.8)], titulo: 'Resultado', cor: '#1D9E75', bg: '#E1F5EE', desc: 'Fase principal de resultados. O corpo está respondendo plenamente ao protocolo.' },
+          { semanas: [Math.floor(totalSemanas * 0.8) + 1, totalSemanas], titulo: 'Consolidação', cor: '#7C3AED', bg: '#EDE9FE', desc: 'Resultados se consolidam. Planeje a pausa para manter a sensibilidade.' },
+        ];
+        return (
+          <div style={{ background:'white', borderRadius:16, padding:'1.5rem', marginBottom:'1.5rem', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
+            <div style={{ fontSize:12, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>
+              📅 Cronograma do ciclo — {totalSemanas} semanas
+            </div>
+            {/* Barra visual */}
+            <div style={{ display:'flex', gap:2, marginBottom:'1rem', borderRadius:8, overflow:'hidden', height:12 }}>
+              {fases.map((f, i) => (
+                <div key={i} style={{ flex: f.semanas[1] - f.semanas[0] + 1, background: f.cor, opacity:.8 }}/>
+              ))}
+            </div>
+            {/* Fases */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
+              {fases.map((f, i) => (
+                <div key={i} style={{ background:f.bg, borderRadius:10, padding:'10px 12px' }}>
+                  <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.06em', color:f.cor, marginBottom:3 }}>
+                    Sem {f.semanas[0]}–{f.semanas[1]}
+                  </div>
+                  <div style={{ fontSize:12, fontWeight:600, color:'var(--tx)', marginBottom:4 }}>{f.titulo}</div>
+                  <div style={{ fontSize:11, color:'var(--tm)', lineHeight:1.5 }}>{f.desc}</div>
+                </div>
+              ))}
+            </div>
+            {/* Orientações do protocolo IA */}
+            {protIA && (protIA.orientacaoAlimentar || protIA.orientacaoTreino) && (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginTop:'1rem' }}>
+                {protIA.orientacaoAlimentar && (
+                  <div style={{ background:'#F0FDF4', borderRadius:10, padding:'1rem' }}>
+                    <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.06em', color:'#1D9E75', marginBottom:6 }}>🥗 Alimentação</div>
+                    <div style={{ fontSize:12, color:'#065F46', lineHeight:1.6 }}>{protIA.orientacaoAlimentar}</div>
+                  </div>
+                )}
+                {protIA.orientacaoTreino && (
+                  <div style={{ background:'#EFF6FF', borderRadius:10, padding:'1rem' }}>
+                    <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.06em', color:'#1D40AF', marginBottom:6 }}>🏋️ Treino</div>
+                    <div style={{ fontSize:12, color:'#1E40AF', lineHeight:1.6 }}>{protIA.orientacaoTreino}</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ══ O QUE ESPERAR ══ */}
+      {(() => {
+        const OBJ_EXPECT: Record<string, { semana: string; item: string }[]> = {
+          gordura: [
+            { semana: 'Semana 1-2', item: 'Redução do apetite — começa a sentir saciedade mais rápido' },
+            { semana: 'Semana 3-4', item: 'Primeiros resultados na balança — 1-3 kg dependendo da dieta' },
+            { semana: 'Semana 5-8', item: 'Perda consistente — 0.5-1 kg por semana com déficit calórico' },
+            { semana: 'Semana 8+', item: 'Recomposição corporal visível — menos gordura, mais definição' },
+          ],
+          massa: [
+            { semana: 'Semana 1-2', item: 'Melhora do sono — sono mais profundo e reparador' },
+            { semana: 'Semana 2-4', item: 'Recuperação mais rápida após treinos' },
+            { semana: 'Semana 4-8', item: 'Ganho de força e resistência mensurável' },
+            { semana: 'Semana 8+', item: 'Ganho de massa magra visível com treino adequado' },
+          ],
+          recuperacao: [
+            { semana: 'Semana 1', item: 'Redução da inflamação e dor crônica' },
+            { semana: 'Semana 2-3', item: 'Melhora da mobilidade e amplitude de movimento' },
+            { semana: 'Semana 3-6', item: 'Regeneração de tecidos — tendões, ligamentos, músculos' },
+            { semana: 'Semana 6+', item: 'Funcionalidade restaurada e proteção contra novas lesões' },
+          ],
+        };
+        const expectativas = OBJ_EXPECT[objs[0]] || OBJ_EXPECT.gordura;
+        return (
+          <div style={{ background:'white', borderRadius:16, padding:'1.5rem', marginBottom:'1.5rem', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
+            <div style={{ fontSize:12, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:'1rem' }}>
+              📈 O que esperar ao longo do ciclo
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {expectativas.map((e, i) => (
+                <div key={i} style={{ display:'flex', gap:12, padding:'10px 14px', background:'#F9FAFB', borderRadius:10, alignItems:'flex-start' }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:'#1D9E75', minWidth:90, paddingTop:1 }}>{e.semana}</div>
+                  <div style={{ fontSize:13, color:'var(--tx)', lineHeight:1.5 }}>{e.item}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* MODO TIMELINE */}
       {modo === 'timeline' && (
         <div style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
@@ -267,115 +361,6 @@ export default function SectionProtocolo({ answers, items, peso, objs, dur, nive
           ))}
         </div>
       )}
-
-      {/* ══ SEÇÕES EXTRAS COLAPSÁVEIS ══ */}
-      {[
-        {
-          id: 'cron',
-          titulo: '📅 Cronograma do ciclo',
-          desc: 'Veja as fases e o que acontece semana a semana',
-          conteudo: (() => {
-            const protIA = answers._protocoloIA ? (() => { try { return JSON.parse(answers._protocoloIA); } catch { return null; } })() : null;
-            const totalSemanas = dur === '4sem' ? 4 : dur === '8sem' ? 8 : dur === '12sem' ? 12 : 24;
-            const fases = [
-              { semanas: [1, Math.floor(totalSemanas * 0.2)], titulo: 'Adaptação', cor: '#F59E0B', bg: '#FEF3C7', desc: 'O corpo se ajusta ao peptídeo.' },
-              { semanas: [Math.floor(totalSemanas * 0.2) + 1, Math.floor(totalSemanas * 0.5)], titulo: 'Ativação', cor: '#0EA5E9', bg: '#E0F2FE', desc: 'Primeiros sinais de resposta.' },
-              { semanas: [Math.floor(totalSemanas * 0.5) + 1, Math.floor(totalSemanas * 0.8)], titulo: 'Resultado', cor: '#1D9E75', bg: '#E1F5EE', desc: 'Fase principal de resultados.' },
-              { semanas: [Math.floor(totalSemanas * 0.8) + 1, totalSemanas], titulo: 'Consolidação', cor: '#7C3AED', bg: '#EDE9FE', desc: 'Resultados se consolidam.' },
-            ];
-            return (
-              <div>
-                <div style={{ display:'flex', gap:2, marginBottom:'1rem', borderRadius:6, overflow:'hidden', height:8 }}>
-                  {fases.map((f,i) => <div key={i} style={{ flex: f.semanas[1]-f.semanas[0]+1, background:f.cor }}/>)}
-                </div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, marginBottom: protIA?.orientacaoAlimentar ? '1rem' : 0 }}>
-                  {fases.map((f,i) => (
-                    <div key={i} style={{ background:f.bg, borderRadius:10, padding:'10px 12px' }}>
-                      <div style={{ fontSize:10, fontWeight:700, color:f.cor, marginBottom:3 }}>Sem {f.semanas[0]}–{f.semanas[1]}</div>
-                      <div style={{ fontSize:12, fontWeight:600, color:'var(--tx)', marginBottom:4 }}>{f.titulo}</div>
-                      <div style={{ fontSize:11, color:'var(--tm)', lineHeight:1.5 }}>{f.desc}</div>
-                    </div>
-                  ))}
-                </div>
-                {protIA && (protIA.orientacaoAlimentar || protIA.orientacaoTreino) && (
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                    {protIA.orientacaoAlimentar && (
-                      <div style={{ background:'#F0FDF4', borderRadius:10, padding:'1rem' }}>
-                        <div style={{ fontSize:10, fontWeight:700, color:'#1D9E75', marginBottom:6 }}>🥗 Alimentação</div>
-                        <div style={{ fontSize:12, color:'#065F46', lineHeight:1.6 }}>{protIA.orientacaoAlimentar}</div>
-                      </div>
-                    )}
-                    {protIA.orientacaoTreino && (
-                      <div style={{ background:'#EFF6FF', borderRadius:10, padding:'1rem' }}>
-                        <div style={{ fontSize:10, fontWeight:700, color:'#1E40AF', marginBottom:6 }}>🏋️ Treino</div>
-                        <div style={{ fontSize:12, color:'#1E40AF', lineHeight:1.6 }}>{protIA.orientacaoTreino}</div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })(),
-        },
-        {
-          id: 'expect',
-          titulo: '📈 O que esperar',
-          desc: 'Resultados semana a semana para seu objetivo',
-          conteudo: (() => {
-            const OBJ_EXPECT: Record<string, {semana:string;item:string}[]> = {
-              gordura: [
-                { semana:'Semana 1-2', item:'Redução do apetite — saciedade mais rápida' },
-                { semana:'Semana 3-4', item:'Primeiros resultados na balança — 1-3 kg' },
-                { semana:'Semana 5-8', item:'Perda consistente — 0.5-1 kg por semana' },
-                { semana:'Semana 8+',  item:'Recomposição corporal visível' },
-              ],
-              massa: [
-                { semana:'Semana 1-2', item:'Melhora do sono e recuperação' },
-                { semana:'Semana 2-4', item:'Recuperação mais rápida pós-treino' },
-                { semana:'Semana 4-8', item:'Ganho de força mensurável' },
-                { semana:'Semana 8+',  item:'Ganho de massa magra visível' },
-              ],
-              recuperacao: [
-                { semana:'Semana 1',   item:'Redução da inflamação e dor' },
-                { semana:'Semana 2-3', item:'Melhora da mobilidade' },
-                { semana:'Semana 3-6', item:'Regeneração tecidual ativa' },
-                { semana:'Semana 6+',  item:'Funcionalidade restaurada' },
-              ],
-            };
-            const exp = OBJ_EXPECT[objs[0]] || OBJ_EXPECT.gordura;
-            return (
-              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                {exp.map((e,i) => (
-                  <div key={i} style={{ display:'flex', gap:12, padding:'10px 14px', background:'#F9FAFB', borderRadius:10 }}>
-                    <div style={{ fontSize:11, fontWeight:700, color:'#1D9E75', minWidth:90 }}>{e.semana}</div>
-                    <div style={{ fontSize:13, color:'var(--tx)' }}>{e.item}</div>
-                  </div>
-                ))}
-              </div>
-            );
-          })(),
-        },
-      ].map(sec => {
-        const [open, setOpen] = useState(false);
-        return (
-          <div key={sec.id} style={{ background:'white', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.06)', marginBottom:8 }}>
-            <button onClick={() => setOpen(p=>!p)}
-              style={{ width:'100%', padding:'1rem 1.25rem', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'space-between', textAlign:'left' }}>
-              <div>
-                <div style={{ fontSize:14, fontWeight:600, color:'var(--tx)' }}>{sec.titulo}</div>
-                <div style={{ fontSize:12, color:'var(--ts)', marginTop:2 }}>{sec.desc}</div>
-              </div>
-              <div style={{ fontSize:18, color:'var(--ts)', transform:open?'rotate(180deg)':'none', transition:'transform .2s' }}>⌄</div>
-            </button>
-            {open && (
-              <div style={{ padding:'0 1.25rem 1.25rem' }}>
-                {sec.conteudo}
-              </div>
-            )}
-          </div>
-        );
-      })}
-
 
       <div className="disc" style={{ marginTop:'1.25rem', display:'flex', alignItems:'flex-start', gap:9 }}>
         <svg width="15" height="15" fill="none" viewBox="0 0 15 15" style={{ flexShrink:0, marginTop:1 }}>
