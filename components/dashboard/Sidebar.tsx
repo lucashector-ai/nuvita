@@ -168,7 +168,7 @@ export default function Sidebar(props: Props) {
     borderRight: `1px solid ${C.border}`,
     display: 'flex',
     flexDirection: 'column',
-    transition: 'width 0.22s cubic-bezier(.4,0,.2,1)',
+    transition: 'width 320ms cubic-bezier(0.22, 1, 0.36, 1)',
     overflow: 'hidden',
   };
 
@@ -198,7 +198,7 @@ export default function Sidebar(props: Props) {
         className="nv-sidebar-spacer"
         style={{
           width, minWidth: width, flexShrink: 0,
-          transition: 'width 0.22s cubic-bezier(.4,0,.2,1)',
+          transition: 'width 320ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
         aria-hidden
       />
@@ -300,7 +300,7 @@ export default function Sidebar(props: Props) {
                       onMouseOver={(e) => (e.currentTarget.style.background = C.bg2)}
                       onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
-                      <span>{group.label}</span>
+                      <span style={{ opacity: expanded ? 1 : 0, transition: 'opacity 180ms ease-out', transitionDelay: expanded ? '120ms' : '0ms' }}>{group.label}</span>
                       <svg
                         width="10"
                         height="10"
@@ -396,7 +396,7 @@ function NavItem({
     letterSpacing: '-0.005em',
     cursor: 'pointer',
     textAlign: 'left',
-    transition: 'background 0.12s',
+    transition: 'background 160ms ease-out, color 160ms ease-out',
   };
 
   return (
@@ -422,6 +422,9 @@ function NavItem({
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
+              opacity: expanded ? 1 : 0,
+              transition: 'opacity 180ms ease-out',
+              transitionDelay: expanded ? '120ms' : '0ms',
             }}
           >
             {item.label}
