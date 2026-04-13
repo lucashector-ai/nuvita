@@ -139,7 +139,7 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
     });
   }, []);
 
-  const filtradosLimitados = peptideos.filter(p => {
+  const filtrados = peptideos.filter(p => {
     const matchBusca = !busca ||
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
       p.resumo?.toLowerCase().includes(busca.toLowerCase()) ||
@@ -147,15 +147,17 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
     const matchCat = catFiltro === 'Todos' || p.categoria === catFiltro;
     return matchBusca && matchCat;
   });
+
+  // Limite free: mostra apenas 2 peptideos pra nao-pro
   const FREE_LIMIT = 2;
   const isProPlano = plano === 'pro';
-  const filtradosLimitados = isProPlano ? filtradosLimitados : filtradosLimitados.slice(0, FREE_LIMIT);
-  const bloqueadosCount = isProPlano ? 0 : Math.max(0, filtradosLimitados.length - FREE_LIMIT);
+  const peptideosVisiveis = isProPlano ? peptideosVisiveis : peptideosVisiveis.slice(0, FREE_LIMIT);
+  const bloqueadosCount = isProPlano ? 0 : Math.max(0, peptideosVisiveis.length - FREE_LIMIT);
 
 
   // Agrupa por categoria
   const categorias = catFiltro === 'Todos'
-    ? CATEGORIAS.filter(c => c !== 'Todos' && filtradosLimitados.some(p => p.categoria === c))
+    ? CATEGORIAS.filter(c => c !== 'Todos' && peptideosVisiveis.some(p => p.categoria === c))
     : [catFiltro];
 
   return (
@@ -237,14 +239,14 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--ts)', fontSize: 13 }}>
           Carregando biblioteca...
         </div>
-      ) : filtradosLimitados.length === 0 ? (
+      ) : peptideosVisiveis.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--ts)', fontSize: 13 }}>
           Nenhum resultado para "{busca}"
         </div>
       ) : (
         <div>
           {categorias.map(cat => {
-            const items = filtradosLimitados.filter(p => p.categoria === cat);
+            const items = peptideosVisiveis.filter(p => p.categoria === cat);
             if (!items.length) return null;
             return (
               <div key={cat} style={{ marginBottom: '2.5rem' }}>
