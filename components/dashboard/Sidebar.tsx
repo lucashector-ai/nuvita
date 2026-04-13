@@ -35,6 +35,7 @@ const C = {
   muted: '#6B7280',
   subtle: '#9CA3AF',
   border: '#EBEBEB',
+  borderStrong: '#D8D8D8',
   green: '#22C55E',
   greenSoft: '#DCFCE7',
   greenInk: '#15803D',
