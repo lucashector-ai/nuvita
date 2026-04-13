@@ -87,7 +87,7 @@ function CadastroContent() {
   const entrarGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/planos?origem=diagnostico` }
+      options: { redirectTo: `${window.location.origin}${searchParams?.get('next') || (searchParams?.get('plan') ? `/revisao?plan=${searchParams.get('plan')}` : '/planos?origem=diagnostico')}` }
     });
   };
 

@@ -22,7 +22,7 @@ function SucessoContent() {
         <div style={{ fontSize:"3rem", marginBottom:"1rem" }}>✅</div>
         <h2 style={{ fontSize:"1.3rem", fontWeight:500, marginBottom:".5rem" }}>Pagamento confirmado!</h2>
         <p style={{ fontSize:13, color:"#6B7280", marginBottom:"1.5rem" }}>
-          Seu plano foi ativado. Redirecionando para revisar seu protocolo...
+          Seu plano foi ativado. Redirecionando para o painel...
         </p>
       </div>
     </div>

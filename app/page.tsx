@@ -904,7 +904,7 @@ const PLANS = [
       'Rotina personalizada',
     ],
     cta: 'Assinar Essencial',
-    href: '/cadastro?plan=essencial',
+    href: '/diagnostico?plan=essencial',
     highlighted: true,
   },
   {
@@ -915,7 +915,7 @@ const PLANS = [
     tagline: 'Para quem leva a sério',
     features: ['Tudo do Essencial', 'Médico parceiro', 'Relatórios avançados', 'Simulador de ciclos'],
     cta: 'Assinar Pro',
-    href: '/cadastro?plan=pro',
+    href: '/diagnostico?plan=pro',
     highlighted: false,
   },
 ];
