@@ -4,7 +4,7 @@ import { isInternalCaller, getUserFromRequest, unauthorized, forbidden } from '@
 import { rateLimit, getClientIp } from '@/lib/rateLimit';
 import {
   templateBoasVindas, templateDia3, templateSemana1,
-  templateAcompanhamentoSemanal, templateReengajamento, templateFimCiclo, templateRelatorioMensal
+  templateAcompanhamentoSemanal, templateReengajamento, templateFimCiclo
 } from './templates';
 
 const RESEND_KEY = process.env.RESEND_API_KEY;
@@ -62,9 +62,6 @@ export async function POST(req: NextRequest) {
         break;
       case 'fim_ciclo':
         template = templateFimCiclo(nome || 'você', dados?.peptideos || [], dados?.diasPausa || 30);
-        break;
-      case 'relatorio_mensal':
-        template = templateRelatorioMensal(nome || 'você', dados || {});
         break;
       default:
         return NextResponse.json({ error: 'tipo inválido' }, { status: 400 });

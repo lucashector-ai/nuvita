@@ -304,9 +304,6 @@ export default function DashboardShell() {
           userId={userId} answers={answers}
         />
         <div className="d-body">
-          {section==='inicio' && (
-            <ScoreConsistencia userId={userId} semanas={semanas} onNavigate={nav}/>
-          )}
           {section==='inicio'       && <SectionInicio answers={answers} items={itemsIAFiltrado || items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan} protoAtivo={protoAtivo} onStartProto={async()=>{ setProtoAtivo(true); const { supabase } = await import('@/lib/supabase'); await supabase.from('usuarios').update({ diagnostico: { ...answers, _protocoloAtivo: true, _dataInicioProtocolo: new Date().toISOString().split('T')[0] } }).eq('id', userId); }} onNavigate={nav}/>}
           {section==='protocolo'    && <SectionProtocolo answers={answers} items={itemsIAFiltrado || items} peso={peso} objs={objs} dur={dur} nivel={nivel} plan={plan}/>}
           {section==='ia'           && <SectionIA answers={answers} objs={objs}/>}
