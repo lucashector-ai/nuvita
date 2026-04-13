@@ -118,6 +118,15 @@ export default function DashboardShell() {
         router.replace('/cadastro');
         return;
       }
+      // Detecta troca de usuário e limpa storage antigo
+      const storedUserId = localStorage.getItem('nv_current_user');
+      if (storedUserId && storedUserId !== session.user.id) {
+        sessionStorage.clear();
+        Object.keys(localStorage)
+          .filter(k => k.startsWith('nv_') && k !== 'nv_current_user')
+          .forEach(k => localStorage.removeItem(k));
+      }
+      localStorage.setItem('nv_current_user', session.user.id);
       setUserId(session.user.id);
 
       const perfil = await carregarDiagnostico(session.user.id);
