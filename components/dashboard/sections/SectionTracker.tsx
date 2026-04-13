@@ -46,6 +46,98 @@ function SparkLine({ data, cor }: any) {
   );
 }
 
+
+function LineChart({ data, labels, cor, label, unit, height = 120 }: any) {
+  if (!data || data.length < 2) return null;
+  const w = 600, h = height;
+  const pad = { t: 10, r: 20, b: 30, l: 40 };
+  const iw = w - pad.l - pad.r;
+  const ih = h - pad.t - pad.b;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const x = (i: number) => pad.l + (i / (data.length - 1)) * iw;
+  const y = (v: number) => pad.t + (1 - (v - min) / range) * ih;
+  const pts = data.map((v: number, i: number) => `${x(i)},${y(v)}`).join(' ');
+
+  // Linha de tendência linear
+  const n = data.length;
+  const sumX = data.reduce((_: any, __: any, i: number) => _ + i, 0);
+  const sumY = data.reduce((a: number, v: number) => a + v, 0);
+  const sumXY = data.reduce((a: number, v: number, i: number) => a + i * v, 0);
+  const sumX2 = data.reduce((a: number, _: any, i: number) => a + i * i, 0);
+  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  const intercept = (sumY - slope * sumX) / n;
+  const ty1 = intercept;
+  const ty2 = slope * (n - 1) + intercept;
+
+  // Projeção (mais 3 pontos)
+  const proj = [ty2, slope * n + intercept, slope * (n + 1) + intercept, slope * (n + 2) + intercept];
+  const allVals = [...data, ...proj];
+  const minAll = Math.min(...allVals);
+  const maxAll = Math.max(...allVals);
+  const rangeAll = maxAll - minAll || 1;
+  const xp = (i: number) => pad.l + (i / (data.length + 2)) * iw;
+  const yp = (v: number) => pad.t + (1 - (v - minAll) / rangeAll) * ih;
+  const xn = (i: number) => pad.l + (i / (data.length - 1)) * iw;
+  const yn = (v: number) => pad.t + (1 - (v - minAll) / rangeAll) * ih;
+  const ptsN = data.map((v: number, i: number) => `${xn(i)},${yn(v)}`).join(' ');
+  const projPts = proj.map((v, i) => `${xp(data.length - 1 + i)},${yp(v)}`).join(' ');
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--tx)' }}>{label}</div>
+        <div style={{ display: 'flex', gap: 12, fontSize: 10, color: 'var(--ts)' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 16, height: 2, background: cor, display: 'inline-block', borderRadius: 1 }}/>Registrado</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 16, height: 2, background: '#D1D5DB', display: 'inline-block', borderRadius: 1, borderTop: '1px dashed #9CA3AF' }}/>Tendência</span>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
+        {/* Grid */}
+        {[0, 0.25, 0.5, 0.75, 1].map(p => (
+          <line key={p} x1={pad.l} y1={pad.t + p * ih} x2={pad.l + iw} y2={pad.t + p * ih}
+            stroke="#F3F4F6" strokeWidth="1"/>
+        ))}
+        {/* Área */}
+        <defs>
+          <linearGradient id={`g${label}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={cor} stopOpacity="0.15"/>
+            <stop offset="100%" stopColor={cor} stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon points={`${xn(0)},${pad.t + ih} ${ptsN} ${xn(data.length-1)},${pad.t + ih}`}
+          fill={`url(#g${label})`}/>
+        {/* Linha principal */}
+        <polyline points={ptsN} fill="none" stroke={cor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        {/* Linha de tendência */}
+        <line x1={xn(0)} y1={yn(ty1)} x2={xn(data.length-1)} y2={yn(ty2)}
+          stroke="#9CA3AF" strokeWidth="1" strokeDasharray="4,3"/>
+        {/* Projeção */}
+        <polyline points={`${xn(data.length-1)},${yn(ty2)} ${projPts}`}
+          fill="none" stroke="#D1D5DB" strokeWidth="1.5" strokeDasharray="4,3"/>
+        {/* Pontos */}
+        {data.map((v: number, i: number) => (
+          <g key={i}>
+            <circle cx={xn(i)} cy={yn(v)} r="3.5" fill="white" stroke={cor} strokeWidth="2"/>
+          </g>
+        ))}
+        {/* Labels X */}
+        {labels && labels.filter((_: any, i: number) => i % Math.ceil(labels.length / 5) === 0 || i === labels.length - 1).map((l: string, idx: number) => {
+          const origIdx = labels.indexOf(l);
+          return (
+            <text key={idx} x={xn(origIdx)} y={pad.t + ih + 18} textAnchor="middle"
+              fontSize="9" fill="#9CA3AF">{l}</text>
+          );
+        })}
+        {/* Labels Y */}
+        <text x={pad.l - 5} y={pad.t + 4} textAnchor="end" fontSize="9" fill="#9CA3AF">{max.toFixed(unit === 'kg' ? 1 : 0)}{unit}</text>
+        <text x={pad.l - 5} y={pad.t + ih} textAnchor="end" fontSize="9" fill="#9CA3AF">{min.toFixed(unit === 'kg' ? 1 : 0)}{unit}</text>
+      </svg>
+    </div>
+  );
+}
+
 export default function SectionTracker({ userId }: { userId: string | null }) {
   const [tab,     setTab]     = useState<'registrar'|'evolucao'|'fotos'>('registrar');
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -267,7 +359,7 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
       )}
 
       {tab === 'evolucao' && (
-        <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
           {loading ? (
             <div style={{ textAlign:'center', padding:'3rem', color:'var(--ts)', fontSize:13 }}>Carregando registros...</div>
           ) : entries.length === 0 ? (
@@ -278,30 +370,73 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
             </div>
           ) : (
             <>
+              {/* Stats */}
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
-                {[
-                  { label:'Registros', val:entries.length.toString(), icon:'📝' },
-                  { label:'Peso inicial', val:entries[entries.length-1]?.peso?`${entries[entries.length-1].peso} kg`:'—', icon:'⚖️' },
-                  { label:'Peso atual', val:entries[0]?.peso?`${entries[0].peso} kg`:'—', icon:'⚖️' },
-                  { label:'Variação', val:entries[0]?.peso&&entries[entries.length-1]?.peso?`${(entries[0].peso-entries[entries.length-1].peso).toFixed(1)} kg`:'—', icon:'📉' },
-                ].map(s => (
-                  <div key={s.label} style={{ background:'#F7F7F7', border:'none', borderRadius:12, padding:'1rem', textAlign:'center' }}>
-                    <div style={{ fontSize:'1.3rem', marginBottom:4 }}>{s.icon}</div>
-                    <div style={{ fontSize:'1.2rem', fontWeight:500, color:'var(--tx)', letterSpacing:'-.04em' }}>{s.val}</div>
-                    <div style={{ fontSize:10, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.05em', marginTop:2 }}>{s.label}</div>
-                  </div>
-                ))}
+                {(() => {
+                  const pesosOrdenados = [...entries].reverse().filter(e=>e.peso);
+                  const inicial = pesosOrdenados[0]?.peso;
+                  const atual = pesosOrdenados[pesosOrdenados.length-1]?.peso;
+                  const variacao = inicial && atual ? (atual - inicial) : null;
+                  const mediaEnergia = entries.filter(e=>e.energia).length > 0
+                    ? (entries.filter(e=>e.energia).reduce((a,e)=>a+(e.energia||0),0)/entries.filter(e=>e.energia).length).toFixed(1)
+                    : null;
+                  return [
+                    { label:'Registros', val:entries.length.toString(), icon:'📝', cor:'#6B7280' },
+                    { label:'Peso inicial', val:inicial?`${inicial} kg`:'—', icon:'⚖️', cor:'#6B7280' },
+                    { label:'Peso atual', val:atual?`${atual} kg`:'—', icon:'⚖️', cor:'#6B7280' },
+                    { label:'Variação total', val:variacao!==null?`${variacao>0?'+':''}${variacao.toFixed(1)} kg`:'—', icon: variacao!==null&&variacao<0?'📉':'📈', cor:variacao!==null&&variacao<0?'#0F6E56':'#D85A30' },
+                  ].map(s => (
+                    <div key={s.label} style={{ background:'white', borderRadius:12, padding:'1rem', textAlign:'center', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
+                      <div style={{ fontSize:'1.3rem', marginBottom:4 }}>{s.icon}</div>
+                      <div style={{ fontSize:'1.1rem', fontWeight:600, color:s.cor, letterSpacing:'-.03em' }}>{s.val}</div>
+                      <div style={{ fontSize:10, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.05em', marginTop:2 }}>{s.label}</div>
+                    </div>
+                  ));
+                })()}
               </div>
-              <div style={{ background:'#F7F7F7', border:'none', borderRadius:14, overflow:'hidden' }}>
+
+              {/* Gráficos */}
+              {(() => {
+                const rev = [...entries].reverse();
+                const labels = rev.map(e => new Date(e.data).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'}));
+                const pesos = rev.filter(e=>e.peso).map(e=>e.peso!);
+                const pesoLabels = rev.filter(e=>e.peso).map(e => new Date(e.data).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'}));
+                const energias = rev.filter(e=>e.energia).map(e=>e.energia!);
+                const enLabels = rev.filter(e=>e.energia).map(e => new Date(e.data).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'}));
+                const sonos = rev.filter(e=>e.sono).map(e=>e.sono!);
+                const sonoLabels = rev.filter(e=>e.sono).map(e => new Date(e.data).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'}));
+                return (
+                  <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+                    {pesos.length >= 2 && (
+                      <div style={{ background:'white', borderRadius:14, padding:'1.25rem', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
+                        <LineChart data={pesos} labels={pesoLabels} cor="#1D9E75" label="Peso (kg)" unit="kg"/>
+                      </div>
+                    )}
+                    {energias.length >= 2 && (
+                      <div style={{ background:'white', borderRadius:14, padding:'1.25rem', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
+                        <LineChart data={energias} labels={enLabels} cor="#F59E0B" label="Energia (1-10)" unit=""/>
+                      </div>
+                    )}
+                    {sonos.length >= 2 && (
+                      <div style={{ background:'white', borderRadius:14, padding:'1.25rem', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
+                        <LineChart data={sonos} labels={sonoLabels} cor="#7F77DD" label="Sono (1-10)" unit=""/>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Tabela histórico */}
+              <div style={{ background:'white', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
                 <div style={{ padding:'.875rem 1.25rem', borderBottom:'1px solid var(--border)' }}>
                   <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)' }}>Histórico completo</div>
                 </div>
                 <div style={{ overflowX:'auto' }}>
                   <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                     <thead>
-                      <tr style={{ background:'#FFFFFF' }}>
-                        {['Data','Peso','Cintura','Energia','Sono','Nota'].map(h => (
-                          <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:10, fontWeight:600, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em' }}>{h}</th>
+                      <tr>
+                        {['Data','Peso','Energia','Sono','Nota'].map(h => (
+                          <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:10, fontWeight:600, color:'var(--ts)', textTransform:'uppercase', letterSpacing:'.06em', background:'#F9FAFB' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -309,11 +444,10 @@ export default function SectionTracker({ userId }: { userId: string | null }) {
                       {entries.map((e,i) => (
                         <tr key={e.id||i} style={{ borderBottom:'1px solid var(--border)' }}>
                           <td style={{ padding:'10px 14px', color:'var(--ts)' }}>{new Date(e.data).toLocaleDateString('pt-BR')}</td>
-                          <td style={{ padding:'10px 14px', fontWeight:500 }}>{e.peso?`${e.peso} kg`:'—'}</td>
-                          <td style={{ padding:'10px 14px', color:'var(--tm)' }}>{e.cintura?`${e.cintura} cm`:'—'}</td>
-                          <td style={{ padding:'10px 14px' }}>{e.energia?<MiniBar val={e.energia} max={10} cor="#1D9E75"/>:'—'}</td>
+                          <td style={{ padding:'10px 14px', fontWeight:500, color:'#1D9E75' }}>{e.peso?`${e.peso} kg`:'—'}</td>
+                          <td style={{ padding:'10px 14px' }}>{e.energia?<MiniBar val={e.energia} max={10} cor="#F59E0B"/>:'—'}</td>
                           <td style={{ padding:'10px 14px' }}>{e.sono?<MiniBar val={e.sono} max={10} cor="#7F77DD"/>:'—'}</td>
-                          <td style={{ padding:'10px 14px', color:'var(--tm)', fontStyle:e.nota?'italic':'normal' }}>{e.nota||'—'}</td>
+                          <td style={{ padding:'10px 14px', color:'var(--tm)', fontStyle:e.nota?'italic':'normal', maxWidth:200 }}>{e.nota||'—'}</td>
                         </tr>
                       ))}
                     </tbody>
