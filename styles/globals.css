@@ -319,8 +319,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
    DASHBOARD BODY — 2 colunas
 ══════════════════════════════ */
 #main-content { margin-left: var(--sb-w); transition: margin-left .22s cubic-bezier(.4,0,.2,1); }
-.d-body { max-width: var(--W); margin: 0 auto; padding: 1.5rem 2rem 4rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.25rem; align-items: start; }
-@media(max-width:900px) { .d-body { grid-template-columns: 1fr; } }
+.d-body { max-width: var(--W); margin: 0 auto; padding: 1.5rem 2rem 4rem; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.25rem; align-items: start; }
+@media(max-width:900px) { .d-body { grid-template-columns: minmax(0, 1fr) 320px; } }
 @media(max-width:640px) { .d-body { padding: 1rem 1rem 3rem; } }
 
 /* Banner */
@@ -819,7 +819,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 19px;
   .d-body {
     margin-left: 0 !important;
     padding: 1rem 1rem 80px !important;
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) 320px;
     gap: 1rem !important;
   }
 
