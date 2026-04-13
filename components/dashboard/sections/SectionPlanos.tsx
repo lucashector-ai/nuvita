@@ -199,18 +199,18 @@ export default function SectionPlanos({ planoAtual, userId, onPlanChange, onNavi
 
               {/* Botão */}
               <button
-                disabled={atual || isLoading}
-                onClick={() => assinar(p)}
+                disabled={isLoading || (atual && !isFree)}
+                onClick={() => { if (isFree && atual && onNavigate) { onNavigate('inicio'); return; } assinar(p); }}
                 style={{
                   width: '100%', padding: '10px', borderRadius: 10, border: 'none',
-                  background: p.destaque ? 'white' : p.id === 'free' ? '#F3F4F6' : p.cor,
-                  color: p.destaque ? '#111827' : p.id === 'free' ? '#374151' : 'white',
-                  fontSize: 13, fontWeight: 600, cursor: atual ? 'default' : 'pointer',
-                  fontFamily: 'inherit', opacity: atual ? 0.5 : 1,
+                  background: (isFree && atual) ? 'var(--green)' : p.destaque ? 'white' : p.id === 'free' ? '#F3F4F6' : p.cor,
+                  color: (isFree && atual) ? 'white' : p.destaque ? '#111827' : p.id === 'free' ? '#374151' : 'white',
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'inherit', opacity: 1,
                   transition: 'opacity .15s',
                 }}
               >
-                {isLoading ? 'Aguarde...' : atual ? 'Plano atual' : isFree ? 'Usar grátis' : anual ? 'Assinar anual' : 'Assinar mensal'}
+                {isLoading ? 'Aguarde...' : (isFree && atual) ? 'Continuar na plataforma →' : atual ? 'Plano atual' : isFree ? 'Usar grátis' : anual ? 'Assinar anual' : 'Assinar mensal'}
               </button>
 
               {/* Features */}
