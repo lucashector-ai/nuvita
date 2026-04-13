@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ══ acompanhamento_semanal — análise IA por email ══
+  // ══ acompanhamento_semanal — 1x por semana apenas ══
   if (job === 'acompanhamento_semanal' || job === 'all') {
     const { data: { users } } = await supabase.auth.admin.listUsers();
     const ativos = users.filter(u => {
@@ -98,17 +98,37 @@ export async function POST(req: NextRequest) {
 
     for (const u of ativos) {
       if (!u.email) continue;
+      const semana = Math.max(1, Math.floor((Date.now() - new Date(u.created_at).getTime()) / (1000*60*60*24*7)));
+
+      // Verifica se já enviou o email desta semana
+      const { data: jaEnviou } = await supabase
+        .from('email_queue')
+        .select('id')
+        .eq('user_id', u.id)
+        .eq('tipo', `semanal_s${semana}`)
+        .eq('enviado', true)
+        .maybeSingle();
+      if (jaEnviou) { logs.push(`semanal já enviado → ${u.email} semana ${semana}`); continue; }
+
       const { data: perfil } = await supabase.from('usuarios').select('diagnostico').eq('id', u.id).single();
       const nome = perfil?.diagnostico?.nome || u.email.split('@')[0];
       const objs = perfil?.diagnostico?.q3?.join(', ') || 'seus objetivos';
-      const semana = Math.max(1, Math.floor((Date.now() - new Date(u.created_at).getTime()) / (1000*60*60*24*7)));
       const insights = await callIA(`Usuário na semana ${semana} do protocolo. Objetivos: ${objs}. Gere insight motivador e prático.`);
       await callEmail('acompanhamento_semanal', u.email, nome, { semana, insights });
+
+      // Marca como enviado
+      await supabase.from('email_queue').upsert({
+        user_id: u.id, email: u.email, nome,
+        tipo: `semanal_s${semana}`,
+        enviar_em: new Date().toISOString(),
+        enviado: true, enviado_em: new Date().toISOString(),
+      }, { onConflict: 'user_id,tipo' });
+
       logs.push(`semanal → ${u.email} semana ${semana}`);
     }
   }
 
-  // ══ reengajamento — inativos 5-14 dias ══
+  // ══ reengajamento — só 1x por período de inatividade ══
   if (job === 'reengajamento' || job === 'all') {
     const { data: { users } } = await supabase.auth.admin.listUsers();
     const inativos = users.filter(u => {
@@ -119,10 +139,32 @@ export async function POST(req: NextRequest) {
 
     for (const u of inativos) {
       if (!u.email) continue;
+
+      // Verifica se já enviou reengajamento nos últimos 14 dias
+      const quinzeDiasAtras = new Date(Date.now() - 15*24*60*60*1000).toISOString();
+      const { data: jaEnviou } = await supabase
+        .from('email_queue')
+        .select('id')
+        .eq('user_id', u.id)
+        .eq('tipo', 'reengajamento')
+        .eq('enviado', true)
+        .gte('enviado_em', quinzeDiasAtras)
+        .maybeSingle();
+      if (jaEnviou) { logs.push(`reengajamento já enviado → ${u.email}`); continue; }
+
       const { data: perfil } = await supabase.from('usuarios').select('diagnostico').eq('id', u.id).single();
       const nome = perfil?.diagnostico?.nome || u.email.split('@')[0];
       const diasSem = Math.floor((Date.now() - new Date(u.last_sign_in_at!).getTime()) / (1000*60*60*24));
       await callEmail('reengajamento', u.email, nome, { diasSem });
+
+      // Marca como enviado com timestamp para evitar duplicata
+      await supabase.from('email_queue').upsert({
+        user_id: u.id, email: u.email, nome,
+        tipo: 'reengajamento',
+        enviar_em: new Date().toISOString(),
+        enviado: true, enviado_em: new Date().toISOString(),
+      }, { onConflict: 'user_id,tipo' }).catch(() => null);
+
       logs.push(`reengajamento → ${u.email} (${diasSem} dias)`);
     }
   }
