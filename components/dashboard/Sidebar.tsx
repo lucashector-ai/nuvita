@@ -158,7 +158,6 @@ export default function Sidebar(props: Props) {
 
   const sidebarStyle: React.CSSProperties = {
     width,
-    minWidth: width,
     height: '100vh',
     position: 'fixed',
     top: 0,
@@ -177,7 +176,7 @@ export default function Sidebar(props: Props) {
     : { display: 'none' };
 
   const mobileStyle: React.CSSProperties = mobileOpen
-    ? { width: 260, minWidth: 260, zIndex: 50 }
+    ? { width: 260, zIndex: 50 }
     : {};
 
   const renderItem = (item: Item) => (
@@ -197,7 +196,7 @@ export default function Sidebar(props: Props) {
       <div
         className="nv-sidebar-spacer"
         style={{
-          width, minWidth: width, flexShrink: 0,
+          width, flexShrink: 0,
           transition: 'width 320ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
         aria-hidden
