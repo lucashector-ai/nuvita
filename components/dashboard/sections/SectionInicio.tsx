@@ -114,8 +114,8 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
           <h2 style={{ fontSize:'1.4rem', fontWeight:500, letterSpacing:'-.04em', color:'var(--dark)', marginBottom:'.375rem', lineHeight:1.2 }}>
             {protoAtivo
               ? feitas===tarefas.length && tarefas.length>0
-                ? (nome ? nome+', todas as acoes concluídas hoje!' : 'Todas as acoes concluídas hoje!')
-                : (nome ? nome+', você tem '+(tarefas.length-feitas)+' acao'+(tarefas.length-feitas!==1?'oes':'')+' hoje' : 'Você tem '+(tarefas.length-feitas)+' acoes hoje')
+                ? (nome ? nome+', todas as ações concluídas hoje!' : 'Todas as ações concluídas hoje!')
+                : (nome ? nome+', você tem '+(tarefas.length-feitas)+' ação'+(tarefas.length-feitas!==1?'oes':'')+' hoje' : 'Você tem '+(tarefas.length-feitas)+' ações hoje')
               : (nome ? nome+', seu protocolo está pronto' : 'Seu protocolo está pronto')}
           </h2>
           <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>

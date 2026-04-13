@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Props {
   nome: string;
@@ -16,6 +16,14 @@ const FONTES = [
 ];
 
 export default function BoasVindasModal({ nome, userId, onClose }: Props) {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const shown = localStorage.getItem('nv_bv_shown');
+    if (shown === '1') {
+      if (typeof onClose === 'function') (() => { try { localStorage.setItem('nv_bv_shown','1'); } catch {} onClose(); })();
+    }
+  }, []);
+
   const [step, setStep] = useState<'welcome'|'nao_tem'>('welcome');
 
   return (

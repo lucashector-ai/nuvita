@@ -202,8 +202,10 @@ export default function Sidebar({
     width,
     minWidth: width,
     height: '100vh',
-    position: 'sticky',
+    position: 'fixed',
     top: 0,
+    left: 0,
+    zIndex: 30,
     background: '#fff',
     borderRight: `1px solid ${C.border}`,
     display: 'flex',
@@ -223,6 +225,8 @@ export default function Sidebar({
 
   return (
     <>
+      {/* Placeholder que ocupa espaço no layout flex (a sidebar real é fixed) */}
+      <div style={{ width, minWidth: width, flexShrink: 0, transition: 'width 0.2s ease' }} className="nv-sidebar-spacer" aria-hidden />
       <div style={mobileOverlay} onClick={onMobileClose} />
       <aside style={{ ...sidebarStyle, ...mobileSidebar }} className="nv-sidebar">
         <div

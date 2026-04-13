@@ -7,7 +7,7 @@ const FASES_CICLO = [
   {
     id:'introducao', nome:'Fase 1 — Introdução', semanas:'Semanas 1–2', cor:'#EF9F27',
     descricao:'Doses baixas para testar tolerância. Monitorar efeitos colaterais.',
-    acoes:[
+    ações:[
       'Iniciar com 50% da dose alvo',
       'Registrar no diário qualquer sintoma',
       'Check-in diário nos primeiros 7 dias',
@@ -18,7 +18,7 @@ const FASES_CICLO = [
   {
     id:'rampa', nome:'Fase 2 — Rampa', semanas:'Semanas 3–4', cor:'#1D9E75',
     descricao:'Aumento gradual para dose alvo. Corpo já adaptado ao peptídeo.',
-    acoes:[
+    ações:[
       'Aumentar para 75% da dose alvo',
       'Manter registro semanal de peso e medidas',
       'Avaliar qualidade do sono e energia',
@@ -29,7 +29,7 @@ const FASES_CICLO = [
   {
     id:'pico', nome:'Fase 3 — Pico', semanas:'Semanas 5–10', cor:'#5EC991',
     descricao:'Dose plena. Período de maior efeito. Máxima adesão necessária.',
-    acoes:[
+    ações:[
       'Dose alvo completa',
       'Manter rotina sem interrupções',
       'Registrar evolução semanal',
@@ -40,7 +40,7 @@ const FASES_CICLO = [
   {
     id:'saida', nome:'Fase 4 — Saída gradual', semanas:'Semanas 11–12', cor:'#7F77DD',
     descricao:'Redução para evitar rebound. Prepare o próximo ciclo ou pausa.',
-    acoes:[
+    ações:[
       'Reduzir para 50% da dose',
       'Aumentar intervalo entre aplicações',
       'Planejar pausa de 4–8 semanas',
@@ -51,7 +51,7 @@ const FASES_CICLO = [
   {
     id:'pausa', nome:'Pausa', semanas:'4–8 semanas', cor:'var(--ts)',
     descricao:'Descanso obrigatório para restaurar sensibilidade receptora.',
-    acoes:[
+    ações:[
       'Zero peptídeos durante a pausa',
       'Manter dieta e exercício',
       'Avaliar resultados consolidados',
@@ -148,10 +148,10 @@ export default function SectionGeradorCiclo({ answers }) {
                   <div style={{ padding:'0 1.25rem 1.25rem', borderTop:'1px solid var(--border)' }}>
                     <p style={{ fontSize:13, color:'var(--tm)', lineHeight:1.6, marginTop:'1rem', marginBottom:'1rem' }}>{fase.descricao}</p>
                     <div style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--ts)', marginBottom:8 }}>Checklist</div>
-                    {fase.acoes.map((acao, i) => (
+                    {fase.ações.map((ação, i) => (
                       <div key={i} style={{ display:'flex', gap:8, fontSize:13, color:'var(--tx)', marginBottom:7, alignItems:'flex-start' }}>
                         <div style={{ width:18, height:18, borderRadius:5, border:'none', flexShrink:0, marginTop:1 }}/>
-                        {acao}
+                        {ação}
                       </div>
                     ))}
                   </div>

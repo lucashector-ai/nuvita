@@ -38,7 +38,7 @@ export default function SectionDetector({ userId, answers }: any) {
         severidade: diasSemAdesao >= 4 ? 'alta' : 'media',
         titulo: `${diasSemAdesao} dias sem registrar aplicações`,
         desc: 'A consistência é o fator mais importante nos resultados com peptídeos.',
-        acao: 'Registrar aplicação',
+        ação: 'Registrar aplicação',
         nav: 'tracker',
       });
     }
@@ -51,7 +51,7 @@ export default function SectionDetector({ userId, answers }: any) {
         severidade: 'media',
         titulo: 'Energia baixa nos últimos registros',
         desc: `Energia média de ${(enBaixa.reduce((s,e)=>s+e.energia,0)/enBaixa.length).toFixed(1)}/10. Pode indicar necessidade de ajuste de dose ou sono insuficiente.`,
-        acao: 'Ver análise',
+        ação: 'Ver análise',
         nav: 'analise',
       });
     }
@@ -65,7 +65,7 @@ export default function SectionDetector({ userId, answers }: any) {
         severidade: 'baixa',
         titulo: `${diasSemCI} dias sem check-in diário`,
         desc: 'O check-in diário ajuda a detectar padrões e ajustar o protocolo.',
-        acao: 'Fazer check-in',
+        ação: 'Fazer check-in',
         nav: 'inicio',
       });
     }
@@ -78,7 +78,7 @@ export default function SectionDetector({ userId, answers }: any) {
         severidade: 'media',
         titulo: 'Qualidade do sono abaixo do ideal',
         desc: 'Sono ruim reduz a eficácia dos peptídeos, especialmente os secretagogos de GH.',
-        acao: 'Ver protocolo',
+        ação: 'Ver protocolo',
         nav: 'protocolo',
       });
     }
