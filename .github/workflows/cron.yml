@@ -1,0 +1,53 @@
+name: Nuvita Cron Jobs
+
+on:
+  schedule:
+    - cron: '0 12 * * *'   # todo dia às 9h BRT (12h UTC)
+    - cron: '0 18 * * 1'   # toda segunda às 15h BRT (18h UTC) — semanal
+  workflow_dispatch:         # permite rodar manualmente
+
+jobs:
+  boas_vindas:
+    name: Sequência de boas-vindas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar boas-vindas para novos usuários
+        run: |
+          curl -s -X POST ${{ secrets.APP_URL }}/api/cron \
+            -H "Content-Type: application/json" \
+            -H "x-internal-secret: ${{ secrets.INTERNAL_API_SECRET }}" \
+            -d '{"job":"sequencia_boas_vindas"}' | cat
+
+  processar_fila:
+    name: Processar fila de emails
+    runs-on: ubuntu-latest
+    steps:
+      - name: Processar emails agendados
+        run: |
+          curl -s -X POST ${{ secrets.APP_URL }}/api/cron \
+            -H "Content-Type: application/json" \
+            -H "x-internal-secret: ${{ secrets.INTERNAL_API_SECRET }}" \
+            -d '{"job":"processar_fila"}' | cat
+
+  reengajamento:
+    name: Reengajamento de inativos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detectar e reengajar usuários inativos
+        run: |
+          curl -s -X POST ${{ secrets.APP_URL }}/api/cron \
+            -H "Content-Type: application/json" \
+            -H "x-internal-secret: ${{ secrets.INTERNAL_API_SECRET }}" \
+            -d '{"job":"reengajamento"}' | cat
+
+  acompanhamento_semanal:
+    name: Acompanhamento semanal com IA
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 18 * * 1' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Enviar análise semanal da IA
+        run: |
+          curl -s -X POST ${{ secrets.APP_URL }}/api/cron \
+            -H "Content-Type: application/json" \
+            -H "x-internal-secret: ${{ secrets.INTERNAL_API_SECRET }}" \
+            -d '{"job":"acompanhamento_semanal"}' | cat
