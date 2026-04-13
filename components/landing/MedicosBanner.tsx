@@ -3,6 +3,8 @@
 //  Banner dark destacando médicos parceiros (Plano Pro)
 // ════════════════════════════════════════════════
 
+import React from 'react';
+
 const C = {
   ink: '#0F1115',
   inkSoft: '#1A1D23',
