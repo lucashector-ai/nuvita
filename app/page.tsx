@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════
 //  NUVITA — app/page.tsx
-//  Landing page pública (dark premium)
+//  Landing page pública (light premium, identidade Nuvita)
 // ════════════════════════════════════════════════
 
 import Link from 'next/link';
@@ -19,20 +19,21 @@ export const metadata: Metadata = {
 };
 
 // ═══════════════════════════════════════════════
-// Tokens locais (alinhados ao design system Nuvita)
+// Tokens (alinhados ao globals.css existente)
 // ═══════════════════════════════════════════════
-const COLORS = {
-  bg: '#0A0B0D',          // fundo principal (não preto puro)
-  bgElev: '#111317',      // cards, painéis
-  bgElev2: '#16191F',     // hover, surfaces secundárias
-  border: '#1F2329',      // borders sutis
-  borderStrong: '#2A2F37', // borders mais visíveis
-  text: '#F5F6F7',        // texto principal
-  textMuted: '#8A9099',   // texto secundário
-  textSubtle: '#5A6068',  // texto terciário
-  accent: '#22C55E',      // verde Nuvita (mantido)
-  accentSoft: 'rgba(34, 197, 94, 0.12)',
-  accentBorder: 'rgba(34, 197, 94, 0.3)',
+const C = {
+  bg: '#FFFFFF',
+  bg2: '#F7F7F7',
+  bg3: '#EFEFEF',
+  ink: '#0F1115',
+  inkSoft: '#1A1D23',
+  textMuted: '#6B7280',
+  textSubtle: '#9CA3AF',
+  border: '#EBEBEB',
+  borderStrong: '#D8D8D8',
+  green: '#22C55E',
+  greenSoft: '#DCFCE7',
+  greenInk: '#15803D',
 };
 
 const wrap: React.CSSProperties = {
@@ -48,10 +49,9 @@ export default function Home() {
   return (
     <main
       style={{
-        background: COLORS.bg,
-        color: COLORS.text,
+        background: C.bg,
+        color: C.ink,
         minHeight: '100vh',
-        fontFeatureSettings: '"cv11", "ss01"',
         WebkitFontSmoothing: 'antialiased',
       }}
     >
@@ -79,10 +79,10 @@ function Header() {
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        background: 'rgba(10, 11, 13, 0.72)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'saturate(180%) blur(16px)',
         WebkitBackdropFilter: 'saturate(180%) blur(16px)',
-        borderBottom: `1px solid ${COLORS.border}`,
+        borderBottom: `1px solid ${C.border}`,
       }}
     >
       <div
@@ -100,7 +100,7 @@ function Header() {
             fontWeight: 600,
             fontSize: 18,
             letterSpacing: '-0.02em',
-            color: COLORS.text,
+            color: C.ink,
             textDecoration: 'none',
             display: 'flex',
             alignItems: 'center',
@@ -111,13 +111,7 @@ function Header() {
           nuvita
         </Link>
 
-        <nav
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
-        >
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <NavLink href="#features">Produto</NavLink>
           <NavLink href="#pricing">Planos</NavLink>
           <NavLink href="#faq">Dúvidas</NavLink>
@@ -127,9 +121,9 @@ function Header() {
             style={{
               marginLeft: 8,
               padding: '9px 16px',
-              borderRadius: 8,
-              background: COLORS.text,
-              color: COLORS.bg,
+              borderRadius: 10,
+              background: C.ink,
+              color: '#fff',
               fontSize: 14,
               fontWeight: 600,
               textDecoration: 'none',
@@ -150,7 +144,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
       href={href}
       style={{
         padding: '8px 12px',
-        color: COLORS.textMuted,
+        color: C.textMuted,
         fontSize: 14,
         fontWeight: 500,
         textDecoration: 'none',
@@ -165,11 +159,11 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 function LogoMark() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
-      <circle cx="11" cy="11" r="10" stroke={COLORS.accent} strokeWidth="1.5" />
+      <circle cx="11" cy="11" r="10" stroke={C.green} strokeWidth="1.6" />
       <path
         d="M6 14C7.5 11.5 9 7 11 7C13 7 14.5 11.5 16 14"
-        stroke={COLORS.accent}
-        strokeWidth="1.5"
+        stroke={C.green}
+        strokeWidth="1.6"
         strokeLinecap="round"
       />
     </svg>
@@ -181,19 +175,22 @@ function LogoMark() {
 // ═══════════════════════════════════════════════
 function Hero() {
   return (
-    <section
-      style={{
-        position: 'relative',
-        padding: '96px 0 64px',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Decorative dots clusters (igual referência) */}
-      <DotCluster style={{ top: 80, left: '12%', transform: 'rotate(15deg)' }} />
-      <DotCluster
-        style={{ top: 200, right: '10%', transform: 'rotate(-25deg)' }}
-        color={COLORS.accent}
+    <section style={{ position: 'relative', padding: '88px 0 56px', overflow: 'hidden' }}>
+      {/* Glow verde sutil de fundo */}
+      <div
+        style={{
+          position: 'absolute',
+          top: -100,
+          right: '15%',
+          width: 600,
+          height: 600,
+          background: 'radial-gradient(circle, rgba(220, 252, 231, 0.6) 0%, transparent 60%)',
+          pointerEvents: 'none',
+        }}
+        aria-hidden
       />
+      <DotCluster style={{ top: 100, left: '8%' }} />
+      <DotCluster style={{ top: 220, right: '8%', transform: 'rotate(-25deg)' }} green />
 
       <div style={{ ...wrap, textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <Link
@@ -204,24 +201,25 @@ function Hero() {
             gap: 8,
             padding: '6px 14px 6px 6px',
             borderRadius: 999,
-            background: COLORS.bgElev,
-            border: `1px solid ${COLORS.border}`,
-            color: COLORS.textMuted,
+            background: '#fff',
+            border: `1px solid ${C.border}`,
+            color: C.textMuted,
             fontSize: 13,
             fontWeight: 500,
             textDecoration: 'none',
             marginBottom: 28,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
           }}
         >
           <span
             style={{
               padding: '3px 10px',
               borderRadius: 999,
-              background: COLORS.accentSoft,
-              color: COLORS.accent,
+              background: C.greenSoft,
+              color: C.greenInk,
               fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: '0.02em',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
               textTransform: 'uppercase',
             }}
           >
@@ -236,7 +234,7 @@ function Hero() {
             lineHeight: 1.02,
             letterSpacing: '-0.035em',
             fontWeight: 600,
-            color: COLORS.text,
+            color: C.ink,
             margin: 0,
             maxWidth: 900,
             marginInline: 'auto',
@@ -244,14 +242,14 @@ function Hero() {
         >
           Protocolo de peptídeos
           <br />
-          personalizado por <span style={{ color: COLORS.accent }}>IA</span>.
+          personalizado por <span style={{ color: C.greenInk }}>IA</span>.
         </h1>
 
         <p
           style={{
             fontSize: 18,
             lineHeight: 1.55,
-            color: COLORS.textMuted,
+            color: C.textMuted,
             margin: '24px auto 0',
             maxWidth: 580,
             letterSpacing: '-0.005em',
@@ -273,10 +271,10 @@ function Hero() {
           <Link
             href="/diagnostico"
             style={{
-              padding: '12px 22px',
+              padding: '13px 22px',
               borderRadius: 10,
-              background: COLORS.text,
-              color: COLORS.bg,
+              background: C.ink,
+              color: '#fff',
               fontSize: 15,
               fontWeight: 600,
               textDecoration: 'none',
@@ -288,14 +286,14 @@ function Hero() {
           <a
             href="#features"
             style={{
-              padding: '12px 22px',
+              padding: '13px 22px',
               borderRadius: 10,
-              background: 'transparent',
-              color: COLORS.text,
+              background: '#fff',
+              color: C.ink,
               fontSize: 15,
               fontWeight: 500,
               textDecoration: 'none',
-              border: `1px solid ${COLORS.borderStrong}`,
+              border: `1px solid ${C.borderStrong}`,
               letterSpacing: '-0.005em',
             }}
           >
@@ -311,7 +309,7 @@ function Hero() {
             gap: 24,
             marginTop: 28,
             flexWrap: 'wrap',
-            color: COLORS.textSubtle,
+            color: C.textSubtle,
             fontSize: 13,
           }}
         >
@@ -337,8 +335,8 @@ function CheckMicro() {
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
       <path
         d="M2.5 6.2L4.8 8.5L9.5 3.5"
-        stroke={COLORS.accent}
-        strokeWidth="1.6"
+        stroke={C.green}
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -348,24 +346,18 @@ function CheckMicro() {
 
 function DotCluster({
   style,
-  color = COLORS.borderStrong,
+  green,
 }: {
   style: React.CSSProperties;
-  color?: string;
+  green?: boolean;
 }) {
+  const color = green ? C.green : C.borderStrong;
   const dots = [];
   for (let r = 0; r < 6; r++) {
     for (let c = 0; c < 6; c++) {
       const opacity = Math.max(0.05, 1 - Math.sqrt(r * r + c * c) * 0.18);
       dots.push(
-        <circle
-          key={`${r}-${c}`}
-          cx={c * 8}
-          cy={r * 8}
-          r={1.5}
-          fill={color}
-          opacity={opacity}
-        />
+        <circle key={`${r}-${c}`} cx={c * 8} cy={r * 8} r={1.5} fill={color} opacity={opacity} />
       );
     }
   }
@@ -375,7 +367,7 @@ function DotCluster({
         position: 'absolute',
         width: 56,
         height: 56,
-        opacity: 0.6,
+        opacity: 0.55,
         pointerEvents: 'none',
         ...style,
       }}
@@ -389,7 +381,7 @@ function DotCluster({
 }
 
 // ═══════════════════════════════════════════════
-// Product preview (mockup do dashboard)
+// Mockup do dashboard (prova de produto)
 // ═══════════════════════════════════════════════
 function ProductPreview() {
   return (
@@ -397,11 +389,11 @@ function ProductPreview() {
       <div style={wrap}>
         <div
           style={{
-            background: COLORS.bgElev,
-            border: `1px solid ${COLORS.border}`,
+            background: '#fff',
+            border: `1px solid ${C.border}`,
             borderRadius: 16,
             padding: 8,
-            boxShadow: '0 24px 80px rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.3)',
+            boxShadow: '0 24px 60px rgba(15, 17, 21, 0.10), 0 4px 16px rgba(15, 17, 21, 0.06)',
           }}
         >
           {/* Browser chrome */}
@@ -411,7 +403,7 @@ function ProductPreview() {
               alignItems: 'center',
               gap: 8,
               padding: '10px 14px',
-              borderBottom: `1px solid ${COLORS.border}`,
+              borderBottom: `1px solid ${C.border}`,
             }}
           >
             <div style={dotCircle('#FF5F57')} />
@@ -421,7 +413,7 @@ function ProductPreview() {
               style={{
                 marginLeft: 14,
                 fontSize: 12,
-                color: COLORS.textSubtle,
+                color: C.textSubtle,
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
               }}
             >
@@ -429,13 +421,15 @@ function ProductPreview() {
             </div>
           </div>
 
-          {/* Mock dashboard content */}
+          {/* Mock content */}
           <div
             style={{
               padding: 24,
               display: 'grid',
               gridTemplateColumns: 'repeat(12, 1fr)',
               gap: 16,
+              background: C.bg2,
+              borderRadius: '0 0 12px 12px',
             }}
           >
             <MockCard col="1 / 8" title="SEMANA 1 DE 6" big="Tirzepatide" sub="Adaptação celular" />
@@ -475,8 +469,8 @@ function MockCard({
     <div
       style={{
         gridColumn: col,
-        background: accent ? COLORS.accentSoft : COLORS.bgElev2,
-        border: `1px solid ${accent ? COLORS.accentBorder : COLORS.border}`,
+        background: accent ? C.greenSoft : '#fff',
+        border: `1px solid ${accent ? C.green : C.border}`,
         borderRadius: 12,
         padding: 18,
       }}
@@ -484,9 +478,9 @@ function MockCard({
       <div
         style={{
           fontSize: 11,
-          fontWeight: 600,
-          color: accent ? COLORS.accent : COLORS.textSubtle,
-          letterSpacing: '0.05em',
+          fontWeight: 700,
+          color: accent ? C.greenInk : C.textSubtle,
+          letterSpacing: '0.06em',
           marginBottom: 8,
         }}
       >
@@ -496,14 +490,14 @@ function MockCard({
         style={{
           fontSize: 24,
           fontWeight: 600,
-          color: COLORS.text,
+          color: C.ink,
           letterSpacing: '-0.02em',
           marginBottom: 4,
         }}
       >
         {big}
       </div>
-      <div style={{ fontSize: 13, color: COLORS.textMuted }}>{sub}</div>
+      <div style={{ fontSize: 13, color: C.textMuted }}>{sub}</div>
     </div>
   );
 }
@@ -523,18 +517,18 @@ function MockStat({
     <div
       style={{
         gridColumn: col,
-        background: COLORS.bgElev2,
-        border: `1px solid ${COLORS.border}`,
+        background: '#fff',
+        border: `1px solid ${C.border}`,
         borderRadius: 12,
         padding: 14,
       }}
     >
-      <div style={{ fontSize: 11, color: COLORS.textSubtle, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 11, color: C.textSubtle, marginBottom: 4 }}>{label}</div>
       <div
         style={{
           fontSize: 18,
           fontWeight: 600,
-          color: accent ? COLORS.accent : COLORS.text,
+          color: accent ? C.greenInk : C.ink,
           letterSpacing: '-0.01em',
         }}
       >
@@ -552,9 +546,9 @@ function TrustBar() {
     <section
       style={{
         padding: '40px 0 80px',
-        borderTop: `1px solid ${COLORS.border}`,
-        borderBottom: `1px solid ${COLORS.border}`,
-        background: COLORS.bgElev,
+        borderTop: `1px solid ${C.border}`,
+        borderBottom: `1px solid ${C.border}`,
+        background: C.bg2,
       }}
     >
       <div style={wrap}>
@@ -562,8 +556,8 @@ function TrustBar() {
           style={{
             textAlign: 'center',
             fontSize: 12,
-            fontWeight: 600,
-            color: COLORS.textSubtle,
+            fontWeight: 700,
+            color: C.textSubtle,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             margin: '0 0 24px',
@@ -578,7 +572,7 @@ function TrustBar() {
             alignItems: 'center',
             gap: 48,
             flexWrap: 'wrap',
-            color: COLORS.textMuted,
+            color: C.textMuted,
             fontSize: 14,
           }}
         >
@@ -593,7 +587,7 @@ function TrustBar() {
 }
 
 // ═══════════════════════════════════════════════
-// Features (grid 2x3, dark cards)
+// Features (grid 2x3 com bordas divisórias estilo Linear)
 // ═══════════════════════════════════════════════
 const FEATURES = [
   {
@@ -636,7 +630,7 @@ function Features() {
         <SectionTitle>
           Ciência, estrutura e IA
           <br />
-          <span style={{ color: COLORS.textMuted }}>num só lugar.</span>
+          <span style={{ color: C.textMuted }}>num só lugar.</span>
         </SectionTitle>
 
         <div
@@ -644,28 +638,22 @@ function Features() {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: 1,
-            background: COLORS.border,
-            border: `1px solid ${COLORS.border}`,
+            background: C.border,
+            border: `1px solid ${C.border}`,
             borderRadius: 16,
             overflow: 'hidden',
             marginTop: 64,
           }}
         >
           {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              style={{
-                background: COLORS.bgElev,
-                padding: 32,
-              }}
-            >
+            <div key={f.title} style={{ background: '#fff', padding: 32 }}>
               <div
                 style={{
                   width: 40,
                   height: 40,
                   borderRadius: 10,
-                  background: COLORS.bgElev2,
-                  border: `1px solid ${COLORS.border}`,
+                  background: C.bg2,
+                  border: `1px solid ${C.border}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -679,21 +667,14 @@ function Features() {
                 style={{
                   fontSize: 16,
                   fontWeight: 600,
-                  color: COLORS.text,
+                  color: C.ink,
                   margin: '0 0 8px',
                   letterSpacing: '-0.01em',
                 }}
               >
                 {f.title}
               </h3>
-              <p
-                style={{
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  color: COLORS.textMuted,
-                  margin: 0,
-                }}
-              >
+              <p style={{ fontSize: 14, lineHeight: 1.6, color: C.textMuted, margin: 0 }}>
                 {f.desc}
               </p>
             </div>
@@ -705,7 +686,7 @@ function Features() {
 }
 
 // ═══════════════════════════════════════════════
-// How it works
+// How it works (com ilustrações SVG)
 // ═══════════════════════════════════════════════
 function HowItWorks() {
   const steps = [
@@ -713,27 +694,24 @@ function HowItWorks() {
       n: '01',
       title: 'Faça o diagnóstico',
       desc: '9 perguntas rápidas sobre seus objetivos, perfil e histórico. Leva 4 minutos.',
+      illustration: <IllustrationDiagnostico />,
     },
     {
       n: '02',
       title: 'Receba seu protocolo',
       desc: 'A IA monta um plano personalizado de 6 semanas com peptídeos, doses e timing.',
+      illustration: <IllustrationProtocolo />,
     },
     {
       n: '03',
       title: 'Acompanhe o ciclo',
       desc: 'Registre aplicações, tire dúvidas com a IA e veja sua evolução em tempo real.',
+      illustration: <IllustrationAcompanhar />,
     },
   ];
 
   return (
-    <section
-      style={{
-        padding: '120px 0',
-        borderTop: `1px solid ${COLORS.border}`,
-        background: COLORS.bgElev,
-      }}
-    >
+    <section style={{ padding: '120px 0', borderTop: `1px solid ${C.border}`, background: C.bg2 }}>
       <div style={wrap}>
         <SectionEyebrow>Como funciona</SectionEyebrow>
         <SectionTitle>Do clique ao resultado.</SectionTitle>
@@ -741,29 +719,46 @@ function HowItWorks() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: 24,
             marginTop: 64,
           }}
         >
-          {steps.map((s, i) => (
+          {steps.map((s) => (
             <div
               key={s.n}
               style={{
-                position: 'relative',
-                background: COLORS.bg,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 12,
+                background: '#fff',
+                border: `1px solid ${C.border}`,
+                borderRadius: 16,
                 padding: 28,
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
+              {/* Ilustração com background suave */}
+              <div
+                style={{
+                  background: C.bg2,
+                  borderRadius: 12,
+                  padding: 24,
+                  marginBottom: 24,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: 160,
+                }}
+              >
+                {s.illustration}
+              </div>
+
               <div
                 style={{
                   fontSize: 12,
-                  fontWeight: 600,
-                  color: COLORS.accent,
-                  letterSpacing: '0.05em',
-                  marginBottom: 16,
+                  fontWeight: 700,
+                  color: C.greenInk,
+                  letterSpacing: '0.06em',
+                  marginBottom: 12,
                 }}
               >
                 PASSO {s.n}
@@ -772,21 +767,14 @@ function HowItWorks() {
                 style={{
                   fontSize: 19,
                   fontWeight: 600,
-                  color: COLORS.text,
+                  color: C.ink,
                   margin: '0 0 8px',
                   letterSpacing: '-0.01em',
                 }}
               >
                 {s.title}
               </h3>
-              <p
-                style={{
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  color: COLORS.textMuted,
-                  margin: 0,
-                }}
-              >
+              <p style={{ fontSize: 14, lineHeight: 1.6, color: C.textMuted, margin: 0 }}>
                 {s.desc}
               </p>
             </div>
@@ -794,6 +782,96 @@ function HowItWorks() {
         </div>
       </div>
     </section>
+  );
+}
+
+// ─── Ilustrações SVG simples ───
+function IllustrationDiagnostico() {
+  return (
+    <svg width="160" height="120" viewBox="0 0 160 120" fill="none">
+      {/* Clipboard */}
+      <rect x="46" y="14" width="68" height="92" rx="6" fill="#fff" stroke={C.ink} strokeWidth="1.6" />
+      <rect x="62" y="6" width="36" height="14" rx="3" fill={C.greenSoft} stroke={C.ink} strokeWidth="1.6" />
+      {/* Linhas (perguntas) */}
+      <rect x="56" y="34" width="48" height="3" rx="1.5" fill={C.borderStrong} />
+      <rect x="56" y="44" width="36" height="3" rx="1.5" fill={C.borderStrong} />
+      {/* Opções marcadas */}
+      <circle cx="60" cy="60" r="3.5" fill={C.green} />
+      <rect x="68" y="58" width="32" height="3" rx="1.5" fill={C.ink} opacity="0.7" />
+      <circle cx="60" cy="72" r="3.5" stroke={C.borderStrong} strokeWidth="1.6" fill="#fff" />
+      <rect x="68" y="70" width="28" height="3" rx="1.5" fill={C.borderStrong} />
+      <circle cx="60" cy="84" r="3.5" stroke={C.borderStrong} strokeWidth="1.6" fill="#fff" />
+      <rect x="68" y="82" width="36" height="3" rx="1.5" fill={C.borderStrong} />
+      {/* Barra de progresso */}
+      <rect x="56" y="96" width="48" height="4" rx="2" fill={C.bg3} />
+      <rect x="56" y="96" width="20" height="4" rx="2" fill={C.green} />
+    </svg>
+  );
+}
+
+function IllustrationProtocolo() {
+  return (
+    <svg width="160" height="120" viewBox="0 0 160 120" fill="none">
+      {/* Documento principal */}
+      <rect x="40" y="20" width="80" height="84" rx="6" fill="#fff" stroke={C.ink} strokeWidth="1.6" />
+      {/* Header com badge */}
+      <rect x="48" y="28" width="36" height="8" rx="2" fill={C.ink} />
+      <rect x="88" y="28" width="24" height="8" rx="4" fill={C.greenSoft} stroke={C.green} strokeWidth="1" />
+      {/* Linhas de protocolo */}
+      <circle cx="52" cy="50" r="3" fill={C.green} />
+      <rect x="60" y="48" width="50" height="3" rx="1.5" fill={C.ink} opacity="0.7" />
+      <rect x="60" y="54" width="32" height="2.5" rx="1" fill={C.borderStrong} />
+
+      <circle cx="52" cy="68" r="3" fill={C.green} />
+      <rect x="60" y="66" width="48" height="3" rx="1.5" fill={C.ink} opacity="0.7" />
+      <rect x="60" y="72" width="28" height="2.5" rx="1" fill={C.borderStrong} />
+
+      <circle cx="52" cy="86" r="3" fill={C.green} />
+      <rect x="60" y="84" width="44" height="3" rx="1.5" fill={C.ink} opacity="0.7" />
+      <rect x="60" y="90" width="36" height="2.5" rx="1" fill={C.borderStrong} />
+
+      {/* Sparkles IA */}
+      <path d="M132 30L134 36L140 38L134 40L132 46L130 40L124 38L130 36Z" fill={C.green} />
+      <path d="M28 78L29 81L32 82L29 83L28 86L27 83L24 82L27 81Z" fill={C.green} opacity="0.6" />
+    </svg>
+  );
+}
+
+function IllustrationAcompanhar() {
+  return (
+    <svg width="160" height="120" viewBox="0 0 160 120" fill="none">
+      {/* Card de gráfico */}
+      <rect x="20" y="24" width="120" height="76" rx="8" fill="#fff" stroke={C.ink} strokeWidth="1.6" />
+      {/* Título */}
+      <rect x="30" y="34" width="40" height="4" rx="2" fill={C.ink} opacity="0.7" />
+      <rect x="30" y="42" width="24" height="3" rx="1.5" fill={C.borderStrong} />
+      {/* Eixos sutis */}
+      <line x1="30" y1="88" x2="130" y2="88" stroke={C.border} strokeWidth="1" />
+      {/* Linha do gráfico (subindo) */}
+      <path
+        d="M34 82 L50 76 L66 78 L82 68 L98 64 L114 56 L126 50"
+        stroke={C.green}
+        strokeWidth="2.2"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Área sob a curva */}
+      <path
+        d="M34 82 L50 76 L66 78 L82 68 L98 64 L114 56 L126 50 L126 88 L34 88 Z"
+        fill={C.green}
+        opacity="0.12"
+      />
+      {/* Pontos */}
+      <circle cx="50" cy="76" r="2.5" fill={C.green} />
+      <circle cx="82" cy="68" r="2.5" fill={C.green} />
+      <circle cx="114" cy="56" r="2.5" fill={C.green} />
+      <circle cx="126" cy="50" r="3" fill={C.green} stroke="#fff" strokeWidth="2" />
+
+      {/* Check de aplicação */}
+      <circle cx="138" cy="22" r="10" fill={C.green} />
+      <path d="M134 22L137 25L142 19" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -807,11 +885,7 @@ const PLANS = [
     price: '0',
     suffix: '',
     tagline: 'Para começar',
-    features: [
-      'Protocolo personalizado',
-      'Diagnóstico por IA',
-      'Biblioteca de peptídeos',
-    ],
+    features: ['Protocolo personalizado', 'Diagnóstico por IA', 'Biblioteca de peptídeos'],
     cta: 'Começar grátis',
     href: '/diagnostico',
     highlighted: false,
@@ -839,12 +913,7 @@ const PLANS = [
     price: '97',
     suffix: '/mês',
     tagline: 'Para quem leva a sério',
-    features: [
-      'Tudo do Essencial',
-      'Médico parceiro',
-      'Relatórios avançados',
-      'Simulador de ciclos',
-    ],
+    features: ['Tudo do Essencial', 'Médico parceiro', 'Relatórios avançados', 'Simulador de ciclos'],
     cta: 'Assinar Pro',
     href: '/cadastro?plan=pro',
     highlighted: false,
@@ -860,12 +929,12 @@ function Pricing() {
           <SectionTitle center>
             Comece grátis.
             <br />
-            <span style={{ color: COLORS.textMuted }}>Evolua quando quiser.</span>
+            <span style={{ color: C.textMuted }}>Evolua quando quiser.</span>
           </SectionTitle>
           <p
             style={{
               fontSize: 16,
-              color: COLORS.textMuted,
+              color: C.textMuted,
               maxWidth: 520,
               margin: '20px auto 0',
               lineHeight: 1.55,
@@ -890,12 +959,15 @@ function Pricing() {
               key={p.id}
               style={{
                 position: 'relative',
-                background: p.highlighted ? COLORS.bgElev : COLORS.bg,
-                border: `1px solid ${p.highlighted ? COLORS.accentBorder : COLORS.border}`,
+                background: '#fff',
+                border: `1px solid ${p.highlighted ? C.green : C.border}`,
                 borderRadius: 16,
                 padding: 32,
                 display: 'flex',
                 flexDirection: 'column',
+                boxShadow: p.highlighted
+                  ? '0 12px 40px rgba(34, 197, 94, 0.15), 0 4px 12px rgba(0,0,0,0.04)'
+                  : '0 1px 3px rgba(0,0,0,0.04)',
               }}
             >
               {p.highlighted && (
@@ -907,8 +979,8 @@ function Pricing() {
                     transform: 'translateX(-50%)',
                     padding: '4px 12px',
                     borderRadius: 999,
-                    background: COLORS.accent,
-                    color: COLORS.bg,
+                    background: C.green,
+                    color: '#fff',
                     fontSize: 11,
                     fontWeight: 700,
                     letterSpacing: '0.04em',
@@ -920,35 +992,26 @@ function Pricing() {
               )}
 
               <div style={{ marginBottom: 24 }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: COLORS.text,
-                    marginBottom: 4,
-                  }}
-                >
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.ink, marginBottom: 4 }}>
                   {p.name}
                 </div>
-                <div style={{ fontSize: 12, color: COLORS.textSubtle }}>{p.tagline}</div>
+                <div style={{ fontSize: 12, color: C.textSubtle }}>{p.tagline}</div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 28 }}>
-                <span style={{ fontSize: 14, color: COLORS.textMuted }}>R$</span>
+                <span style={{ fontSize: 14, color: C.textMuted }}>R$</span>
                 <span
                   style={{
                     fontSize: 44,
                     fontWeight: 600,
-                    color: COLORS.text,
+                    color: C.ink,
                     letterSpacing: '-0.03em',
                     lineHeight: 1,
                   }}
                 >
                   {p.price}
                 </span>
-                {p.suffix && (
-                  <span style={{ fontSize: 14, color: COLORS.textMuted }}>{p.suffix}</span>
-                )}
+                {p.suffix && <span style={{ fontSize: 14, color: C.textMuted }}>{p.suffix}</span>}
               </div>
 
               <Link
@@ -957,13 +1020,13 @@ function Pricing() {
                   display: 'block',
                   padding: '11px 16px',
                   borderRadius: 10,
-                  background: p.highlighted ? COLORS.text : 'transparent',
-                  color: p.highlighted ? COLORS.bg : COLORS.text,
+                  background: p.highlighted ? C.ink : '#fff',
+                  color: p.highlighted ? '#fff' : C.ink,
                   fontSize: 14,
                   fontWeight: 600,
                   textDecoration: 'none',
                   textAlign: 'center',
-                  border: p.highlighted ? 'none' : `1px solid ${COLORS.borderStrong}`,
+                  border: p.highlighted ? 'none' : `1px solid ${C.borderStrong}`,
                   marginBottom: 24,
                 }}
               >
@@ -988,7 +1051,7 @@ function Pricing() {
                       alignItems: 'flex-start',
                       gap: 10,
                       fontSize: 14,
-                      color: COLORS.textMuted,
+                      color: C.textMuted,
                       lineHeight: 1.5,
                     }}
                   >
@@ -1008,7 +1071,7 @@ function Pricing() {
 }
 
 // ═══════════════════════════════════════════════
-// FAQ (split layout: título à esquerda, perguntas à direita)
+// FAQ (split layout)
 // ═══════════════════════════════════════════════
 const FAQ_ITEMS = [
   {
@@ -1041,20 +1104,12 @@ function FAQ() {
   return (
     <section
       id="faq"
-      style={{
-        padding: '120px 0',
-        borderTop: `1px solid ${COLORS.border}`,
-        background: COLORS.bgElev,
-      }}
+      style={{ padding: '120px 0', borderTop: `1px solid ${C.border}`, background: C.bg2 }}
     >
       <div style={wrap}>
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr)',
-            gap: 64,
-          }}
           className="faq-grid"
+          style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr)', gap: 64 }}
         >
           <div>
             <SectionEyebrow>Dúvidas</SectionEyebrow>
@@ -1062,7 +1117,7 @@ function FAQ() {
               style={{
                 fontSize: 'clamp(28px, 3.5vw, 40px)',
                 fontWeight: 600,
-                color: COLORS.text,
+                color: C.ink,
                 letterSpacing: '-0.02em',
                 lineHeight: 1.1,
                 margin: 0,
@@ -1072,14 +1127,7 @@ function FAQ() {
               <br />
               frequentes
             </h2>
-            <p
-              style={{
-                fontSize: 14,
-                color: COLORS.textMuted,
-                marginTop: 16,
-                lineHeight: 1.55,
-              }}
-            >
+            <p style={{ fontSize: 14, color: C.textMuted, marginTop: 16, lineHeight: 1.55 }}>
               Não achou sua resposta? Fala com a gente no WhatsApp.
             </p>
           </div>
@@ -1089,8 +1137,8 @@ function FAQ() {
               <details
                 key={i}
                 style={{
-                  borderTop: i === 0 ? `1px solid ${COLORS.border}` : 'none',
-                  borderBottom: `1px solid ${COLORS.border}`,
+                  borderTop: i === 0 ? `1px solid ${C.border}` : 'none',
+                  borderBottom: `1px solid ${C.border}`,
                   padding: '20px 0',
                 }}
               >
@@ -1098,7 +1146,7 @@ function FAQ() {
                   style={{
                     fontSize: 15,
                     fontWeight: 500,
-                    color: COLORS.text,
+                    color: C.ink,
                     cursor: 'pointer',
                     listStyle: 'none',
                     display: 'flex',
@@ -1109,13 +1157,13 @@ function FAQ() {
                   }}
                 >
                   {item.q}
-                  <span style={{ color: COLORS.textSubtle, fontSize: 18 }}>+</span>
+                  <span style={{ color: C.textSubtle, fontSize: 18 }}>+</span>
                 </summary>
                 <p
                   style={{
                     fontSize: 14,
                     lineHeight: 1.6,
-                    color: COLORS.textMuted,
+                    color: C.textMuted,
                     margin: '12px 0 0',
                     paddingRight: 32,
                   }}
@@ -1128,7 +1176,6 @@ function FAQ() {
         </div>
       </div>
 
-      {/* Mobile: empilha o grid */}
       <style>{`
         @media (max-width: 768px) {
           .faq-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
@@ -1139,12 +1186,12 @@ function FAQ() {
 }
 
 // ═══════════════════════════════════════════════
-// Final CTA
+// CTA Final
 // ═══════════════════════════════════════════════
 function FinalCTA() {
   return (
     <section style={{ padding: '120px 0', textAlign: 'center', position: 'relative' }}>
-      <DotCluster style={{ top: 80, left: '20%' }} color={COLORS.accent} />
+      <DotCluster style={{ top: 80, left: '20%' }} green />
       <DotCluster style={{ bottom: 80, right: '20%', transform: 'rotate(45deg)' }} />
 
       <div style={wrap}>
@@ -1152,7 +1199,7 @@ function FinalCTA() {
           style={{
             fontSize: 'clamp(36px, 5vw, 60px)',
             fontWeight: 600,
-            color: COLORS.text,
+            color: C.ink,
             letterSpacing: '-0.03em',
             lineHeight: 1.05,
             margin: 0,
@@ -1160,17 +1207,9 @@ function FinalCTA() {
         >
           Pronto pra montar
           <br />
-          seu <span style={{ color: COLORS.accent }}>protocolo</span>?
+          seu <span style={{ color: C.greenInk }}>protocolo</span>?
         </h2>
-        <p
-          style={{
-            fontSize: 17,
-            color: COLORS.textMuted,
-            margin: '24px auto 36px',
-            maxWidth: 480,
-            lineHeight: 1.55,
-          }}
-        >
+        <p style={{ fontSize: 17, color: C.textMuted, margin: '24px auto 36px', maxWidth: 480, lineHeight: 1.55 }}>
           4 minutos. Sem cartão. Cancele quando quiser.
         </p>
         <Link
@@ -1179,8 +1218,8 @@ function FinalCTA() {
             display: 'inline-block',
             padding: '14px 28px',
             borderRadius: 10,
-            background: COLORS.text,
-            color: COLORS.bg,
+            background: C.ink,
+            color: '#fff',
             fontSize: 15,
             fontWeight: 600,
             textDecoration: 'none',
@@ -1191,7 +1230,7 @@ function FinalCTA() {
         </Link>
       </div>
 
-      {/* Spectrum line decorativa */}
+      {/* Linha espectro decorativa */}
       <div
         style={{
           maxWidth: 1200,
@@ -1199,7 +1238,7 @@ function FinalCTA() {
           height: 1,
           background:
             'linear-gradient(90deg, transparent 0%, #EF4444 15%, #F97316 30%, #FACC15 45%, #22C55E 60%, #3B82F6 75%, #8B5CF6 90%, transparent 100%)',
-          opacity: 0.7,
+          opacity: 0.5,
         }}
         aria-hidden
       />
@@ -1208,25 +1247,15 @@ function FinalCTA() {
 }
 
 // ═══════════════════════════════════════════════
-// Footer (multi-coluna, denso, estilo Vercel)
+// Footer
 // ═══════════════════════════════════════════════
 function Footer() {
   return (
-    <footer
-      style={{
-        padding: '64px 0 40px',
-        borderTop: `1px solid ${COLORS.border}`,
-        background: COLORS.bg,
-      }}
-    >
+    <footer style={{ padding: '64px 0 40px', borderTop: `1px solid ${C.border}`, background: C.bg }}>
       <div style={wrap}>
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.5fr 1fr 1fr 1fr',
-            gap: 48,
-          }}
           className="footer-grid"
+          style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: 48 }}
         >
           <div>
             <Link
@@ -1237,7 +1266,7 @@ function Footer() {
                 gap: 8,
                 fontWeight: 600,
                 fontSize: 18,
-                color: COLORS.text,
+                color: C.ink,
                 textDecoration: 'none',
                 letterSpacing: '-0.02em',
                 marginBottom: 16,
@@ -1249,7 +1278,7 @@ function Footer() {
             <p
               style={{
                 fontSize: 13,
-                color: COLORS.textMuted,
+                color: C.textMuted,
                 lineHeight: 1.55,
                 margin: 0,
                 maxWidth: 280,
@@ -1289,20 +1318,18 @@ function Footer() {
           style={{
             marginTop: 48,
             paddingTop: 24,
-            borderTop: `1px solid ${COLORS.border}`,
+            borderTop: `1px solid ${C.border}`,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: 16,
             fontSize: 12,
-            color: COLORS.textSubtle,
+            color: C.textSubtle,
           }}
         >
           <span>© {new Date().getFullYear()} Nuvita. Todos os direitos reservados.</span>
-          <span>
-            Plataforma de informação. Não substitui acompanhamento médico.
-          </span>
+          <span>Plataforma de informação. Não substitui acompanhamento médico.</span>
         </div>
       </div>
 
@@ -1315,38 +1342,34 @@ function Footer() {
   );
 }
 
-function FooterCol({
-  title,
-  links,
-}: {
-  title: string;
-  links: { label: string; href: string }[];
-}) {
+function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
       <div
         style={{
           fontSize: 12,
-          fontWeight: 600,
-          color: COLORS.text,
-          letterSpacing: '0.02em',
+          fontWeight: 700,
+          color: C.ink,
+          letterSpacing: '0.03em',
           textTransform: 'uppercase',
           marginBottom: 16,
         }}
       >
         {title}
       </div>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <ul
+        style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+        }}
+      >
         {links.map((l) => (
           <li key={l.label}>
-            <Link
-              href={l.href}
-              style={{
-                fontSize: 13,
-                color: COLORS.textMuted,
-                textDecoration: 'none',
-              }}
-            >
+            <Link href={l.href} style={{ fontSize: 13, color: C.textMuted, textDecoration: 'none' }}>
               {l.label}
             </Link>
           </li>
@@ -1359,27 +1382,21 @@ function FooterCol({
 // ═══════════════════════════════════════════════
 // Helpers visuais
 // ═══════════════════════════════════════════════
-function SectionEyebrow({
-  children,
-  center,
-}: {
-  children: React.ReactNode;
-  center?: boolean;
-}) {
+function SectionEyebrow({ children, center }: { children: React.ReactNode; center?: boolean }) {
   return (
     <div
       style={{
         display: 'inline-block',
         padding: '4px 10px',
         borderRadius: 999,
-        background: COLORS.accentSoft,
-        color: COLORS.accent,
+        background: C.greenSoft,
+        color: C.greenInk,
         fontSize: 11,
-        fontWeight: 600,
+        fontWeight: 700,
         letterSpacing: '0.05em',
         textTransform: 'uppercase',
         marginBottom: 16,
-        ...(center ? { display: 'inline-block' } : {}),
+        ...(center ? {} : {}),
       }}
     >
       {children}
@@ -1387,19 +1404,13 @@ function SectionEyebrow({
   );
 }
 
-function SectionTitle({
-  children,
-  center,
-}: {
-  children: React.ReactNode;
-  center?: boolean;
-}) {
+function SectionTitle({ children, center }: { children: React.ReactNode; center?: boolean }) {
   return (
     <h2
       style={{
         fontSize: 'clamp(32px, 4.2vw, 52px)',
         fontWeight: 600,
-        color: COLORS.text,
+        color: C.ink,
         letterSpacing: '-0.025em',
         lineHeight: 1.05,
         margin: 0,
