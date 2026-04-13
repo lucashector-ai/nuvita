@@ -360,7 +360,6 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
         </div>
 
         {/* ══ BANNER IA ══ */}
-        <div style={{ gridColumn:'1/-1', background:'{/* ══ BANNER IA ══ */}
         <div style={{ gridColumn:'1/-1', background:'linear-gradient(135deg, #0F1A2E 0%, #1A2F4A 50%, #0F2A1A 100%)', borderRadius:18, padding:'1.5rem 2rem', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'1rem', boxShadow:'0 4px 20px rgba(0,0,0,.12)', cursor:'pointer', transition:'transform .15s', position:'relative', overflow:'hidden' }}
           onClick={() => onNavigate('ia')}
           onMouseEnter={e => e.currentTarget.style.transform='translateY(-2px)'}
