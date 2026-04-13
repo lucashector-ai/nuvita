@@ -1,5 +1,15 @@
-// @ts-nocheck
+// ════════════════════════════════════════════════
+//  NUVITA — components/dashboard/Sidebar.tsx
+//  Sidebar consolidada com grupos colapsáveis
+//  - 3 itens fixos no topo (Início, Protocolo, Calendário)
+//  - 3 grupos colapsáveis (Acompanhar, IA, Conhecimento)
+//  - Rodapé fixo (Exportar, Configurações)
+//  - Cadeado em itens Pro pra usuários não-Pro
+// ════════════════════════════════════════════════
+
 'use client';
+
+import { useState } from 'react';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import type { DashSection } from './DashboardShell';
 
@@ -10,198 +20,440 @@ interface Props {
   onMobileClose: () => void;
   expanded: boolean;
   onToggleExpand: () => void;
+  plano?: 'free' | 'essencial' | 'pro' | string;
 }
 
-// Ícones SVG inline — mesma abordagem da referência
-const Icon = ({ path, size = 16 }: { path: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-    <path d={path}/>
-  </svg>
-);
-
-const SECTIONS = [
-  { label: null, items: [
-    { id:'inicio',    icon:'M2 6.5L8 2l6 4.5V13a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z', label:'Início' },
-    { id:'protocolo', icon:'M2 4h12M2 7h8M2 10h5', label:'Protocolo' },
-    { id:'ia',        icon:'M8 2a3 3 0 100 6 3 3 0 000-6zM2.5 14a5.5 5.5 0 0111 0', label:'IA' },
-  ] },
-  { label: 'Progresso', items: [
-    { id:'diario',       icon:'M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h6M5 9h4', label:'Diário' },
-    { id:'consistencia', icon:'M2 10l3-3 3 3 4-5 2 2', label:'Consistência' },
-    { id:'analise',      icon:'M2 12h2v-3H2v3zM6 12h2V7H6v5zM10 12h2V4h-2v8zM1 13h14', label:'Análise' },
-    { id:'historico',    icon:'M8 1v6l3 3M8 1a7 7 0 100 14A7 7 0 008 1', label:'Histórico' },
-    { id:'calendario',   icon:'M1 5h14v9a1 1 0 01-1 1H2a1 1 0 01-1-1V5zM1 5V4a1 1 0 011-1h12a1 1 0 011 1v1M5 3V1M11 3V1', label:'Calendário' },
-  ] },
-  { label: 'Ferramentas IA', items: [
-    { id:'coach',     icon:'M2 2h12a1 1 0 011 1v7a1 1 0 01-1 1H8l-3 3V11H3a1 1 0 01-1-1V3a1 1 0 011-1', label:'Coach IA' },
-    { id:'ajuste',    icon:'M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M10.4 10.4l1.4 1.4M3.2 12.8l1.4-1.4M10.4 5.6l1.4-1.4M8 5a3 3 0 100 6', label:'Ajuste Auto' },
-    { id:'detector',  icon:'M8 2L2 14h12L8 2zM8 7v3M8 11.5v.5', label:'Detector' },
-    { id:'simulador', icon:'M8 1a7 7 0 100 14A7 7 0 008 1zM8 5v4l2 2', label:'Simulador' },
-  ] },
-  { label: 'Gestão', items: [
-    { id:'rotina',     icon:'M3 5h10M3 8h7M3 11h4M1 2h14a1 1 0 011 1v11a1 1 0 01-1 1H1a1 1 0 01-1-1V3a1 1 0 011-1', label:'Rotina' },
-    { id:'estoque',    icon:'M3 2h10l2 3v9a1 1 0 01-1 1H2a1 1 0 01-1-1V5L3 2zM2 5h12M8 8v5M6 10h4', label:'Estoque' },
-    { id:'exportacao', icon:'M8 2v9M5 8l3 3 3-3M2 13h12', label:'Exportar' },
-  ] },
-  { label: 'Educação', items: [
-    { id:'educacao', icon:'M2 2h12a1 1 0 011 1v10a1 1 0 01-1 1H2a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h6M5 9h4M5 12h2', label:'Educação' },
-    { id:'lib',      icon:'M3 2h10a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM6 2v13M6 7h6', label:'Biblioteca' },
-    { id:'calc',     icon:'M3 2h10a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h2M9 6h2M5 9h2M9 9h2M5 12h2M9 12h2', label:'Calculadora' },
-    { id:'mapa',     icon:'M8 2C5.2 2 3 4.2 3 7c0 4 5 9 5 9s5-5 5-9c0-2.8-2.2-5-5-5zm0 6.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z', label:'Mapa' },
-  ] },
-  { label: 'Médico', items: [
-    { id:'medico',   icon:'M8 2a3 3 0 100 6A3 3 0 008 2zM2.5 14a5.5 5.5 0 0111 0M8 10v4M6 12h4', label:'Médico Parceiro', proOnly:true },
-    { id:'consultas',icon:'M1 3h14a1 1 0 011 1v8a1 1 0 01-1 1H1a1 1 0 01-1-1V4a1 1 0 011-1zM5 7h6M5 10h3', label:'Consultas' },
-  ] },
-  { label: 'Conta', items: [
-    { id:'planos', icon:'M1 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1V4zM1 7h14', label:'Planos' },
-    { id:'ajuda', icon:'M8 1a7 7 0 100 14A7 7 0 008 1zM8 11v1M8 5a2 2 0 011.73 3C9 9 8 9.5 8 10', label:'Ajuda' },
-    { id:'config', icon:'M8 5a3 3 0 100 6 3 3 0 000-6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.2 3.2l1 1M11.8 11.8l1 1M3.2 12.8l1-1M11.8 4.2l1-1', label:'Configurações' },
-  ] },
-];
-
-// Cores por categoria — estilo da referência
-const ICON_COLORS: Record<string,{bg:string;color:string}> = {
-  inicio:       { bg:'#EDE9FE', color:'#7C3AED' },
-  protocolo:    { bg:'#DBEAFE', color:'#2563EB' },
-  diario:       { bg:'#DCFCE7', color:'#15803D' },
-  consistencia: { bg:'#FEF3C7', color:'#D97706' },
-  analise:      { bg:'#DBEAFE', color:'#1D4ED8' },
-  historico:    { bg:'#FCE7F3', color:'#BE185D' },
-  calendario:   { bg:'#CCFBF1', color:'#0F766E' },
-  coach:        { bg:'#EDE9FE', color:'#6D28D9' },
-  ajuste:       { bg:'#FEF3C7', color:'#B45309' },
-  detector:     { bg:'#FEE2E2', color:'#B91C1C' },
-  simulador:    { bg:'#CCFBF1', color:'#0E7490' },
-  rotina:       { bg:'#DCFCE7', color:'#166534' },
-  estoque:      { bg:'#FEF3C7', color:'#92400E' },
-  exportacao:   { bg:'#DBEAFE', color:'#1E40AF' },
-  lib:          { bg:'#EDE9FE', color:'#5B21B6' },
-  calc:         { bg:'#F3F4F6', color:'#374151' },
-  mapa:         { bg:'#DCFCE7', color:'#065F46' },
-  medico:       { bg:'#FCE7F3', color:'#9D174D' },
-  perfil:       { bg:'#F3F4F6', color:'#374151' },
-  planos:       { bg:'#FEF3C7', color:'#78350F' },
-  conta:        { bg:'#F3F4F6', color:'#1F2937' },
-  config:       { bg:'#F3F4F6', color:'#4B5563' },
+type Item = {
+  id: DashSection;
+  label: string;
+  icon: string;
+  /** tier mínimo para acesso */
+  tier?: 'free' | 'essencial' | 'pro';
 };
 
-export default function Sidebar({ active, onNavigate, mobileOpen, onMobileClose, expanded, onToggleExpand }: Props) {
-  const nav = (s: DashSection) => { onNavigate(s); onMobileClose(); };
+type Group = {
+  id: string;
+  label: string;
+  items: Item[];
+};
+
+// ─── Estrutura de navegação ──────────────────────
+const TOP_ITEMS: Item[] = [
+  { id: 'inicio', label: 'Início', icon: '🏠' },
+  { id: 'protocolo', label: 'Meu Protocolo', icon: '💊' },
+  { id: 'calendario', label: 'Calendário', icon: '📅' },
+];
+
+const GROUPS: Group[] = [
+  {
+    id: 'acompanhar',
+    label: 'Acompanhar',
+    items: [
+      { id: 'analise', label: 'Progresso', icon: '📊' },
+      { id: 'diario', label: 'Diário', icon: '📝' },
+      { id: 'estoque', label: 'Estoque', icon: '📦' },
+      { id: 'historico', label: 'Histórico', icon: '🕐' },
+    ],
+  },
+  {
+    id: 'ia',
+    label: 'IA',
+    items: [
+      { id: 'coach', label: 'Coach IA', icon: '🤖', tier: 'essencial' },
+      { id: 'detector', label: 'Detector de sintomas', icon: '🚨', tier: 'essencial' },
+      { id: 'ajuste', label: 'Ajuste automático', icon: '⚙️', tier: 'pro' },
+      { id: 'simulador', label: 'Simulador de ciclos', icon: '🔮', tier: 'pro' },
+    ],
+  },
+  {
+    id: 'conhecimento',
+    label: 'Conhecimento',
+    items: [
+      { id: 'lib', label: 'Biblioteca', icon: '📚' },
+      { id: 'calc', label: 'Calculadora', icon: '🧮' },
+    ],
+  },
+];
+
+const FOOTER_ITEMS: Item[] = [
+  { id: 'exportacao', label: 'Exportar', icon: '📥', tier: 'essencial' },
+  { id: 'config', label: 'Configurações', icon: '⚙️' },
+];
+
+// ─── Helpers de tier ─────────────────────────────
+function hasAccess(itemTier: Item['tier'], userPlano: string): boolean {
+  if (!itemTier || itemTier === 'free') return true;
+  if (itemTier === 'essencial') return userPlano === 'essencial' || userPlano === 'pro';
+  if (itemTier === 'pro') return userPlano === 'pro';
+  return true;
+}
+
+// ─── Cores (alinhadas ao globals.css) ────────────
+const C = {
+  bg: '#FFFFFF',
+  bg2: '#F7F7F7',
+  bg3: '#EFEFEF',
+  ink: '#0F1115',
+  inkSoft: '#1A1D23',
+  muted: '#6B7280',
+  subtle: '#9CA3AF',
+  border: '#EBEBEB',
+  borderStrong: '#D8D8D8',
+  green: '#22C55E',
+  greenSoft: '#DCFCE7',
+  greenInk: '#15803D',
+};
+
+// ═══════════════════════════════════════════════
+export default function Sidebar({
+  active,
+  onNavigate,
+  mobileOpen,
+  onMobileClose,
+  expanded,
+  onToggleExpand,
+  plano = 'free',
+}: Props) {
+  // Estado de colapso por grupo (default: todos abertos)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    acompanhar: true,
+    ia: true,
+    conhecimento: true,
+  });
+
+  const toggleGroup = (id: string) => {
+    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleClick = (item: Item) => {
+    if (!hasAccess(item.tier, plano)) {
+      // Item Pro — leva pra Planos
+      onNavigate('planos');
+      if (mobileOpen) onMobileClose();
+      return;
+    }
+    onNavigate(item.id);
+    if (mobileOpen) onMobileClose();
+  };
+
+  const width = expanded ? 240 : 64;
+
+  const sidebarStyle: React.CSSProperties = {
+    width,
+    minWidth: width,
+    height: '100vh',
+    position: 'sticky',
+    top: 0,
+    background: '#fff',
+    borderRight: `1px solid ${C.border}`,
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'width 0.2s ease',
+    flexShrink: 0,
+    overflow: 'hidden',
+  };
+
+  const mobileOverlayStyle: React.CSSProperties = mobileOpen
+    ? {
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.3)',
+        zIndex: 40,
+        display: 'block',
+      }
+    : { display: 'none' };
+
+  const mobileSidebarStyle: React.CSSProperties = mobileOpen
+    ? {
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        width: 240,
+        minWidth: 240,
+        zIndex: 50,
+      }
+    : {};
 
   return (
     <>
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div onClick={onMobileClose}
-          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.5)', zIndex:199, backdropFilter:'blur(2px)' }}/>
-      )}
+      {/* Overlay mobile */}
+      <div style={mobileOverlayStyle} onClick={onMobileClose} />
 
-      <aside style={{
-        position: 'fixed', left: 0, top: 0, height: '100vh', zIndex: 200,
-        display: 'flex', flexDirection: 'column',
-        background: '#F7F7F7',
-        borderRight: '1px solid #E5E7EB',
-        width: expanded ? 'var(--sb-wx)' : 'var(--sb-w)',
-        transition: 'width .2s ease',
-        overflow: 'hidden',
-      }}>
-        {/* Logo */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 10px', minHeight:56, borderBottom:'none', flexShrink:0 }}>
+      <aside
+        style={{ ...sidebarStyle, ...mobileSidebarStyle }}
+        className="nv-sidebar"
+      >
+        {/* ─── Header: Logo + Toggle ─── */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: expanded ? 'space-between' : 'center',
+            padding: '18px 16px',
+            borderBottom: `1px solid ${C.border}`,
+            minHeight: 64,
+          }}
+        >
           {expanded ? (
             <>
-              <div onClick={() => nav('inicio')} style={{ cursor:'pointer', flex:1 }}>
-                <NuvitaLogo width={80} height={18}/>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <NuvitaLogo />
               </div>
-              <button onClick={onToggleExpand} style={{ width:28, height:28, borderRadius:7, border:'none', background:'#EBEBEB', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#6B7280', flexShrink:0 }}>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2L4 6l4 4"/></svg>
+              <button
+                onClick={onToggleExpand}
+                style={iconBtn}
+                aria-label="Recolher menu"
+                title="Recolher"
+              >
+                <ChevronLeft />
               </button>
             </>
           ) : (
-            <button onClick={onToggleExpand} style={{ width:36, height:36, borderRadius:8, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#6B7280', margin:'0 auto' }}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 3l5 5-5 5"/></svg>
+            <button
+              onClick={onToggleExpand}
+              style={iconBtn}
+              aria-label="Expandir menu"
+              title="Expandir"
+            >
+              <Menu />
             </button>
-          )}
-          {expanded && (
-            <button onClick={onToggleExpand}
-              style={{ width:24, height:24, borderRadius:6, border:'none', background:'rgba(255,255,255,.06)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,.4)', flexShrink:0 }}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M8 2L4 6l4 4"/>
-              </svg>
-            </button>
-          )}
-          {!expanded && (
-            <button onClick={onToggleExpand}
-              style={{ position:'absolute', right:0, width:'100%', height:56, border:'none', background:'transparent', cursor:'pointer' }}/>
           )}
         </div>
 
-        {/* Nav */}
-        <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'8px 8px', scrollbarWidth:'thin', scrollbarColor:'rgba(0,0,0,.06) transparent', scrollbarWidth:'thin', scrollbarColor:'rgba(0,0,0,.08) transparent' }}>
-          {SECTIONS.map((group, gi) => (
-            <div key={gi} style={{ marginBottom: gi < SECTIONS.length-1 ? 4 : 0 }}>
-              {/* Group label */}
-              {group.label && expanded && (
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase', color:'#9CA3AF', padding:'8px 10px 4px', whiteSpace:'nowrap' }}>
-                  {group.label}
-                </div>
-              )}
-              {group.label && !expanded && <div style={{ height:8 }}/>}
+        {/* ─── Scroll area ─── */}
+        <nav
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '12px 8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+          }}
+        >
+          {/* Top items (sempre visíveis) */}
+          {TOP_ITEMS.map((item) => (
+            <NavItem
+              key={item.id}
+              item={item}
+              active={active === item.id}
+              expanded={expanded}
+              locked={!hasAccess(item.tier, plano)}
+              onClick={() => handleClick(item)}
+            />
+          ))}
 
-              {/* Items */}
-              {group.items.map(item => {
-                const isActive = active === item.id;
-                const colors = ICON_COLORS[item.id] || { bg:'#F3F4F6', color:'#374151' };
-                return (
-                  <button key={item.id}
-                    onClick={() => nav(item.id as DashSection)}
-                    title={!expanded ? item.label : undefined}
+          {/* Divider */}
+          <div style={{ height: 1, background: C.border, margin: '12px 8px' }} />
+
+          {/* Groups */}
+          {GROUPS.map((group) => (
+            <div key={group.id} style={{ marginBottom: 4 }}>
+              {expanded && (
+                <button
+                  onClick={() => toggleGroup(group.id)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 12px',
+                    border: 'none',
+                    background: 'transparent',
+                    color: C.subtle,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    borderRadius: 6,
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.background = C.bg2)}
+                  onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <span>{group.label}</span>
+                  <span
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      padding: expanded ? '7px 10px' : '7px',
-                      borderRadius: 9, cursor: 'pointer', width: '100%',
-                      border: 'none', background: isActive ? '#FFFFFF' : 'transparent', boxShadow: isActive ? '0 1px 3px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04)' : 'none',
-                      color: isActive ? '#111827' : '#6B7280',
-                      fontSize: 13, fontWeight: isActive ? 500 : 400,
-                      fontFamily: 'inherit', letterSpacing: '-.01em',
-                      whiteSpace: 'nowrap', overflow: 'hidden',
-                      transition: 'all .12s', textAlign: 'left',
-                      justifyContent: expanded ? 'flex-start' : 'center', width: expanded ? '100%' : 40, height: expanded ? 'auto' : 40,
-                      marginBottom: 1,
+                      fontSize: 10,
+                      transform: openGroups[group.id] ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.15s',
                     }}
-                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '#FFFFFF'; (e.currentTarget as HTMLElement).style.color = '#111827'; }}
-                    onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#6B7280'; } }}>
-                    {/* Icon box colorido */}
-                    <div style={{
-                      width: 28, height: 28, borderRadius: 7, flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: isActive ? item.accentBg : 'transparent',
-                      transition: 'background .12s',
-                    }}>
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
-                        stroke={isActive ? colors.color : 'currentColor'}
-                        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d={item.icon}/>
-                      </svg>
-                    </div>
-                    {/* Label */}
-                    {expanded && (
-                      <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis' }}>
-                        {item.label}
-                        {item.proOnly && <span style={{ marginLeft:6, fontSize:9, background:'#EDE9FE', color:'#7C3AED', padding:'1px 5px', borderRadius:100, fontWeight:700 }}>PRO</span>}
-                      </span>
-                    )}
-                    {/* Dot ativo quando collapsed */}
-                    {!expanded && isActive && (
-                      <div style={{ position:'absolute', right:6, width:4, height:4, borderRadius:'50%', background:'white' }}/>
-                    )}
-                  </button>
-                );
-              })}
+                  >
+                    ▶
+                  </span>
+                </button>
+              )}
+              {(openGroups[group.id] || !expanded) &&
+                group.items.map((item) => (
+                  <NavItem
+                    key={item.id}
+                    item={item}
+                    active={active === item.id}
+                    expanded={expanded}
+                    locked={!hasAccess(item.tier, plano)}
+                    onClick={() => handleClick(item)}
+                  />
+                ))}
             </div>
           ))}
+        </nav>
+
+        {/* ─── Footer: Exportar, Configurações ─── */}
+        <div
+          style={{
+            borderTop: `1px solid ${C.border}`,
+            padding: '12px 8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+          }}
+        >
+          {FOOTER_ITEMS.map((item) => (
+            <NavItem
+              key={item.id}
+              item={item}
+              active={active === item.id}
+              expanded={expanded}
+              locked={!hasAccess(item.tier, plano)}
+              onClick={() => handleClick(item)}
+            />
+          ))}
+
+          {/* CTA upgrade (se não é Pro) */}
+          {expanded && plano !== 'pro' && (
+            <button
+              onClick={() => onNavigate('planos')}
+              style={{
+                marginTop: 8,
+                padding: '10px 12px',
+                background: `linear-gradient(135deg, ${C.green} 0%, ${C.greenInk} 100%)`,
+                color: '#fff',
+                border: 'none',
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+              title="Ver planos"
+            >
+              <span>⭐</span>
+              <span>{plano === 'free' ? 'Upgrade' : 'Ir para Pro'}</span>
+            </button>
+          )}
         </div>
       </aside>
     </>
   );
 }
+
+// ─── Componente de item ──────────────────────────
+function NavItem({
+  item,
+  active,
+  expanded,
+  locked,
+  onClick,
+}: {
+  item: Item;
+  active: boolean;
+  expanded: boolean;
+  locked: boolean;
+  onClick: () => void;
+}) {
+  const btnStyle: React.CSSProperties = {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: expanded ? '9px 12px' : '9px 0',
+    justifyContent: expanded ? 'flex-start' : 'center',
+    background: active ? C.greenSoft : 'transparent',
+    color: active ? C.greenInk : locked ? C.subtle : C.ink,
+    border: 'none',
+    borderRadius: 10,
+    fontSize: 14,
+    fontWeight: active ? 600 : 500,
+    letterSpacing: '-0.005em',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'background 0.12s',
+    position: 'relative',
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      style={btnStyle}
+      title={!expanded ? item.label : undefined}
+      onMouseOver={(e) => {
+        if (!active) e.currentTarget.style.background = C.bg2;
+      }}
+      onMouseOut={(e) => {
+        if (!active) e.currentTarget.style.background = 'transparent';
+      }}
+    >
+      <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{item.icon}</span>
+      {expanded && (
+        <>
+          <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {item.label}
+          </span>
+          {locked && <LockIcon />}
+        </>
+      )}
+    </button>
+  );
+}
+
+// ─── Ícones ──────────────────────────────────────
+function LockIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
+      <rect x="2" y="5.5" width="9" height="6.5" rx="1.5" stroke={C.subtle} strokeWidth="1.2" />
+      <path
+        d="M4 5.5V4a2.5 2.5 0 015 0v1.5"
+        stroke={C.subtle}
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronLeft() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M10 4L6 8L10 12"
+        stroke={C.muted}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function Menu() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path d="M3 5H15M3 9H15M3 13H15" stroke={C.ink} strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+const iconBtn: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 32,
+  height: 32,
+  border: 'none',
+  background: 'transparent',
+  borderRadius: 8,
+  cursor: 'pointer',
+};
