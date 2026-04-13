@@ -9,7 +9,6 @@ const CATEGORIAS = ['Todos','Emagrecimento','GH/Composição','Recuperação','A
 const NIVEL_COR: any = { iniciante:'#0F6E56', intermediario:'#EF9F27', avancado:'#D85A30' };
 const NIVEL_LABEL: any = { iniciante:'Iniciante', intermediario:'Intermediário', avancado:'Avançado' };
 
-// Gradientes únicos por categoria — estilo Netflix
 const CAT_GRADIENT: any = {
   'Emagrecimento':   'linear-gradient(135deg, #1a0a2e, #3d0d6b, #6b21a8)',
   'GH/Composição':   'linear-gradient(135deg, #0a1a2e, #0d3d6b, #1d6fb0)',
@@ -21,17 +20,7 @@ const CAT_GRADIENT: any = {
   'Experimental':    'linear-gradient(135deg, #1a1a0a, #3d3d0d, #6b6b1d)',
 };
 
-// Emojis grandes como "poster" visual
-const CAT_PATTERN: any = {
-  'Emagrecimento':  '🔥💊⚡',
-  'GH/Composição':  '💪🌙🎯',
-  'Recuperação':    '🩹🔄💨',
-  'Anti-aging':     '✨👑🌟',
-  'Gut/Inflamação': '🌿🧬💊',
-  'Longevidade':    '⚡🔋💡',
-  'Sexual':         '❤️',
-  'Experimental':   '🧬🔬',
-};
+const FREE_LIMIT = 2;
 
 function PeptideoCard({ p, onClick }: any) {
   const [hovered, setHovered] = useState(false);
@@ -54,7 +43,6 @@ function PeptideoCard({ p, onClick }: any) {
       onMouseLeave={() => setHovered(false)}
       onClick={onClick}
     >
-      {/* Fundo decorativo com emojis */}
       <div style={{
         position: 'absolute', inset: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -65,14 +53,12 @@ function PeptideoCard({ p, onClick }: any) {
         {p.emoji}
       </div>
 
-      {/* Gradiente overlay no rodapé */}
       <div style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
         height: '70%',
         background: 'linear-gradient(to top, rgba(0,0,0,.95) 30%, transparent)',
       }}/>
 
-      {/* Badge de nível no topo */}
       {p.nivel && (
         <div style={{
           position: 'absolute', top: 10, right: 10,
@@ -85,7 +71,6 @@ function PeptideoCard({ p, onClick }: any) {
         </div>
       )}
 
-      {/* Emoji principal centralizado */}
       <div style={{
         position: 'absolute', top: '30%', left: 0, right: 0,
         textAlign: 'center', fontSize: '2.5rem',
@@ -95,7 +80,6 @@ function PeptideoCard({ p, onClick }: any) {
         {p.emoji}
       </div>
 
-      {/* Conteúdo inferior */}
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1rem' }}>
         <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 3 }}>
           {p.subcategoria || p.categoria}
@@ -108,7 +92,6 @@ function PeptideoCard({ p, onClick }: any) {
             {p.dose_min}–{p.dose_max} {p.unidade} · {p.via}
           </div>
         )}
-        {/* Botão hover */}
         <div style={{
           marginTop: 8, overflow: 'hidden', maxHeight: hovered ? 28 : 0,
           transition: 'max-height .2s ease',
@@ -125,11 +108,72 @@ function PeptideoCard({ p, onClick }: any) {
   );
 }
 
+// Card bloqueado — mostra preview borrado com cadeado + CTA pra upgrade
+function LockedCard({ p, onUpgrade }: any) {
+  const grad = CAT_GRADIENT[p.categoria] || 'linear-gradient(135deg, #1a1a1a, #333)';
+  return (
+    <div
+      style={{
+        position: 'relative',
+        borderRadius: 14,
+        overflow: 'hidden',
+        cursor: 'pointer',
+        aspectRatio: '2/3',
+        background: grad,
+        boxShadow: '0 4px 12px rgba(0,0,0,.15)',
+        filter: 'saturate(0.5)',
+      }}
+      onClick={onUpgrade}
+    >
+      {/* Overlay escuro que borra tudo */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'rgba(0, 0, 0, 0.55)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+        padding: 14,
+        textAlign: 'center',
+      }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 14,
+          background: 'rgba(34, 197, 94, 0.18)',
+          border: '1px solid rgba(34, 197, 94, 0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect x="4" y="10" width="14" height="9" rx="2" stroke="#22C55E" strokeWidth="1.7"/>
+            <path d="M7 10V7a4 4 0 018 0v3" stroke="#22C55E" strokeWidth="1.7" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div style={{
+          fontSize: 11, fontWeight: 700, color: '#22C55E',
+          textTransform: 'uppercase', letterSpacing: '.08em',
+        }}>Plano Pro</div>
+        <div style={{
+          fontSize: 13, fontWeight: 600, color: '#fff', lineHeight: 1.3,
+        }}>
+          {p.nome}
+        </div>
+        <div style={{
+          fontSize: 11, color: 'rgba(255,255,255,0.75)', lineHeight: 1.4,
+          marginTop: 4,
+        }}>
+          Faça upgrade para desbloquear
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) {
   const router = useRouter();
   const [peptideos, setPeptideos] = useState<any[]>([]);
-  const [loading,   setLoading]   = useState(true);
-  const [busca,     setBusca]     = useState('');
+  const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState('');
   const [catFiltro, setCatFiltro] = useState('Todos');
 
   useEffect(() => {
@@ -139,6 +183,9 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
     });
   }, []);
 
+  const isPro = plano === 'pro';
+
+  // Filtro por busca/categoria
   const filtrados = peptideos.filter(p => {
     const matchBusca = !busca ||
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
@@ -148,21 +195,22 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
     return matchBusca && matchCat;
   });
 
-  // Limite free: mostra apenas 2 peptideos pra nao-pro
-  const FREE_LIMIT = 2;
-  const isProPlano = plano === 'pro';
-  const peptideosVisiveis = isProPlano ? peptideosVisiveis : peptideosVisiveis.slice(0, FREE_LIMIT);
-  const bloqueadosCount = isProPlano ? 0 : Math.max(0, peptideosVisiveis.length - FREE_LIMIT);
+  // Separa em liberados (2 primeiros para free) e bloqueados (restante)
+  const liberados = isPro ? filtrados : filtrados.slice(0, FREE_LIMIT);
+  const bloqueados = isPro ? [] : filtrados.slice(FREE_LIMIT);
 
-
-  // Agrupa por categoria
+  // Agrupa por categoria — usando TODOS os visíveis (liberados + bloqueados)
+  const todosVisiveis = [...liberados, ...bloqueados];
   const categorias = catFiltro === 'Todos'
-    ? CATEGORIAS.filter(c => c !== 'Todos' && peptideosVisiveis.some(p => p.categoria === c))
+    ? CATEGORIAS.filter(c => c !== 'Todos' && todosVisiveis.some(p => p.categoria === c))
     : [catFiltro];
+
+  const irParaPlanos = () => router.push('/planos');
 
   return (
     <div>
-      {typeof window !== 'undefined' && (localStorage.getItem('nv_plano') || 'free') !== 'pro' && (
+      {/* Banner upgrade - só para free */}
+      {!isPro && (
         <div style={{
           background: 'linear-gradient(135deg, #22C55E 0%, #15803D 100%)',
           color: '#fff',
@@ -180,7 +228,7 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
               Desbloqueie a biblioteca completa
             </div>
             <div style={{ fontSize: 15, fontWeight: 500, opacity: 0.95 }}>
-              Plano gratuito mostra 2 peptídeos. Pro tem acesso a todos os 20+ com pesquisas, combinações e simulador de ciclos.
+              Plano gratuito mostra {FREE_LIMIT} peptídeos. Pro libera todos os {peptideos.length || '20+'} com pesquisas, combinações e simulador de ciclos.
             </div>
           </div>
           <a href="/planos" style={{
@@ -203,7 +251,10 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
           Biblioteca de peptídeos
         </h2>
         <p style={{ fontSize: 13, color: 'var(--ts)' }}>
-          {peptideos.length} peptídeos · Clique para ver ficha completa com pesquisas e protocolo
+          {isPro
+            ? `${peptideos.length} peptídeos · Clique para ver ficha completa com pesquisas e protocolo`
+            : `Mostrando ${liberados.length} de ${peptideos.length} peptídeos · Upgrade pra Pro para ver todos`
+          }
         </p>
       </div>
 
@@ -239,21 +290,23 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--ts)', fontSize: 13 }}>
           Carregando biblioteca...
         </div>
-      ) : peptideosVisiveis.length === 0 ? (
+      ) : todosVisiveis.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--ts)', fontSize: 13 }}>
           Nenhum resultado para "{busca}"
         </div>
       ) : (
         <div>
           {categorias.map(cat => {
-            const items = peptideosVisiveis.filter(p => p.categoria === cat);
-            if (!items.length) return null;
+            const liberadosCat = liberados.filter(p => p.categoria === cat);
+            const bloqueadosCat = bloqueados.filter(p => p.categoria === cat);
+            const totalCat = liberadosCat.length + bloqueadosCat.length;
+            if (!totalCat) return null;
             return (
               <div key={cat} style={{ marginBottom: '2.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
                   <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--tx)', letterSpacing: '-.02em' }}>{cat}</h3>
-                  <span style={{ fontSize: 11, color: 'var(--ts)', background:'#FFFFFF', padding: '2px 8px', borderRadius: 100 , boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)'}}>
-                    {items.length} peptídeos
+                  <span style={{ fontSize: 11, color: 'var(--ts)', background:'#FFFFFF', padding: '2px 8px', borderRadius: 100, boxShadow:'0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04)' }}>
+                    {totalCat} peptídeos
                   </span>
                 </div>
                 <div style={{
@@ -261,11 +314,18 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
                   gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
                   gap: 12,
                 }}>
-                  {items.map(p => (
+                  {liberadosCat.map(p => (
                     <PeptideoCard
                       key={p.slug}
                       p={p}
                       onClick={() => router.push(`/biblioteca/${p.slug}`)}
+                    />
+                  ))}
+                  {bloqueadosCat.map(p => (
+                    <LockedCard
+                      key={p.slug}
+                      p={p}
+                      onUpgrade={irParaPlanos}
                     />
                   ))}
                 </div>
