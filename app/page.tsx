@@ -1255,7 +1255,7 @@ function Footer() {
       <div style={wrap}>
         <div
           className="footer-grid"
-          style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: 48 }}
+          style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: 48 }}
         >
           <div>
             <Link
@@ -1294,14 +1294,6 @@ function Footer() {
               { label: 'Diagnóstico', href: '/diagnostico' },
               { label: 'Planos', href: '#pricing' },
               { label: 'Biblioteca', href: '/biblioteca' },
-            ]}
-          />
-          <FooterCol
-            title="Empresa"
-            links={[
-              { label: 'Sobre', href: '#' },
-              { label: 'Contato', href: '#' },
-              { label: 'Blog', href: '#' },
             ]}
           />
           <FooterCol

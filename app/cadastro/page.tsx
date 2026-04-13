@@ -14,6 +14,7 @@ function CadastroContent() {
   const [senha, setSenha]     = useState("");
   const [nome, setNome]       = useState("");
   const [loading, setLoading] = useState(false);
+  const [aceiteTermos, setAceiteTermos] = useState(false);
   const [erro, setErro]       = useState("");
 
   useEffect(() => {
@@ -42,6 +43,7 @@ function CadastroContent() {
   const cadastrar = async () => {
     if (!email || !senha || !nome) { setErro("Preencha todos os campos."); return; }
     if (senha.length < 6) { setErro("Senha deve ter pelo menos 6 caracteres."); return; }
+    if (!aceiteTermos) { setErro("Você precisa aceitar os Termos e a Política de Privacidade."); return; }
     setLoading(true); setErro("");
 
     const { data, error } = await supabase.auth.signUp({ email, password: senha });
@@ -138,6 +140,46 @@ function CadastroContent() {
         </div>
 
         {erro && <div style={{ fontSize:13, color:"#D85A30", marginTop:8, textAlign:"center" }}>{erro}</div>}
+        {modo === "cadastro" && (
+          <label
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              marginBottom: 16,
+              cursor: "pointer",
+              fontSize: 13,
+              color: "#6B7280",
+              lineHeight: 1.5,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={aceiteTermos}
+              onChange={(e) => setAceiteTermos(e.target.checked)}
+              style={{
+                marginTop: 3,
+                width: 16,
+                height: 16,
+                accentColor: "#22C55E",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            />
+            <span>
+              Li e aceito os{" "}
+              <a href="/termos" target="_blank" style={{ color: "#15803D", textDecoration: "underline" }}>
+                Termos de Uso
+              </a>{" "}
+              e a{" "}
+              <a href="/privacidade" target="_blank" style={{ color: "#15803D", textDecoration: "underline" }}>
+                Política de Privacidade
+              </a>
+              , incluindo o tratamento dos meus dados de saúde para gerar o protocolo personalizado.
+            </span>
+          </label>
+        )}
+
 
         <button onClick={modo === "cadastro" ? cadastrar : entrar} disabled={loading}
           style={{ width:"100%", padding:"12px", borderRadius:10, border:"none", background:"#111827", color:"white", fontFamily:"inherit", fontSize:15, fontWeight:500, cursor:"pointer", marginTop:"1rem", opacity:loading?0.7:1 }}>
