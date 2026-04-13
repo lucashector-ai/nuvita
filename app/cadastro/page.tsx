@@ -13,6 +13,7 @@ function CadastroContent() {
   const [email, setEmail]     = useState("");
   const [senha, setSenha]     = useState("");
   const [nome, setNome]       = useState("");
+  const [temNomeDoQuiz, setTemNomeDoQuiz] = useState(false);
   const [loading, setLoading] = useState(false);
   const [aceiteTermos, setAceiteTermos] = useState(false);
   const [erro, setErro]       = useState("");
@@ -21,7 +22,7 @@ function CadastroContent() {
     // Pré-preenche nome do quiz se vier do diagnóstico
     const quiz = sessionStorage.getItem("nv_quiz");
     if (quiz) {
-      try { const d = JSON.parse(quiz); if (d.nome) setNome(d.nome); } catch {}
+      try { const d = JSON.parse(quiz); if (d.nome) { setNome(d.nome); setTemNomeDoQuiz(true); } } catch {}
     }
     // Verifica sessão — mas só redireciona se o usuário realmente existe no banco
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -135,9 +136,15 @@ function CadastroContent() {
         {/* Formulário */}
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {modo === "cadastro" && (
-            <input value={nome} onChange={e => setNome(e.target.value)}
-              style={{ padding:"10px 14px", borderRadius:10, border:"1.5px solid #E5E7EB", fontSize:14, fontFamily:"inherit", outline:"none" }}
+            temNomeDoQuiz ? (
+              <div style={{ padding:"10px 14px", borderRadius:10, background:"#F0FDF4", border:"1.5px solid #BBF7D0", fontSize:14, color:"#15803D", fontWeight:500 }}>
+                👋 Olá, {nome}! Criando sua conta...
+              </div>
+            ) : (
+              <input value={nome} onChange={e => setNome(e.target.value)}
+                style={{ padding:"10px 14px", borderRadius:10, border:"1.5px solid #E5E7EB", fontSize:14, fontFamily:"inherit", outline:"none" }}
               placeholder="Seu primeiro nome"/>
+            )
           )}
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
             style={{ padding:"10px 14px", borderRadius:10, border:"1.5px solid #E5E7EB", fontSize:14, fontFamily:"inherit", outline:"none" }}
