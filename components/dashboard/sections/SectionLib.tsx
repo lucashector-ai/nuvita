@@ -125,7 +125,7 @@ function PeptideoCard({ p, onClick }: any) {
   );
 }
 
-export default function SectionLib() {
+export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) {
   const router = useRouter();
   const [peptideos, setPeptideos] = useState<any[]>([]);
   const [loading,   setLoading]   = useState(true);
@@ -139,7 +139,7 @@ export default function SectionLib() {
     });
   }, []);
 
-  const filtrados = peptideos.filter(p => {
+  const filtradosLimitados = peptideos.filter(p => {
     const matchBusca = !busca ||
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
       p.resumo?.toLowerCase().includes(busca.toLowerCase()) ||
@@ -147,10 +147,15 @@ export default function SectionLib() {
     const matchCat = catFiltro === 'Todos' || p.categoria === catFiltro;
     return matchBusca && matchCat;
   });
+  const FREE_LIMIT = 2;
+  const isProPlano = plano === 'pro';
+  const filtradosLimitados = isProPlano ? filtradosLimitados : filtradosLimitados.slice(0, FREE_LIMIT);
+  const bloqueadosCount = isProPlano ? 0 : Math.max(0, filtradosLimitados.length - FREE_LIMIT);
+
 
   // Agrupa por categoria
   const categorias = catFiltro === 'Todos'
-    ? CATEGORIAS.filter(c => c !== 'Todos' && filtrados.some(p => p.categoria === c))
+    ? CATEGORIAS.filter(c => c !== 'Todos' && filtradosLimitados.some(p => p.categoria === c))
     : [catFiltro];
 
   return (
@@ -232,14 +237,14 @@ export default function SectionLib() {
         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--ts)', fontSize: 13 }}>
           Carregando biblioteca...
         </div>
-      ) : filtrados.length === 0 ? (
+      ) : filtradosLimitados.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--ts)', fontSize: 13 }}>
           Nenhum resultado para "{busca}"
         </div>
       ) : (
         <div>
           {categorias.map(cat => {
-            const items = filtrados.filter(p => p.categoria === cat);
+            const items = filtradosLimitados.filter(p => p.categoria === cat);
             if (!items.length) return null;
             return (
               <div key={cat} style={{ marginBottom: '2.5rem' }}>

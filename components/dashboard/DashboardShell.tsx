@@ -301,7 +301,7 @@ export default function DashboardShell() {
           {section==='calc'         && <SectionCalc peso={peso}/>}
           {section==='comparativo'  && <SectionComparativo onNavigate={nav}/>}
           {section==='mapa'         && <SectionMapa/>}
-          {section==='lib'          && <SectionLib/>}
+          {section==='lib'          && <SectionLib plano={plan}/>}
           {section==='config'       && <SectionConfig answers={answers} plan={plan} userId={userId}/>}
           {section==='consultas'       && <SectionConsultas userId={userId}/>}
           {section==='medico'       && <SectionMedico plan={plan} nome={nome} userId={userId} answers={answers} onNavigate={nav}/>}
@@ -323,7 +323,7 @@ export default function DashboardShell() {
           {section==='exportacao'   && <SectionExportacao answers={answers} items={itemsIAFiltrado || items} peso={peso} plan={plan}/>}
           {section==='planos'        && <SectionPlanos planoAtual={plan} userId={userId} onPlanChange={setPlanAtivo} onNavigate={nav}/>}
           {section==='conta'         && <SectionConta planoAtual={plan} userId={userId} answers={answers} onNavigate={nav}/>}
-          {section==='educacao' && <SectionEducacao answers={answers} onNavigate={nav}/>}
+          {section==='educacao' && <SectionEducacao answers={answers} onNavigate={nav} plano={plan}/>}
           {section==='ajuda' && <SectionAjuda onNavigate={nav}/>}
         </div>
       </div>
