@@ -4,6 +4,7 @@ import { useState } from 'react';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import type { DashSection } from './DashboardShell';
 
+// Aceita tanto 'plano' quanto 'plan' (retrocompat com DashboardShell que passa 'plan')
 interface Props {
   active: DashSection;
   onNavigate: (s: DashSection) => void;
@@ -11,7 +12,12 @@ interface Props {
   onMobileClose: () => void;
   expanded: boolean;
   onToggleExpand: () => void;
-  plano?: 'free' | 'essencial' | 'pro' | string;
+  plano?: string;
+  plan?: string;
+  // Props extras que o DashboardShell passa — aceitamos e ignoramos
+  nome?: string;
+  planLabel?: string;
+  onLogout?: () => void;
 }
 
 type Item = {
@@ -52,11 +58,11 @@ const GROUPS: Group[] = [
     id: 'progresso',
     label: 'Progresso',
     items: [
-      { id: 'diario', label: 'Diário', icon: 'M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h6M5 9h4' },
-      { id: 'consistencia', label: 'Consistência', icon: 'M2 10l3-3 3 3 4-5 2 2' },
-      { id: 'analise', label: 'Análise', icon: 'M2 12h2v-3H2v3zM6 12h2V7H6v5zM10 12h2V4h-2v8zM1 13h14' },
-      { id: 'historico', label: 'Histórico', icon: 'M8 1v6l3 3M8 1a7 7 0 100 14A7 7 0 008 1' },
-      { id: 'estoque', label: 'Estoque', icon: 'M3 2h10l2 3v9a1 1 0 01-1 1H2a1 1 0 01-1-1V5L3 2zM2 5h12M8 8v5M6 10h4' },
+      { id: 'diario', label: 'Diário', icon: 'M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h6M5 9h4', tier: 'essencial' },
+      { id: 'consistencia', label: 'Consistência', icon: 'M2 10l3-3 3 3 4-5 2 2', tier: 'essencial' },
+      { id: 'analise', label: 'Análise', icon: 'M2 12h2v-3H2v3zM6 12h2V7H6v5zM10 12h2V4h-2v8zM1 13h14', tier: 'essencial' },
+      { id: 'historico', label: 'Histórico', icon: 'M8 1v6l3 3M8 1a7 7 0 100 14A7 7 0 008 1', tier: 'essencial' },
+      { id: 'estoque', label: 'Estoque', icon: 'M3 2h10l2 3v9a1 1 0 01-1 1H2a1 1 0 01-1-1V5L3 2zM2 5h12M8 8v5M6 10h4', tier: 'essencial' },
     ],
   },
   {
@@ -66,7 +72,7 @@ const GROUPS: Group[] = [
       { id: 'ia', label: 'IA', icon: 'M8 2a3 3 0 100 6 3 3 0 000-6zM2.5 14a5.5 5.5 0 0111 0' },
       { id: 'coach', label: 'Coach IA', icon: 'M2 2h12a1 1 0 011 1v7a1 1 0 01-1 1H8l-3 3V11H3a1 1 0 01-1-1V3a1 1 0 011-1', tier: 'essencial' },
       { id: 'detector', label: 'Detector', icon: 'M8 2L2 14h12L8 2zM8 7v3M8 11.5v.5', tier: 'essencial' },
-      { id: 'ajuste', label: 'Ajuste Auto', icon: 'M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M10.4 10.4l1.4 1.4M3.2 12.8l1.4-1.4M10.4 5.6l1.4-1.4M8 5a3 3 0 100 6', tier: 'pro' },
+      { id: 'ajuste', label: 'Ajuste Auto', icon: 'M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M10.4 10.4l1.4 1.4M3.2 12.8l1.4-1.4M10.4 5.6l1.4-1.4M8 5a3 3 0 100 6', tier: 'essencial' },
       { id: 'simulador', label: 'Simulador', icon: 'M8 1a7 7 0 100 14A7 7 0 008 1zM8 5v4l2 2', tier: 'pro' },
     ],
   },
@@ -92,15 +98,15 @@ const GROUPS: Group[] = [
     id: 'rotina',
     label: 'Rotina',
     items: [
-      { id: 'rotina', label: 'Rotina', icon: 'M3 5h10M3 8h7M3 11h4M1 2h14a1 1 0 011 1v11a1 1 0 01-1 1H1a1 1 0 01-1-1V3a1 1 0 011-1' },
+      { id: 'rotina', label: 'Rotina', icon: 'M3 5h10M3 8h7M3 11h4M1 2h14a1 1 0 011 1v11a1 1 0 01-1 1H1a1 1 0 01-1-1V3a1 1 0 011-1', tier: 'essencial' },
       { id: 'exportacao', label: 'Exportar', icon: 'M8 2v9M5 8l3 3 3-3M2 13h12', tier: 'essencial' },
     ],
   },
 ];
 
+// Footer SEM "Conta" (já tem em Configurações)
 const FOOTER_ITEMS: Item[] = [
   { id: 'planos', label: 'Planos', icon: 'M1 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1V4zM1 7h14' },
-  { id: 'conta', label: 'Conta', icon: 'M8 2a3 3 0 100 6 3 3 0 000-6zM2.5 14a5.5 5.5 0 0111 0' },
   { id: 'ajuda', label: 'Ajuda', icon: 'M8 1a7 7 0 100 14A7 7 0 008 1zM8 11v1M8 5a2 2 0 011.73 3C9 9 8 9.5 8 10' },
   { id: 'config', label: 'Configurações', icon: 'M8 5a3 3 0 100 6 3 3 0 000-6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.2 3.2l1 1M11.8 11.8l1 1M3.2 12.8l1-1M11.8 4.2l1-1' },
 ];
@@ -112,15 +118,17 @@ function hasAccess(tier: Item['tier'], plano: string): boolean {
   return true;
 }
 
-export default function Sidebar({
-  active,
-  onNavigate,
-  mobileOpen,
-  onMobileClose,
-  expanded,
-  onToggleExpand,
-  plano = 'free',
-}: Props) {
+export default function Sidebar(props: Props) {
+  const {
+    active, onNavigate,
+    mobileOpen, onMobileClose,
+    expanded, onToggleExpand,
+  } = props;
+
+  // Aceita 'plan' OU 'plano' (retrocompat com DashboardShell atual)
+  const plano = props.plano || props.plan || 'free';
+  const isPro = plano === 'pro';
+
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     progresso: true,
     ia: true,
@@ -129,7 +137,8 @@ export default function Sidebar({
     rotina: false,
   });
 
-  const toggleGroup = (id: string) => setOpenGroups((p) => ({ ...p, [id]: !p[id] }));
+  const toggleGroup = (id: string) =>
+    setOpenGroups((p) => ({ ...p, [id]: !p[id] }));
 
   const handleClick = (item: Item) => {
     if (!hasAccess(item.tier, plano)) {
@@ -159,7 +168,7 @@ export default function Sidebar({
     borderRight: `1px solid ${C.border}`,
     display: 'flex',
     flexDirection: 'column',
-    transition: 'width 0.2s ease',
+    transition: 'width 0.22s cubic-bezier(.4,0,.2,1)',
     overflow: 'hidden',
   };
 
@@ -171,41 +180,32 @@ export default function Sidebar({
     ? { width: 260, minWidth: 260, zIndex: 50 }
     : {};
 
-  // Renderiza item individual
   const renderItem = (item: Item) => (
     <NavItem
       key={`${item.id}-${item.label}`}
       item={item}
-      active={active === item.id as any}
+      active={active === (item.id as any)}
       expanded={expanded}
       locked={!hasAccess(item.tier, plano)}
       onClick={() => handleClick(item)}
     />
   );
 
-  // Quando colapsada: mostra separadores discretos entre grupos
-  const renderCollapsedGroup = (group: Group) => (
-    <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <div style={{ height: 1, background: C.borderStrong || '#D8D8D8', margin: '10px 8px 6px', opacity: 0.6 }} />
-      {group.items.map(renderItem)}
-    </div>
-  );
-
   return (
     <>
-      {/* Spacer reserva espaço no layout */}
+      {/* Spacer reserva espaço no layout flex */}
       <div
         className="nv-sidebar-spacer"
-        style={{ width, minWidth: width, flexShrink: 0, transition: 'width 0.2s ease' }}
+        style={{
+          width, minWidth: width, flexShrink: 0,
+          transition: 'width 0.22s cubic-bezier(.4,0,.2,1)',
+        }}
         aria-hidden
       />
 
       <div style={mobileOverlay} onClick={onMobileClose} />
 
-      <aside
-        className="nv-sidebar"
-        style={{ ...sidebarStyle, ...mobileStyle }}
-      >
+      <aside className="nv-sidebar" style={{ ...sidebarStyle, ...mobileStyle }}>
         {/* Header */}
         <div
           style={{
@@ -231,7 +231,7 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Scroll nav */}
+        {/* Nav */}
         <nav
           style={{
             flex: 1,
@@ -244,49 +244,87 @@ export default function Sidebar({
         >
           {TOP_ITEMS.map(renderItem)}
 
-          <div style={{ height: 1, background: C.border, margin: expanded ? '12px 8px' : '10px 14px' }} />
-
-          {GROUPS.map((group) => {
-            if (!expanded) return renderCollapsedGroup(group);
-            const open = openGroups[group.id] ?? false;
-            return (
-              <div key={group.id} style={{ marginBottom: 2 }}>
-                <button
-                  onClick={() => toggleGroup(group.id)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    border: 'none',
-                    background: 'transparent',
-                    color: C.muted,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    borderRadius: 6,
-                    marginTop: 6,
-                  }}
-                  onMouseOver={(e) => (e.currentTarget.style.background = C.bg2)}
-                  onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <span>{group.label}</span>
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 10 10"
-                    style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}
-                  >
-                    <path d="M3 2l3 3-3 3" stroke={C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                  </svg>
-                </button>
-                {open && group.items.map(renderItem)}
-              </div>
-            );
-          })}
+          {!expanded ? (
+            // COLAPSADA: só mostra top items + botão "mais" que expande a sidebar
+            <button
+              onClick={onToggleExpand}
+              title="Ver todas as seções"
+              style={{
+                marginTop: 12,
+                width: '100%',
+                padding: '10px 0 8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'transparent',
+                border: 'none',
+                borderTop: `1px solid ${C.border}`,
+                cursor: 'pointer',
+                color: C.muted,
+                fontSize: 20,
+                fontWeight: 500,
+                lineHeight: 1,
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.background = C.bg2)}
+              onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+            >
+              ⋯
+            </button>
+          ) : (
+            // EXPANDIDA: grupos colapsáveis
+            <>
+              <div style={{ height: 1, background: C.border, margin: '12px 8px' }} />
+              {GROUPS.map((group) => {
+                const open = openGroups[group.id] ?? false;
+                return (
+                  <div key={group.id} style={{ marginBottom: 2 }}>
+                    <button
+                      onClick={() => toggleGroup(group.id)}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        border: 'none',
+                        background: 'transparent',
+                        color: C.muted,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        cursor: 'pointer',
+                        borderRadius: 6,
+                        marginTop: 6,
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.background = C.bg2)}
+                      onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <span>{group.label}</span>
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 10 10"
+                        style={{
+                          transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.15s',
+                        }}
+                      >
+                        <path
+                          d="M3 2l3 3-3 3"
+                          stroke={C.subtle}
+                          strokeWidth="1.5"
+                          fill="none"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </button>
+                    {open && group.items.map(renderItem)}
+                  </div>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         {/* Footer */}
@@ -301,7 +339,7 @@ export default function Sidebar({
         >
           {FOOTER_ITEMS.map(renderItem)}
 
-          {expanded && plano !== 'pro' && (
+          {expanded && !isPro && (
             <button
               onClick={() => onNavigate('planos' as DashSection)}
               style={{
@@ -333,11 +371,7 @@ export default function Sidebar({
 }
 
 function NavItem({
-  item,
-  active,
-  expanded,
-  locked,
-  onClick,
+  item, active, expanded, locked, onClick,
 }: {
   item: Item;
   active: boolean;
@@ -370,30 +404,26 @@ function NavItem({
       onClick={onClick}
       style={btnStyle}
       title={!expanded ? item.label : undefined}
-      onMouseOver={(e) => {
-        if (!active) e.currentTarget.style.background = C.bg2;
-      }}
-      onMouseOut={(e) => {
-        if (!active) e.currentTarget.style.background = 'transparent';
-      }}
+      onMouseOver={(e) => { if (!active) e.currentTarget.style.background = C.bg2; }}
+      onMouseOut={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
       <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke={iconColor}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ flexShrink: 0 }}
-        aria-hidden
+        width="16" height="16" viewBox="0 0 16 16" fill="none"
+        stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+        style={{ flexShrink: 0 }} aria-hidden
       >
         <path d={item.icon} />
       </svg>
       {expanded && (
         <>
-          <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span
+            style={{
+              flex: 1,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {item.label}
           </span>
           {locked && <LockIcon />}
