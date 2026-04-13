@@ -21,10 +21,12 @@ interface Props {
 }
 
 type Item = {
-  id: DashSection;
+  id: DashSection | string;
   label: string;
   icon: string;
   tier?: 'free' | 'essencial' | 'pro';
+  /** Se presente, navega por rota Next em vez de section do dashboard */
+  href?: string;
 };
 
 type Group = {
@@ -105,6 +107,12 @@ const GROUPS: Group[] = [
         label: 'Calculadora',
         icon: 'M3 2h10a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 6h2M9 6h2M5 9h2M9 9h2M5 12h2M9 12h2',
       },
+      {
+        id: 'mapa',
+        label: 'Mapa do corpo',
+        icon: 'M8 2C5.2 2 3 4.2 3 7c0 4 5 9 5 9s5-5 5-9c0-2.8-2.2-5-5-5zm0 6.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z',
+        href: '/mapa',
+      },
     ],
   },
   {
@@ -180,7 +188,11 @@ export default function Sidebar({
       if (mobileOpen) onMobileClose();
       return;
     }
-    onNavigate(item.id);
+    if (item.href) {
+      window.location.href = item.href;
+      return;
+    }
+    onNavigate(item.id as DashSection);
     if (mobileOpen) onMobileClose();
   };
 
@@ -242,7 +254,7 @@ export default function Sidebar({
             <NavItem
               key={item.id}
               item={item}
-              active={active === item.id}
+              active={active === item.id as any}
               expanded={expanded}
               locked={!hasAccess(item.tier, plano)}
               onClick={() => handleClick(item)}
@@ -294,7 +306,7 @@ export default function Sidebar({
                     <NavItem
                       key={item.id}
                       item={item}
-                      active={active === item.id}
+                      active={active === item.id as any}
                       expanded={expanded}
                       locked={!hasAccess(item.tier, plano)}
                       onClick={() => handleClick(item)}
@@ -318,7 +330,7 @@ export default function Sidebar({
             <NavItem
               key={item.id}
               item={item}
-              active={active === item.id}
+              active={active === item.id as any}
               expanded={expanded}
               locked={!hasAccess(item.tier, plano)}
               onClick={() => handleClick(item)}
