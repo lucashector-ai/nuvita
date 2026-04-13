@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
         tipo: 'reengajamento',
         enviar_em: new Date().toISOString(),
         enviado: true, enviado_em: new Date().toISOString(),
-      }, { onConflict: 'user_id,tipo' }).catch(() => null);
+      }, { onConflict: 'user_id,tipo' });
 
       logs.push(`reengajamento → ${u.email} (${diasSem} dias)`);
     }
