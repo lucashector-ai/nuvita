@@ -186,7 +186,7 @@ export default function DashboardShell() {
       {/* Sidebar skeleton */}
       <div style={{ width:'var(--sb-w)', background:'#F7F7F7', borderRight:'1px solid #E5E7EB', flexShrink:0 }}/>
       {/* Content skeleton */}
-      <div style={{ flex:1, padding:'20px 24px', marginLeft:'var(--sb-w)' }}>
+      <div style={{ flex:1, padding:'20px 24px' }}>
         <div style={{ maxWidth:900, margin:'0 auto' }}>
           <style>{`@keyframes skeleton-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }`}</style>
           {/* Nav skeleton */}
@@ -285,7 +285,7 @@ export default function DashboardShell() {
       />
       {sidebarOpen && <div className="sidebar-overlay show" onClick={()=>setSidebarOpen(false)}/>}
 
-      <div style={{ flex:1, minWidth:0, minHeight:'100vh', background:'#F7F7F7', marginLeft:ml, transition:'margin-left .22s cubic-bezier(.4,0,.2,1)' }}>
+      <div style={{ flex:1, minWidth:0, minHeight:'100vh', background:'#F7F7F7' }}>
         <DashboardNav section={section}
           planLabel={PLAN_LABEL[plan]??'Conta gratuita'}
           section={section} nome={nome} planId={plan}
