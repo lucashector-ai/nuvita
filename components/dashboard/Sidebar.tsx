@@ -185,7 +185,7 @@ export default function Sidebar({
   // Quando colapsada: mostra separadores discretos entre grupos
   const renderCollapsedGroup = (group: Group) => (
     <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <div style={{ height: 1, background: C.border, margin: '6px 14px' }} />
+      <div style={{ height: 1, background: C.borderStrong || '#D8D8D8', margin: '10px 8px 6px', opacity: 0.6 }} />
       {group.items.map(renderItem)}
     </div>
   );
