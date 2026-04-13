@@ -43,6 +43,8 @@ function Toast({ msg, onClose }: any) {
   );
 }
 
+import OnboardingSemana1 from '@/components/dashboard/OnboardingSemana1';
+
 export default function SectionInicio({ answers, items, peso, objs, dur, nivel, plan, protoAtivo, onStartProto, onNavigate }) {
   const nome      = answers.nome?.toString().split(' ')[0] ?? '';
   const semanas   = 1;
@@ -143,6 +145,14 @@ export default function SectionInicio({ answers, items, peso, objs, dur, nivel, 
           </div>
         </div>
       </div>
+
+      {protoAtivo && answers._dataInicioProtocolo && (
+        <OnboardingSemana1
+          dataInicio={answers._dataInicioProtocolo}
+          userId={answers._userId || null}
+          onNavigate={onNavigate}
+        />
+      )}
 
       {!protoAtivo && (
         <div className="start-cta" style={{ gridColumn:'1/-1' }}>
