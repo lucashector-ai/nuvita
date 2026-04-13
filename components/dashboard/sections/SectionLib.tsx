@@ -50,44 +50,7 @@ function PeptideoCard({ p, onClick }: any) {
         transform: hovered ? 'scale(1.04)' : 'scale(1)',
         boxShadow: hovered ? '0 20px 40px rgba(0,0,0,.4)' : '0 4px 12px rgba(0,0,0,.2)',
       }}
-      onMouseEnter={() =>
-      {/* Banner upgrade - só para free */}
-      {(typeof window !== 'undefined' && (localStorage.getItem('nv_plano') || 'free') !== 'pro') && (
-        <div style={{ 
-          background: 'linear-gradient(135deg, #22C55E 0%, #15803D 100%)', 
-          color: '#fff', 
-          padding: '18px 24px', 
-          borderRadius: 14, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          gap: 16, 
-          marginBottom: 20, 
-          flexWrap: 'wrap' 
-        }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', opacity: 0.85, marginBottom: 4 }}>
-              Desbloqueie a biblioteca completa
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 500, opacity: 0.95 }}>
-              Plano gratuito mostra 2 peptídeos. Pro tem acesso a todos os 20+ com pesquisas, combinações e simulador de ciclos.
-            </div>
-          </div>
-          <a href="/planos" style={{ 
-            background: '#fff', 
-            color: '#15803D', 
-            padding: '10px 18px', 
-            borderRadius: 10, 
-            fontSize: 14, 
-            fontWeight: 700, 
-            textDecoration: 'none',
-            whiteSpace: 'nowrap'
-          }}>
-            Fazer upgrade →
-          </a>
-        </div>
-      )}
- setHovered(true)}
+      onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={onClick}
     >
@@ -192,6 +155,42 @@ export default function SectionLib() {
 
   return (
     <div>
+      {typeof window !== 'undefined' && (localStorage.getItem('nv_plano') || 'free') !== 'pro' && (
+        <div style={{
+          background: 'linear-gradient(135deg, #22C55E 0%, #15803D 100%)',
+          color: '#fff',
+          padding: '18px 24px',
+          borderRadius: 14,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          marginBottom: 20,
+          flexWrap: 'wrap',
+        }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', opacity: 0.85, marginBottom: 4 }}>
+              Desbloqueie a biblioteca completa
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 500, opacity: 0.95 }}>
+              Plano gratuito mostra 2 peptídeos. Pro tem acesso a todos os 20+ com pesquisas, combinações e simulador de ciclos.
+            </div>
+          </div>
+          <a href="/planos" style={{
+            background: '#fff',
+            color: '#15803D',
+            padding: '10px 18px',
+            borderRadius: 10,
+            fontSize: 14,
+            fontWeight: 700,
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+          }}>
+            Fazer upgrade
+          </a>
+        </div>
+      )}
+
       <div style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.2rem', fontWeight: 500, letterSpacing: '-.04em', marginBottom: '.25rem' }}>
           Biblioteca de peptídeos
