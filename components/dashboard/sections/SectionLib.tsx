@@ -169,6 +169,111 @@ function LockedCard({ p, onUpgrade }: any) {
   );
 }
 
+
+function PeptideoSemana({ plano }: { plano: string }) {
+  const [conteudo, setConteudo] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const semanaAtual = Math.floor(Date.now() / (1000 * 60 * 60 * 24 * 7));
+    const cached = localStorage.getItem(`nv_peptideo_semana_${semanaAtual}`);
+    if (cached) { setConteudo(JSON.parse(cached)); return; }
+
+    setLoading(true);
+    const peptideos = ['Tirzepatide','BPC-157','GHK-Cu','Ipamorelin','Semax','TB-500','AOD-9604','NAD+','CJC-1295','PT-141'];
+    const escolhido = peptideos[semanaAtual % peptideos.length];
+
+    fetch('/api/ia', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'Você é especialista em peptídeos da Nuvita. Responda APENAS JSON válido.',
+        messages: [{
+          role: 'user',
+          content: `Gere um card educativo sobre ${escolhido} em JSON:
+{
+  "nome": "${escolhido}",
+  "emoji": "emoji representativo",
+  "tagline": "frase de impacto em 8 palavras máximo",
+  "como_funciona": "explicação simples em 2 frases de como age no corpo",
+  "para_quem": "perfil ideal em 1 frase",
+  "resultado_esperado": "o que esperar em 1 frase",
+  "curiosidade": "fato interessante e pouco conhecido em 1 frase",
+  "categoria": "Emagrecimento|GH|Recuperação|Pele|Cognição|Longevidade|Hormonal"
+}`
+        }],
+      }),
+    })
+    .then(r => r.json())
+    .then(d => {
+      const match = d.text?.match(/\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        localStorage.setItem(`nv_peptideo_semana_${semanaAtual}`, JSON.stringify(parsed));
+        setConteudo(parsed);
+      }
+    })
+    .catch(() => null)
+    .finally(() => setLoading(false));
+  }, []);
+
+  const COR_CAT: Record<string, string> = {
+    'Emagrecimento': '#1D9E75', 'GH': '#7C3AED', 'Recuperação': '#0EA5E9',
+    'Pele': '#EC4899', 'Cognição': '#F59E0B', 'Longevidade': '#6366F1', 'Hormonal': '#EF4444',
+  };
+  const cor = conteudo ? (COR_CAT[conteudo.categoria] || '#1D9E75') : '#1D9E75';
+
+  if (loading) return (
+    <div style={{ background:'white', borderRadius:16, padding:'1.5rem', marginBottom:'1.5rem', boxShadow:'0 1px 3px rgba(0,0,0,.06)', display:'flex', alignItems:'center', gap:12 }}>
+      <div style={{ width:48, height:48, borderRadius:12, background:'var(--bg2)', animation:'pulse 1.5s ease-in-out infinite' }}/>
+      <div style={{ flex:1 }}>
+        <div style={{ height:12, background:'var(--bg2)', borderRadius:6, width:'60%', marginBottom:8 }}/>
+        <div style={{ height:10, background:'var(--bg2)', borderRadius:6, width:'80%' }}/>
+      </div>
+    </div>
+  );
+
+  if (!conteudo) return null;
+
+  return (
+    <div style={{ background:`linear-gradient(135deg, ${cor}15 0%, white 60%)`, border:`1px solid ${cor}30`, borderRadius:16, padding:'1.5rem', marginBottom:'1.5rem', boxShadow:'0 1px 3px rgba(0,0,0,.06)', position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'absolute', top:-20, right:-20, width:100, height:100, borderRadius:'50%', background:`${cor}10`, pointerEvents:'none' }}/>
+
+      <div style={{ display:'flex', alignItems:'flex-start', gap:'1rem' }}>
+        <div style={{ width:56, height:56, borderRadius:16, background:`${cor}20`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.8rem', flexShrink:0 }}>
+          {conteudo.emoji}
+        </div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+            <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:cor, background:`${cor}15`, padding:'2px 8px', borderRadius:100 }}>
+              🌟 Peptídeo da semana
+            </div>
+            <div style={{ fontSize:10, color:'var(--ts)' }}>{conteudo.categoria}</div>
+          </div>
+          <div style={{ fontSize:18, fontWeight:700, color:'var(--tx)', marginBottom:2, letterSpacing:'-.03em' }}>{conteudo.nome}</div>
+          <div style={{ fontSize:13, color:cor, fontWeight:500, marginBottom:'1rem' }}>{conteudo.tagline}</div>
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:'1rem' }}>
+            {[
+              { icon:'⚙️', label:'Como funciona', val:conteudo.como_funciona },
+              { icon:'👤', label:'Para quem', val:conteudo.para_quem },
+              { icon:'📈', label:'O que esperar', val:conteudo.resultado_esperado },
+              { icon:'💡', label:'Curiosidade', val:conteudo.curiosidade },
+            ].map(item => (
+              <div key={item.label} style={{ background:'white', borderRadius:10, padding:'10px 12px', boxShadow:'0 1px 3px rgba(0,0,0,.04)' }}>
+                <div style={{ fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'.06em', color:'var(--ts)', marginBottom:4 }}>
+                  {item.icon} {item.label}
+                </div>
+                <div style={{ fontSize:12, color:'var(--tx)', lineHeight:1.55 }}>{item.val}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) {
   const router = useRouter();
   const [peptideos, setPeptideos] = useState<any[]>([]);
@@ -184,6 +289,7 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
   }, []);
 
   const isPro = plano === 'pro';
+  const planoLocal = plano;
 
   // Filtro por busca/categoria
   const filtrados = peptideos.filter(p => {
@@ -209,6 +315,7 @@ export default function SectionLib({ plano = 'free' }: { plano?: string } = {}) 
 
   return (
     <div>
+      <PeptideoSemana plano={plano}/>
       {/* Banner upgrade - só para free */}
       {!isPro && (
         <div style={{
