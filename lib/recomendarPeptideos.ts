@@ -1,18 +1,21 @@
 // ════════════════════════════════════════════════
 //  NUVITA — lib/recomendarPeptideos.ts
-//  Motor de recomendação para o balcão de farmácia.
-//  Determinístico e instantâneo (sem dependência de IA/rede),
-//  reaproveitando o catálogo de lib/peptides.ts.
+//  Diagnóstico do balcão de farmácia.
+//  - diagnosticarComIA: a IA faz o diagnóstico e escolhe de 3 a 6
+//    peptídeos do catálogo, considerando sexo/objetivo/perfil.
+//  - recomendarPeptideos: fallback determinístico (instantâneo),
+//    usado quando a IA não está disponível.
+//  As doses/timing vêm SEMPRE do catálogo (seguras) e a segurança
+//  é reaplicada aqui, nunca confiando cegamente na IA.
 // ════════════════════════════════════════════════
 
 import type { ObjectiveKey, Peptide } from '@/types';
-import { PEPTIDES } from '@/lib/peptides';
+import { PEPTIDES, ALL_PEPTIDES, findPeptide } from '@/lib/peptides';
 
 export type NivelFarmacia = 'iniciante' | 'intermediario' | 'avancado';
 export type AtividadeFarmacia = 'sedentario' | 'moderado' | 'ativo' | 'muito_ativo';
 export type SonoFarmacia = 'ruim' | 'regular' | 'bom';
 
-// Condições que aplicam filtros de segurança no protocolo.
 export type CondicaoSaude =
   | 'nenhuma'
   | 'diabetes'
@@ -29,15 +32,83 @@ export interface RespostasFarmacia {
   objetivos: ObjectiveKey[];
   nivel: NivelFarmacia;
   condicoes: CondicaoSaude[];
-  condicaoOutros?: string; // texto livre quando 'outros' está selecionado
-  peso?: number;   // kg — usado na dose (peptídeos dose/kg) e no IMC
-  altura?: number; // cm — usado no IMC
-  idade?: number;  // anos
+  condicaoOutros?: string;
+  peso?: number;
+  altura?: number;
+  idade?: number;
   atividade?: AtividadeFarmacia;
   sono?: SonoFarmacia;
 }
 
-// Calcula o IMC e sua classificação a partir de peso (kg) e altura (cm).
+export interface RecomendacaoItem {
+  peptide: Peptide;
+  dose: string;
+  prioridade: 'essencial' | 'recomendado' | 'opcional';
+  motivo?: string;   // por que para esta pessoa
+  comoUsar?: string; // como usar na prática
+}
+
+export interface Recomendacao {
+  fonte: 'ia' | 'deterministico';
+  itens: RecomendacaoItem[];
+  bloqueado: boolean;
+  avisos: string[];
+  removidosPorSeguranca: string[];
+  resumo?: string;
+  orientacaoAlimentar?: string;
+  orientacaoTreino?: string;
+  observacoes?: string;
+  avisoMedico?: string;
+}
+
+// ─── Labels ────────────────────────────────────────────────
+export const OBJ_LABEL: Record<ObjectiveKey, string> = {
+  gordura: 'Perda de gordura/emagrecimento',
+  massa: 'Ganho de massa muscular',
+  recuperacao: 'Recuperação e lesões',
+  sono: 'Qualidade do sono',
+  pele: 'Saúde da pele / anti-idade',
+  longevidade: 'Longevidade / energia',
+  cognitivo: 'Performance cognitiva / foco',
+  hormonal: 'Equilíbrio hormonal / libido',
+};
+
+const NIVEL_LABEL: Record<NivelFarmacia, string> = {
+  iniciante: 'Iniciante (nunca usou)',
+  intermediario: 'Intermediário (alguma experiência)',
+  avancado: 'Avançado (usa com frequência)',
+};
+
+const ATIVIDADE_LABEL: Record<AtividadeFarmacia, string> = {
+  sedentario: 'sedentário', moderado: 'moderadamente ativo', ativo: 'ativo', muito_ativo: 'muito ativo',
+};
+const SONO_LABEL: Record<SonoFarmacia, string> = { ruim: 'ruim', regular: 'regular', bom: 'bom' };
+
+const COND_LABEL: Record<CondicaoSaude, string> = {
+  nenhuma: 'nenhuma',
+  diabetes: 'diabetes/pré-diabetes',
+  hipertensao: 'hipertensão',
+  cancer: 'histórico de câncer',
+  gestacao: 'gestação/amamentação',
+  tireoide: 'alteração de tireoide',
+  outros: 'outra condição',
+};
+
+// ─── Segurança ─────────────────────────────────────────────
+const GLICEMICOS = new Set(['Tirzepatide', 'Semaglutide', 'MK-677 (Ibutamoren)']);
+const ANABOLICOS = new Set(['Ipamorelin', 'CJC-1295', 'MK-677 (Ibutamoren)', 'IGF-1 LR3']);
+const PRESSORICOS = new Set(['PT-141 (Bremelanotida)']);
+
+const PESO_PADRAO = 75;
+const MAX_ITENS = 6;
+
+// Limite mínimo/base do determinístico por nível (o fallback também é generoso).
+const BASE_POR_NIVEL: Record<NivelFarmacia, number> = {
+  iniciante: 3,
+  intermediario: 4,
+  avancado: 6,
+};
+
 export function calcularIMC(
   peso?: number,
   altura?: number,
@@ -54,72 +125,30 @@ export function calcularIMC(
   return { valor, classe };
 }
 
-export interface RecomendacaoItem {
-  peptide: Peptide;
-  dose: string;
-  prioridade: 'essencial' | 'recomendado' | 'opcional';
-}
-
-export interface Recomendacao {
-  itens: RecomendacaoItem[];
-  bloqueado: boolean;       // true = não recomendar nada (ex.: gestação)
-  avisos: string[];         // avisos de segurança para o atendente
-  removidosPorSeguranca: string[];
-}
-
-// Quantidade máxima de peptídeos por nível de experiência.
-const MAX_POR_NIVEL: Record<NivelFarmacia, number> = {
-  iniciante: 2,
-  intermediario: 3,
-  avancado: 4,
-};
-
-// Peptídeos que afetam glicemia — evitar em diabetes sem supervisão.
-const GLICEMICOS = new Set(['Tirzepatide', 'Semaglutide', 'MK-677 (Ibutamoren)']);
-// Peptídeos anabólicos / secretagogos de GH — evitar em histórico oncológico.
-const ANABOLICOS = new Set([
-  'Ipamorelin',
-  'CJC-1295',
-  'MK-677 (Ibutamoren)',
-  'IGF-1 LR3',
-]);
-// Evitar em hipertensão não controlada.
-const PRESSORICOS = new Set(['PT-141 (Bremelanotida)']);
-
-const PESO_PADRAO = 75; // referência para peptídeos dose/kg quando o peso não é informado
-
-export function recomendarPeptideos(r: RespostasFarmacia): Recomendacao {
+/**
+ * Aplica os filtros de segurança sobre uma lista de peptídeos.
+ * Retorna os peptídeos permitidos, os removidos e avisos.
+ */
+function aplicarSeguranca(
+  peptides: Peptide[],
+  r: RespostasFarmacia,
+): { permitidos: Peptide[]; removidos: string[]; avisos: string[]; bloqueado: boolean } {
+  const condicoes = new Set(r.condicoes.filter((c) => c !== 'nenhuma'));
   const avisos: string[] = [];
   const removidos: string[] = [];
-  const condicoes = new Set(r.condicoes.filter((c) => c !== 'nenhuma'));
 
-  // Gestação/amamentação → nenhum peptídeo. Encaminhar a profissional de saúde.
   if (condicoes.has('gestacao')) {
     return {
-      itens: [],
+      permitidos: [],
+      removidos: [],
       bloqueado: true,
       avisos: [
         'Gestação/amamentação: nenhum peptídeo é recomendado. Oriente a cliente a procurar acompanhamento médico antes de qualquer uso.',
       ],
-      removidosPorSeguranca: [],
     };
   }
 
-  // 1) Reúne candidatos a partir dos objetivos (dedup, mantendo ordem de prioridade).
-  const seen = new Set<string>();
-  const candidatos: Peptide[] = [];
-  const objetivos = r.objetivos.length ? r.objetivos : (['gordura'] as ObjectiveKey[]);
-  objetivos.forEach((obj) => {
-    (PEPTIDES[obj] ?? []).forEach((p) => {
-      if (!seen.has(p.n)) {
-        seen.add(p.n);
-        candidatos.push(p);
-      }
-    });
-  });
-
-  // 2) Aplica filtros de segurança.
-  const filtrados = candidatos.filter((p) => {
+  const permitidos = peptides.filter((p) => {
     if (condicoes.has('diabetes') && GLICEMICOS.has(p.n)) {
       removidos.push(`${p.n} (afeta glicemia — diabetes)`);
       return false;
@@ -145,166 +174,149 @@ export function recomendarPeptideos(r: RespostasFarmacia): Recomendacao {
     avisos.push(`Condição informada: "${r.condicaoOutros.trim()}". Não há filtro automático para ela — avalie a compatibilidade e recomende avaliação médica em caso de dúvida.`);
   }
 
-  // 3) Limita pela experiência.
-  const limite = MAX_POR_NIVEL[r.nivel] ?? 2;
-  const escolhidos = filtrados.slice(0, limite);
+  return { permitidos, removidos, avisos, bloqueado: false };
+}
 
+function prioridadeDe(i: number): RecomendacaoItem['prioridade'] {
+  return i === 0 ? 'essencial' : i <= 2 ? 'recomendado' : 'opcional';
+}
+
+// ─── Fallback determinístico ───────────────────────────────
+export function recomendarPeptideos(r: RespostasFarmacia): Recomendacao {
+  const seen = new Set<string>();
+  const candidatos: Peptide[] = [];
+  const objetivos = r.objetivos.length ? r.objetivos : (['gordura'] as ObjectiveKey[]);
+  objetivos.forEach((obj) => {
+    (PEPTIDES[obj] ?? []).forEach((p) => {
+      if (!seen.has(p.n)) {
+        seen.add(p.n);
+        candidatos.push(p);
+      }
+    });
+  });
+
+  const seg = aplicarSeguranca(candidatos, r);
+  if (seg.bloqueado) {
+    return { fonte: 'deterministico', itens: [], bloqueado: true, avisos: seg.avisos, removidosPorSeguranca: [] };
+  }
+
+  // Mais objetivos → mais produtos (até MAX_ITENS).
+  const limite = Math.min(MAX_ITENS, Math.max(BASE_POR_NIVEL[r.nivel] ?? 3, objetivos.length + 1));
+  const escolhidos = seg.permitidos.slice(0, limite);
   const peso = r.peso && r.peso > 0 ? r.peso : PESO_PADRAO;
+
   const itens: RecomendacaoItem[] = escolhidos.map((p, i) => ({
     peptide: p,
     dose: p.doseStr(peso),
-    prioridade: i === 0 ? 'essencial' : i === 1 ? 'recomendado' : 'opcional',
+    prioridade: prioridadeDe(i),
+    motivo: p.why,
+    comoUsar: p.how,
   }));
 
-  if (itens.length === 0 && filtrados.length === 0 && candidatos.length > 0) {
-    avisos.push('Todos os peptídeos indicados foram filtrados pelas condições de saúde. Recomende avaliação médica.');
-  }
-
-  return { itens, bloqueado: false, avisos, removidosPorSeguranca: removidos };
+  return {
+    fonte: 'deterministico',
+    itens,
+    bloqueado: false,
+    avisos: seg.avisos,
+    removidosPorSeguranca: seg.removidos,
+  };
 }
 
-// ─── Refinamento com IA ────────────────────────────────────
-export interface RefinamentoIA {
-  resumo: string;
-  explicacoes: Record<string, string>;  // nome do peptídeo -> motivo personalizado
-  comoUsarIA: Record<string, string>;   // nome do peptídeo -> como usar personalizado
-  orientacaoAlimentar: string;
-  orientacaoTreino: string;
-  observacoes: string;
-  avisoMedico: string;
-}
+// ─── Perfil legível (enviado à IA) ─────────────────────────
+export function montarPerfilTexto(r: RespostasFarmacia): string {
+  const imc = calcularIMC(r.peso, r.altura);
+  const objetivos = r.objetivos.map((o) => OBJ_LABEL[o] || o).join(', ');
+  const condicoes = r.condicoes
+    .filter((c) => c !== 'nenhuma')
+    .map((c) => (c === 'outros' && r.condicaoOutros?.trim() ? r.condicaoOutros.trim() : COND_LABEL[c] || c));
+  const sexoLabel = r.sexo === 'masculino' ? 'homem' : r.sexo === 'feminino' ? 'mulher' : 'não informado';
 
-const OBJ_LABEL: Record<ObjectiveKey, string> = {
-  gordura: 'Perda de gordura/emagrecimento',
-  massa: 'Ganho de massa muscular',
-  recuperacao: 'Recuperação e lesões',
-  sono: 'Qualidade do sono',
-  pele: 'Saúde da pele',
-  longevidade: 'Longevidade',
-  cognitivo: 'Performance cognitiva',
-  hormonal: 'Equilíbrio hormonal/libido',
-};
-
-const NIVEL_LABEL: Record<NivelFarmacia, string> = {
-  iniciante: 'Iniciante (nunca usou)',
-  intermediario: 'Intermediário (alguma experiência)',
-  avancado: 'Avançado (usa com frequência)',
-};
-
-const COND_LABEL: Record<CondicaoSaude, string> = {
-  nenhuma: 'nenhuma',
-  diabetes: 'diabetes/pré-diabetes',
-  hipertensao: 'hipertensão',
-  cancer: 'histórico de câncer',
-  gestacao: 'gestação/amamentação',
-  tireoide: 'alteração de tireoide',
-  outros: 'outra condição',
-};
-
-/**
- * Refina o protocolo determinístico usando a IA (rota /api/ia).
- * Mantém as doses/timing exatos do catálogo (seguros) e apenas
- * personaliza a EXPLICAÇÃO de cada peptídeo + orientações.
- * Retorna null em caso de erro — o protocolo base continua válido.
- */
-export async function refinarProtocoloIA(
-  r: RespostasFarmacia,
-  rec: Recomendacao,
-): Promise<RefinamentoIA | null> {
-  if (!rec.itens.length) return null;
-  try {
-    const objetivos = r.objetivos.map((o) => OBJ_LABEL[o] || o).join(', ');
-    const condicoes = r.condicoes
-      .filter((c) => c !== 'nenhuma')
-      .map((c) => (c === 'outros' && r.condicaoOutros?.trim() ? r.condicaoOutros.trim() : COND_LABEL[c] || c));
-    const imc = calcularIMC(r.peso, r.altura);
-    const atividadeLabel: Record<AtividadeFarmacia, string> = {
-      sedentario: 'sedentário', moderado: 'moderadamente ativo', ativo: 'ativo', muito_ativo: 'muito ativo',
-    };
-    const sonoLabel: Record<SonoFarmacia, string> = { ruim: 'ruim', regular: 'regular', bom: 'bom' };
-    const lista = rec.itens
-      .map((it, i) => `${i + 1}. ${it.peptide.n} — dose ${it.dose}, ${it.peptide.freq}, via ${it.peptide.route}. Aplicação: ${it.peptide.how} (${it.prioridade})`)
-      .join('\n');
-
-    const context = `PERFIL DA PESSOA (atendimento em farmácia):
-Nome: ${r.nome}
-Sexo: ${r.sexo || 'não informado'}
+  return `Nome: ${r.nome}
+Sexo: ${sexoLabel}
 Idade: ${r.idade ? `${r.idade} anos` : 'não informada'}
 Peso/Altura: ${r.peso ? `${r.peso} kg` : '?'} / ${r.altura ? `${r.altura} cm` : '?'}${imc ? ` — IMC ${imc.valor} (${imc.classe})` : ''}
-Nível de atividade física: ${r.atividade ? atividadeLabel[r.atividade] : 'não informado'}
-Qualidade do sono: ${r.sono ? sonoLabel[r.sono] : 'não informada'}
-Objetivo(s): ${objetivos}
+Nível de atividade física: ${r.atividade ? ATIVIDADE_LABEL[r.atividade] : 'não informado'}
+Qualidade do sono: ${r.sono ? SONO_LABEL[r.sono] : 'não informada'}
+Objetivo(s): ${objetivos || 'não informado'}
 Experiência com peptídeos: ${NIVEL_LABEL[r.nivel]}
-Condições de saúde: ${condicoes.length ? condicoes.join(', ') : 'nenhuma declarada'}
+Condições de saúde: ${condicoes.length ? condicoes.join(', ') : 'nenhuma declarada'}`;
+}
 
-PEPTÍDEOS JÁ SELECIONADOS PARA ESTA PESSOA (não altere, não adicione, não remova):
-${lista}`;
+// ─── Diagnóstico com IA (a IA escolhe os produtos) ─────────
+export async function diagnosticarComIA(r: RespostasFarmacia): Promise<Recomendacao | null> {
+  // Gestação bloqueia antes mesmo de chamar a IA.
+  const segPrevia = aplicarSeguranca(ALL_PEPTIDES, r);
+  if (segPrevia.bloqueado) {
+    return { fonte: 'ia', itens: [], bloqueado: true, avisos: segPrevia.avisos, removidosPorSeguranca: [] };
+  }
 
-    const system = `Sua tarefa: PERSONALIZAR a explicação dos peptídeos JÁ escolhidos acima para ESTA pessoa específica. O texto será lido pelo ATENDENTE da farmácia para explicar ao paciente.
-
-REGRAS INVIOLÁVEIS:
-- NÃO sugira outros peptídeos. NÃO remova nenhum. Trabalhe SOMENTE com a lista fornecida.
-- NÃO altere doses, frequência ou via — isso já está definido.
-- Fale de forma simples e acolhedora, como um atendente explicaria no balcão a uma pessoa leiga.
-- Leve em conta idade, IMC, atividade física e sono no que fizer sentido.
-- Para cada peptídeo dê DOIS textos: (1) POR QUE faz sentido para esta pessoa e (2) COMO USAR na prática, em linguagem simples que o paciente entenda.
-
-Responda APENAS JSON válido, sem texto fora do JSON:
-{
-  "resumo": "2-3 frases: por que este conjunto de peptídeos para esta pessoa, considerando o perfil dela",
-  "itens": [
-    {
-      "nome": "nome exato do peptídeo conforme a lista",
-      "motivo": "por que ELA deve usar este peptídeo — específico ao objetivo e perfil (idade/IMC/atividade/sono), 1-2 frases simples",
-      "comoUsar": "como usar na prática em linguagem simples: quando aplicar, como aplicar e uma dica de adesão, 1-2 frases"
-    }
-  ],
-  "orientacaoAlimentar": "orientação alimentar prática ligada ao objetivo e ao IMC (1-2 frases)",
-  "orientacaoTreino": "orientação de atividade física considerando o nível atual dela (1-2 frases)",
-  "observacoes": "o que observar nas primeiras semanas e como saber se está funcionando (1-2 frases)",
-  "avisoMedico": "aviso de segurança considerando idade e condições de saúde declaradas"
-}`;
-
-    const res = await fetch('/api/ia', {
+  try {
+    const res = await fetch('/api/farmacia/diagnostico', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system, context, messages: [{ role: 'user', content: context }] }),
+      body: JSON.stringify({ perfil: montarPerfilTexto(r) }),
     });
+    if (!res.ok) return null;
     const data = await res.json();
     const texto: string = data?.text || '';
     const match = texto.match(/\{[\s\S]*\}/);
     if (!match) return null;
     const parsed = JSON.parse(match[0]);
+    if (!Array.isArray(parsed.peptideos) || parsed.peptideos.length === 0) return null;
 
-    const explicacoes: Record<string, string> = {};
-    const comoUsarIA: Record<string, string> = {};
-    if (Array.isArray(parsed.itens)) {
-      for (const it of parsed.itens) {
-        if (it?.nome && it?.motivo) explicacoes[String(it.nome)] = String(it.motivo);
-        if (it?.nome && it?.comoUsar) comoUsarIA[String(it.nome)] = String(it.comoUsar);
+    // Mapeia nomes escolhidos pela IA para o catálogo (dedup + só existentes).
+    const seen = new Set<string>();
+    const selecionados: { p: Peptide; motivo?: string; comoUsar?: string }[] = [];
+    for (const item of parsed.peptideos) {
+      const p = findPeptide(String(item?.nome || ''));
+      if (p && !seen.has(p.n)) {
+        seen.add(p.n);
+        selecionados.push({
+          p,
+          motivo: item?.motivo ? String(item.motivo) : undefined,
+          comoUsar: item?.comoUsar ? String(item.comoUsar) : undefined,
+        });
       }
     }
+    if (selecionados.length === 0) return null;
+
+    // Reaplica segurança sobre a seleção da IA (nunca confiar cegamente).
+    const seg = aplicarSeguranca(selecionados.map((s) => s.p), r);
+    const permitidosNomes = new Set(seg.permitidos.map((p) => p.n));
+    const finais = selecionados.filter((s) => permitidosNomes.has(s.p.n)).slice(0, MAX_ITENS);
+    if (finais.length === 0) {
+      return { fonte: 'ia', itens: [], bloqueado: false, avisos: seg.avisos, removidosPorSeguranca: seg.removidos };
+    }
+
+    const peso = r.peso && r.peso > 0 ? r.peso : PESO_PADRAO;
+    const itens: RecomendacaoItem[] = finais.map((s, i) => ({
+      peptide: s.p,
+      dose: s.p.doseStr(peso),
+      prioridade: prioridadeDe(i),
+      motivo: s.motivo || s.p.why,
+      comoUsar: s.comoUsar || s.p.how,
+    }));
+
     return {
-      resumo: String(parsed.resumo || ''),
-      explicacoes,
-      comoUsarIA,
-      orientacaoAlimentar: String(parsed.orientacaoAlimentar || ''),
-      orientacaoTreino: String(parsed.orientacaoTreino || ''),
-      observacoes: String(parsed.observacoes || ''),
-      avisoMedico: String(parsed.avisoMedico || ''),
+      fonte: 'ia',
+      itens,
+      bloqueado: false,
+      avisos: seg.avisos,
+      removidosPorSeguranca: seg.removidos,
+      resumo: parsed.resumo ? String(parsed.resumo) : undefined,
+      orientacaoAlimentar: parsed.orientacaoAlimentar ? String(parsed.orientacaoAlimentar) : undefined,
+      orientacaoTreino: parsed.orientacaoTreino ? String(parsed.orientacaoTreino) : undefined,
+      observacoes: parsed.observacoes ? String(parsed.observacoes) : undefined,
+      avisoMedico: parsed.avisoMedico ? String(parsed.avisoMedico) : undefined,
     };
   } catch (e) {
-    console.error('Erro ao refinar protocolo com IA:', e);
+    console.error('Erro no diagnóstico com IA:', e);
     return null;
   }
 }
 
-// Monta o texto do protocolo para envio por WhatsApp.
-export function montarMensagemWhatsApp(
-  r: RespostasFarmacia,
-  rec: Recomendacao,
-  ia?: RefinamentoIA | null,
-): string {
+// ─── Mensagem de WhatsApp ──────────────────────────────────
+export function montarMensagemWhatsApp(r: RespostasFarmacia, rec: Recomendacao): string {
   const L: string[] = [];
   L.push(`*Nuvita — Protocolo Personalizado*`);
   L.push('');
@@ -316,46 +328,35 @@ export function montarMensagemWhatsApp(
     L.push('⚠️ No seu caso, recomendamos procurar acompanhamento médico antes de iniciar qualquer peptídeo.');
     return L.join('\n');
   }
-
   if (rec.itens.length === 0) {
     L.push('Não foi possível montar um protocolo seguro com as informações fornecidas. Procure um profissional de saúde.');
     return L.join('\n');
   }
 
-  if (ia?.resumo) {
-    L.push(ia.resumo);
+  if (rec.resumo) {
+    L.push(rec.resumo);
     L.push('');
   }
 
   rec.itens.forEach((it, i) => {
     const p = it.peptide;
-    const motivo = ia?.explicacoes[p.n] || p.why;
-    const comoUsar = ia?.comoUsarIA[p.n] || p.how;
     L.push(`${i + 1}. ${p.e} *${p.n}*`);
     L.push(`   • Dose: ${it.dose}`);
     L.push(`   • Frequência: ${p.freq}`);
     L.push(`   • Quando: ${p.timing}`);
     L.push(`   • Via: ${p.route}`);
     L.push(`   • Ciclo: ${p.cycle}`);
-    if (motivo) L.push(`   • Por quê: ${motivo}`);
-    if (comoUsar) L.push(`   • Como usar: ${comoUsar}`);
+    if (it.motivo) L.push(`   • Por quê: ${it.motivo}`);
+    if (it.comoUsar) L.push(`   • Como usar: ${it.comoUsar}`);
     L.push('');
   });
 
-  if (ia?.orientacaoAlimentar) {
-    L.push(`🥗 *Alimentação:* ${ia.orientacaoAlimentar}`);
-  }
-  if (ia?.orientacaoTreino) {
-    L.push(`🏋️ *Treino:* ${ia.orientacaoTreino}`);
-  }
-  if (ia?.observacoes) {
-    L.push(`👀 *O que observar:* ${ia.observacoes}`);
-  }
-  if (ia?.orientacaoAlimentar || ia?.orientacaoTreino || ia?.observacoes) {
-    L.push('');
-  }
+  if (rec.orientacaoAlimentar) L.push(`🥗 *Alimentação:* ${rec.orientacaoAlimentar}`);
+  if (rec.orientacaoTreino) L.push(`🏋️ *Treino:* ${rec.orientacaoTreino}`);
+  if (rec.observacoes) L.push(`👀 *O que observar:* ${rec.observacoes}`);
+  if (rec.orientacaoAlimentar || rec.orientacaoTreino || rec.observacoes) L.push('');
 
-  const aviso = ia?.avisoMedico ||
+  const aviso = rec.avisoMedico ||
     'Este protocolo é uma orientação inicial. Cada organismo reage de forma diferente — em caso de dúvida, consulte um profissional de saúde.';
   L.push(`_${aviso}_`);
   L.push('');
@@ -363,7 +364,6 @@ export function montarMensagemWhatsApp(
   return L.join('\n');
 }
 
-// Normaliza telefone para link wa.me (só dígitos, com DDI 55 para o Brasil).
 export function normalizarTelefone(tel: string): string {
   let d = (tel || '').replace(/\D/g, '');
   if (d.length <= 11 && !d.startsWith('55')) d = '55' + d;

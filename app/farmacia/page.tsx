@@ -14,7 +14,7 @@ import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import PinGate from '@/components/farmacia/PinGate';
 import {
   recomendarPeptideos,
-  refinarProtocoloIA,
+  diagnosticarComIA,
   montarMensagemWhatsApp,
   normalizarTelefone,
   calcularIMC,
@@ -24,7 +24,6 @@ import {
   type SonoFarmacia,
   type CondicaoSaude,
   type Recomendacao,
-  type RefinamentoIA,
 } from '@/lib/recomendarPeptideos';
 
 // ─── Opções das perguntas ─────────────────────────────────
@@ -93,9 +92,7 @@ export default function FarmaciaPage() {
   const [rec, setRec] = useState<Recomendacao | null>(null);
   const [erro, setErro] = useState('');
   const [enviado, setEnviado] = useState(false);
-  const [ia, setIa] = useState<RefinamentoIA | null>(null);
-  const [refinando, setRefinando] = useState(false);
-  const [iaErro, setIaErro] = useState('');
+  const [gerando, setGerando] = useState(false);
 
   const imc = useMemo(() => calcularIMC(Number(peso), Number(altura)), [peso, altura]);
 
@@ -136,12 +133,10 @@ export default function FarmaciaPage() {
     });
   };
 
-  // ─── Gerar protocolo ─────────────────────────────────────
+  // ─── Gerar protocolo (IA faz o diagnóstico; fallback determinístico) ───
   const gerar = async () => {
     setErro('');
     setEnviado(false);
-    setIa(null);
-    setIaErro('');
     if (!objetivos.length) return setErro('Selecione ao menos um objetivo.');
     if (!peso || Number(peso) < 30 || Number(peso) > 300) return setErro('Informe um peso válido (kg).');
     if (!altura || Number(altura) < 120 || Number(altura) > 230) return setErro('Informe uma altura válida (cm).');
@@ -151,8 +146,14 @@ export default function FarmaciaPage() {
     if (!nome.trim()) return setErro('Preencha o nome da pessoa.');
     if (normalizarTelefone(telefone).length < 12) return setErro('Preencha um telefone/WhatsApp válido com DDD.');
 
-    const resultado = recomendarPeptideos(respostas!);
+    setGerando(true);
+    // A IA faz o diagnóstico; se indisponível/rate-limit, usa o determinístico.
+    let resultado = await diagnosticarComIA(respostas!);
+    if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) {
+      resultado = recomendarPeptideos(respostas!);
+    }
     setRec(resultado);
+    setGerando(false);
 
     try {
       await fetch('/api/farmacia/lead', {
@@ -183,19 +184,9 @@ export default function FarmaciaPage() {
     }, 80);
   };
 
-  const refinar = async () => {
-    if (!respostas || !rec) return;
-    setRefinando(true);
-    setIaErro('');
-    const resultado = await refinarProtocoloIA(respostas, rec);
-    if (resultado) setIa(resultado);
-    else setIaErro('Não foi possível refinar agora. O protocolo acima continua válido.');
-    setRefinando(false);
-  };
-
   const enviarWhatsApp = () => {
     if (!respostas || !rec) return;
-    const msg = montarMensagemWhatsApp(respostas, rec, ia);
+    const msg = montarMensagemWhatsApp(respostas, rec);
     const tel = normalizarTelefone(respostas.telefone);
     window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
     setEnviado(true);
@@ -217,9 +208,7 @@ export default function FarmaciaPage() {
     setRec(null);
     setErro('');
     setEnviado(false);
-    setIa(null);
-    setIaErro('');
-    setRefinando(false);
+    setGerando(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -377,8 +366,9 @@ export default function FarmaciaPage() {
           {erro && <div style={S.erro}>⚠️ {erro}</div>}
 
           {!rec && (
-            <button onClick={gerar} style={S.cta}>
-              Gerar protocolo
+            <button onClick={gerar} disabled={gerando}
+              style={{ ...S.cta, opacity: gerando ? 0.7 : 1, cursor: gerando ? 'wait' : 'pointer' }}>
+              {gerando ? '🔬 Analisando o perfil…' : 'Gerar diagnóstico'}
             </button>
           )}
         </div>
@@ -390,7 +380,9 @@ export default function FarmaciaPage() {
 
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
               <h2 style={S.h2}>Protocolo de {nome.split(' ')[0]}</h2>
-              <span className="pill"><span className="pdot" /> Gerado</span>
+              <span className="pill" style={rec.fonte === 'ia' ? S.pillIa : undefined}>
+                <span className="pdot" /> {rec.fonte === 'ia' ? 'Diagnóstico IA' : 'Gerado'}
+              </span>
             </div>
             <div style={S.perfilLinha}>
               {idade && <span>{idade} anos</span>}
@@ -412,19 +404,17 @@ export default function FarmaciaPage() {
               </div>
             ) : (
               <>
-                {ia?.resumo && (
+                {rec.resumo && (
                   <div style={S.iaResumo}>
                     <div style={S.iaResumoTitulo}>✨ Resumo para explicar ao paciente</div>
-                    <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>{ia.resumo}</p>
+                    <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>{rec.resumo}</p>
                   </div>
                 )}
 
                 <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
                   {rec.itens.map((it) => {
                     const pr = PRIORIDADE_STYLE[it.prioridade];
-                    const motivo = ia?.explicacoes[it.peptide.n] || it.peptide.why;
-                    const temIaMotivo = !!ia?.explicacoes[it.peptide.n];
-                    const comoUsar = ia?.comoUsarIA[it.peptide.n] || it.peptide.how;
+                    const ehIa = rec.fonte === 'ia';
                     return (
                       <div key={it.peptide.n} style={S.card}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
@@ -436,17 +426,17 @@ export default function FarmaciaPage() {
                           <span style={{ ...S.badge, background: pr.bg, color: pr.tx }}>{pr.label}</span>
                         </div>
 
-                        {motivo && (
-                          <div style={temIaMotivo ? S.whyIa : S.why}>
-                            <span style={S.blocoTitulo}>{temIaMotivo ? '✨ Por que para esta pessoa' : '💡 Por que recomendado'}</span>
-                            {motivo}
+                        {it.motivo && (
+                          <div style={ehIa ? S.whyIa : S.why}>
+                            <span style={S.blocoTitulo}>{ehIa ? '✨ Por que para esta pessoa' : '💡 Por que recomendado'}</span>
+                            {it.motivo}
                           </div>
                         )}
 
-                        {comoUsar && (
+                        {it.comoUsar && (
                           <div style={S.comoUsar}>
                             <span style={S.blocoTitulo}>📋 Como usar</span>
-                            {comoUsar}
+                            {it.comoUsar}
                           </div>
                         )}
 
@@ -469,25 +459,12 @@ export default function FarmaciaPage() {
                   </div>
                 )}
 
-                {ia && (ia.orientacaoAlimentar || ia.orientacaoTreino || ia.observacoes || ia.avisoMedico) && (
+                {(rec.orientacaoAlimentar || rec.orientacaoTreino || rec.observacoes || rec.avisoMedico) && (
                   <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
-                    {ia.orientacaoAlimentar && <Orientacao e="🥗" titulo="Alimentação" texto={ia.orientacaoAlimentar} />}
-                    {ia.orientacaoTreino && <Orientacao e="🏋️" titulo="Treino" texto={ia.orientacaoTreino} />}
-                    {ia.observacoes && <Orientacao e="👀" titulo="O que observar" texto={ia.observacoes} />}
-                    {ia.avisoMedico && <div className="disc" style={{ marginTop: 2 }}>{ia.avisoMedico}</div>}
-                  </div>
-                )}
-
-                {!ia && (
-                  <button onClick={refinar} disabled={refinando}
-                    style={{ ...S.iaBtn, opacity: refinando ? 0.6 : 1, cursor: refinando ? 'wait' : 'pointer' }}>
-                    {refinando ? '✨ Personalizando com IA…' : '✨ Refinar e explicar com IA'}
-                  </button>
-                )}
-                {iaErro && <div style={{ ...S.hint, color: '#B45309', marginTop: 10 }}>{iaErro}</div>}
-                {ia && (
-                  <div style={{ ...S.hint, marginTop: 12, color: '#8B5CF6' }}>
-                    ✨ Explicações personalizadas com IA — o texto acima e o do WhatsApp foram adaptados para esta pessoa.
+                    {rec.orientacaoAlimentar && <Orientacao e="🥗" titulo="Alimentação" texto={rec.orientacaoAlimentar} />}
+                    {rec.orientacaoTreino && <Orientacao e="🏋️" titulo="Treino" texto={rec.orientacaoTreino} />}
+                    {rec.observacoes && <Orientacao e="👀" titulo="O que observar" texto={rec.observacoes} />}
+                    {rec.avisoMedico && <div className="disc" style={{ marginTop: 2 }}>{rec.avisoMedico}</div>}
                   </div>
                 )}
 
@@ -747,6 +724,7 @@ const S: Record<string, React.CSSProperties> = {
   },
   divider: { height: 1, background: '#ECEDEE', margin: '0 0 26px' },
   perfilLinha: { display: 'flex', gap: 6, flexWrap: 'wrap', fontSize: 13, color: '#667085', marginTop: 7 },
+  pillIa: { background: '#F3F0FF', color: '#6D28D9' },
   card: { background: '#fff', border: '1px solid #ECEDEE', borderRadius: 20, padding: 20, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
   pepEmoji: { fontSize: 28, width: 46, height: 46, borderRadius: 13, background: '#FAFAFA', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   badge: { fontSize: 11, fontWeight: 600, padding: '5px 11px', borderRadius: 100, whiteSpace: 'nowrap' },

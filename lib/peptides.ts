@@ -177,6 +177,66 @@ export const PEPTIDES: Record<ObjectiveKey, Peptide[]> = {
   hormonal:    [PT141, IPAMORELIN, CJC1295, MK677],
 };
 
+// ─── Catálogo completo (união de todos os peptídeos) ──────
+export const ALL_PEPTIDES: Peptide[] = (() => {
+  const seen = new Set<string>();
+  const all: Peptide[] = [];
+  (Object.values(PEPTIDES) as Peptide[][]).forEach((list) =>
+    list.forEach((p) => {
+      if (!seen.has(p.n)) {
+        seen.add(p.n);
+        all.push(p);
+      }
+    }),
+  );
+  return all;
+})();
+
+// Objetivos aos quais um peptídeo pertence (para dar contexto à IA).
+export function objetivosDoPeptide(nome: string): ObjectiveKey[] {
+  const objs: ObjectiveKey[] = [];
+  (Object.keys(PEPTIDES) as ObjectiveKey[]).forEach((k) => {
+    if (PEPTIDES[k].some((p) => p.n === nome)) objs.push(k);
+  });
+  return objs;
+}
+
+// Busca tolerante por nome (a IA pode escrever variações/apelidos do nome).
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// Gera as "chaves" de um peptídeo: nome completo, parte antes de "(",
+// apelido dentro de "(...)", e cada trecho separado por "/".
+function chavesDoNome(nomeCompleto: string): string[] {
+  const chaves = new Set<string>();
+  const add = (s: string) => {
+    const n = norm(s);
+    if (n.length >= 3) chaves.add(n);
+  };
+  add(nomeCompleto);
+  const paren = nomeCompleto.match(/\(([^)]+)\)/);
+  if (paren) add(paren[1]);
+  add(nomeCompleto.replace(/\([^)]*\)/g, ''));
+  nomeCompleto.split('/').forEach(add);
+  return Array.from(chaves);
+}
+
+export function findPeptide(nome: string): Peptide | undefined {
+  const t = norm(nome);
+  if (t.length < 3) return undefined;
+
+  // 1ª passada: igualdade exata com qualquer chave.
+  for (const p of ALL_PEPTIDES) {
+    if (chavesDoNome(p.n).includes(t)) return p;
+  }
+  // 2ª passada: prefixo (um contém o começo do outro).
+  for (const p of ALL_PEPTIDES) {
+    for (const k of chavesDoNome(p.n)) {
+      if (k.startsWith(t) || t.startsWith(k)) return p;
+    }
+  }
+  return undefined;
+}
+
 // ─── Peptídeos para calculadora ───────────────────────────
 export const CALC_PEPTIDES = [
   {
