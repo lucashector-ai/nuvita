@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       objetivos: Array.isArray(body?.objetivos) ? body.objetivos.slice(0, 8) : [],
       nivel: body?.nivel ? String(body.nivel).slice(0, 20) : null,
       condicoes: Array.isArray(body?.condicoes) ? body.condicoes.slice(0, 8) : [],
+      condicao_outros: body?.condicaoOutros ? String(body.condicaoOutros).slice(0, 120) : null,
       peso: numOrNull(body?.peso, 30, 300),
       altura: numOrNull(body?.altura, 120, 230),
       idade: numOrNull(body?.idade, 16, 100),

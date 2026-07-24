@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Nuvita Balcão</string>
+    <string name="device_admin_desc">Administrador do tablet do balcão Nuvita — habilita o modo quiosque.</string>
+</resources>

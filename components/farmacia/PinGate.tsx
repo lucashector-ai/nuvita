@@ -8,6 +8,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import NuvitaLogo from '@/components/ui/NuvitaLogo';
 
 const STORAGE_KEY = 'nv_farmacia_ok';
 
@@ -77,9 +78,13 @@ export default function PinGate({ children }: { children: React.ReactNode }) {
   return (
     <div style={S.wrap} className="grad">
       <div style={S.card}>
-        <div style={{ fontSize: 30, marginBottom: 6 }}>💚</div>
-        <div style={{ fontWeight: 600, fontSize: 18, letterSpacing: '-.03em' }}>Nuvita · Balcão</div>
-        <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4, marginBottom: 22 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+          <NuvitaLogo width={120} height={26} />
+        </div>
+        <div style={{ fontSize: 11, color: '#98A2B3', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600 }}>
+          Balcão
+        </div>
+        <p style={{ fontSize: 13.5, color: '#667085', marginTop: 12, marginBottom: 24 }}>
           Digite o PIN de acesso da farmácia
         </p>
 
@@ -126,7 +131,7 @@ export default function PinGate({ children }: { children: React.ReactNode }) {
 const S: Record<string, React.CSSProperties> = {
   wrap: {
     minHeight: '100vh',
-    background: '#F7F7F7',
+    background: '#FBFBFA',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -134,21 +139,21 @@ const S: Record<string, React.CSSProperties> = {
   },
   card: {
     background: '#fff',
-    border: '1px solid #EBEBEB',
-    borderRadius: 24,
-    padding: '32px 28px',
+    border: '1px solid #ECEDEE',
+    borderRadius: 28,
+    padding: '36px 30px',
     width: '100%',
-    maxWidth: 340,
+    maxWidth: 344,
     textAlign: 'center',
-    boxShadow: '0 8px 32px rgba(0,0,0,.08)',
+    boxShadow: '0 12px 40px rgba(16,24,40,.08)',
   },
   erro: {
     fontSize: 13,
     color: '#B91C1C',
     background: '#FEF2F2',
-    borderRadius: 8,
-    padding: '8px 12px',
-    marginBottom: 14,
+    borderRadius: 10,
+    padding: '9px 12px',
+    marginBottom: 16,
   },
   pad: {
     display: 'grid',
@@ -157,15 +162,15 @@ const S: Record<string, React.CSSProperties> = {
     marginTop: 6,
   },
   key: {
-    height: 62,
-    borderRadius: 16,
-    border: '1.5px solid #EBEBEB',
-    background: '#fff',
+    height: 64,
+    borderRadius: 18,
+    border: '1px solid #EDEDED',
+    background: '#FBFBFA',
     fontFamily: 'inherit',
     fontSize: 24,
     fontWeight: 500,
-    color: '#0F1115',
+    color: '#0E1113',
     cursor: 'pointer',
-    transition: 'all .1s',
+    transition: 'background .1s, border-color .1s',
   },
 };

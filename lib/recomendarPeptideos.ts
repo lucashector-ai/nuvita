@@ -19,7 +19,8 @@ export type CondicaoSaude =
   | 'hipertensao'
   | 'cancer'
   | 'gestacao'
-  | 'tireoide';
+  | 'tireoide'
+  | 'outros';
 
 export interface RespostasFarmacia {
   nome: string;
@@ -28,6 +29,7 @@ export interface RespostasFarmacia {
   objetivos: ObjectiveKey[];
   nivel: NivelFarmacia;
   condicoes: CondicaoSaude[];
+  condicaoOutros?: string; // texto livre quando 'outros' está selecionado
   peso?: number;   // kg — usado na dose (peptídeos dose/kg) e no IMC
   altura?: number; // cm — usado no IMC
   idade?: number;  // anos
@@ -139,6 +141,9 @@ export function recomendarPeptideos(r: RespostasFarmacia): Recomendacao {
   if (condicoes.has('diabetes')) {
     avisos.push('Diabetes/pré-diabetes: monitorar glicemia. Peptídeos glicêmicos só com supervisão médica.');
   }
+  if (condicoes.has('outros') && r.condicaoOutros?.trim()) {
+    avisos.push(`Condição informada: "${r.condicaoOutros.trim()}". Não há filtro automático para ela — avalie a compatibilidade e recomende avaliação médica em caso de dúvida.`);
+  }
 
   // 3) Limita pela experiência.
   const limite = MAX_POR_NIVEL[r.nivel] ?? 2;
@@ -193,6 +198,7 @@ const COND_LABEL: Record<CondicaoSaude, string> = {
   cancer: 'histórico de câncer',
   gestacao: 'gestação/amamentação',
   tireoide: 'alteração de tireoide',
+  outros: 'outra condição',
 };
 
 /**
@@ -208,7 +214,9 @@ export async function refinarProtocoloIA(
   if (!rec.itens.length) return null;
   try {
     const objetivos = r.objetivos.map((o) => OBJ_LABEL[o] || o).join(', ');
-    const condicoes = r.condicoes.filter((c) => c !== 'nenhuma').map((c) => COND_LABEL[c] || c);
+    const condicoes = r.condicoes
+      .filter((c) => c !== 'nenhuma')
+      .map((c) => (c === 'outros' && r.condicaoOutros?.trim() ? r.condicaoOutros.trim() : COND_LABEL[c] || c));
     const imc = calcularIMC(r.peso, r.altura);
     const atividadeLabel: Record<AtividadeFarmacia, string> = {
       sedentario: 'sedentário', moderado: 'moderadamente ativo', ativo: 'ativo', muito_ativo: 'muito ativo',

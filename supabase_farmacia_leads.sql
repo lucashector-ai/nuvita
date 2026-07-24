@@ -10,8 +10,9 @@ create table if not exists public.farmacia_leads (
   telefone    text not null,
   sexo        text,
   objetivos   jsonb default '[]'::jsonb,
-  nivel       text,
-  condicoes   jsonb default '[]'::jsonb,
+  nivel          text,
+  condicoes      jsonb default '[]'::jsonb,
+  condicao_outros text,
   peso        integer,
   altura      integer,
   idade       integer,
@@ -29,6 +30,7 @@ alter table public.farmacia_leads add column if not exists altura    integer;
 alter table public.farmacia_leads add column if not exists idade     integer;
 alter table public.farmacia_leads add column if not exists atividade text;
 alter table public.farmacia_leads add column if not exists sono      text;
+alter table public.farmacia_leads add column if not exists condicao_outros text;
 
 create index if not exists farmacia_leads_created_at_idx on public.farmacia_leads (created_at desc);
 create index if not exists farmacia_leads_telefone_idx   on public.farmacia_leads (telefone);
