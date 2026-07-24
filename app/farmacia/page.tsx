@@ -3,6 +3,7 @@
 //  Balcão de farmácia: o atendente faz o diagnóstico
 //  no tablet, gera o protocolo e envia por WhatsApp.
 //  Tudo em uma página só, otimizada para toque.
+//  Fluxo clínico: diagnóstico primeiro, contato no final.
 // ════════════════════════════════════════════════
 
 'use client';
@@ -15,14 +16,17 @@ import {
   refinarProtocoloIA,
   montarMensagemWhatsApp,
   normalizarTelefone,
+  calcularIMC,
   type RespostasFarmacia,
   type NivelFarmacia,
+  type AtividadeFarmacia,
+  type SonoFarmacia,
   type CondicaoSaude,
   type Recomendacao,
   type RefinamentoIA,
 } from '@/lib/recomendarPeptideos';
 
-// ─── Opções das perguntas (poucas e assertivas) ───────────
+// ─── Opções das perguntas ─────────────────────────────────
 const OBJETIVOS: { key: ObjectiveKey; label: string; e: string }[] = [
   { key: 'gordura', label: 'Emagrecer', e: '🔥' },
   { key: 'massa', label: 'Ganhar massa', e: '💪' },
@@ -38,6 +42,19 @@ const NIVEIS: { key: NivelFarmacia; label: string; sub: string }[] = [
   { key: 'iniciante', label: 'Nunca usou', sub: 'Primeira vez com peptídeos' },
   { key: 'intermediario', label: 'Já usou', sub: 'Tem alguma experiência' },
   { key: 'avancado', label: 'Usa com frequência', sub: 'Experiente' },
+];
+
+const ATIVIDADES: { key: AtividadeFarmacia; label: string; sub: string }[] = [
+  { key: 'sedentario', label: 'Sedentário', sub: 'Pouco ou nenhum exercício' },
+  { key: 'moderado', label: 'Moderado', sub: 'Treina 1–3x/semana' },
+  { key: 'ativo', label: 'Ativo', sub: 'Treina 4–5x/semana' },
+  { key: 'muito_ativo', label: 'Muito ativo', sub: 'Treina 6–7x/semana' },
+];
+
+const SONOS: { key: SonoFarmacia; label: string; e: string }[] = [
+  { key: 'ruim', label: 'Ruim', e: '😣' },
+  { key: 'regular', label: 'Regular', e: '😐' },
+  { key: 'bom', label: 'Bom', e: '😴' },
 ];
 
 const CONDICOES: { key: CondicaoSaude; label: string; e: string }[] = [
@@ -56,12 +73,19 @@ const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string }
 };
 
 export default function FarmaciaPage() {
+  // Diagnóstico
+  const [objetivos, setObjetivos] = useState<ObjectiveKey[]>([]);
+  const [peso, setPeso] = useState('');
+  const [altura, setAltura] = useState('');
+  const [idade, setIdade] = useState('');
+  const [sexo, setSexo] = useState<'masculino' | 'feminino' | 'ni' | ''>('');
+  const [nivel, setNivel] = useState<NivelFarmacia | ''>('');
+  const [atividade, setAtividade] = useState<AtividadeFarmacia | ''>('');
+  const [sono, setSono] = useState<SonoFarmacia | ''>('');
+  const [condicoes, setCondicoes] = useState<CondicaoSaude[]>([]);
+  // Contato (por último)
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [sexo, setSexo] = useState<'masculino' | 'feminino' | 'ni' | ''>('');
-  const [objetivos, setObjetivos] = useState<ObjectiveKey[]>([]);
-  const [nivel, setNivel] = useState<NivelFarmacia | ''>('');
-  const [condicoes, setCondicoes] = useState<CondicaoSaude[]>([]);
 
   const [rec, setRec] = useState<Recomendacao | null>(null);
   const [erro, setErro] = useState('');
@@ -69,6 +93,8 @@ export default function FarmaciaPage() {
   const [ia, setIa] = useState<RefinamentoIA | null>(null);
   const [refinando, setRefinando] = useState(false);
   const [iaErro, setIaErro] = useState('');
+
+  const imc = useMemo(() => calcularIMC(Number(peso), Number(altura)), [peso, altura]);
 
   const respostas = useMemo<RespostasFarmacia | null>(() => {
     if (!nome.trim() || !telefone.trim() || !objetivos.length || !nivel) return null;
@@ -79,8 +105,13 @@ export default function FarmaciaPage() {
       objetivos,
       nivel: nivel as NivelFarmacia,
       condicoes: condicoes.length ? condicoes : ['nenhuma'],
+      peso: peso ? Number(peso) : undefined,
+      altura: altura ? Number(altura) : undefined,
+      idade: idade ? Number(idade) : undefined,
+      atividade: atividade || undefined,
+      sono: sono || undefined,
     };
-  }, [nome, telefone, sexo, objetivos, nivel, condicoes]);
+  }, [nome, telefone, sexo, objetivos, nivel, condicoes, peso, altura, idade, atividade, sono]);
 
   // ─── Toggles ─────────────────────────────────────────────
   const toggleObjetivo = (k: ObjectiveKey) => {
@@ -107,10 +138,13 @@ export default function FarmaciaPage() {
     setEnviado(false);
     setIa(null);
     setIaErro('');
+    if (!objetivos.length) return setErro('Selecione ao menos um objetivo.');
+    if (!peso || Number(peso) < 30 || Number(peso) > 300) return setErro('Informe um peso válido (kg).');
+    if (!altura || Number(altura) < 120 || Number(altura) > 230) return setErro('Informe uma altura válida (cm).');
+    if (!idade || Number(idade) < 16 || Number(idade) > 100) return setErro('Informe uma idade válida.');
+    if (!nivel) return setErro('Selecione a experiência com peptídeos.');
     if (!nome.trim()) return setErro('Preencha o nome da pessoa.');
     if (normalizarTelefone(telefone).length < 12) return setErro('Preencha um telefone/WhatsApp válido com DDD.');
-    if (!objetivos.length) return setErro('Selecione ao menos um objetivo.');
-    if (!nivel) return setErro('Selecione a experiência com peptídeos.');
 
     const resultado = recomendarPeptideos(respostas!);
     setRec(resultado);
@@ -127,6 +161,11 @@ export default function FarmaciaPage() {
           objetivos: respostas!.objetivos,
           nivel: respostas!.nivel,
           condicoes: respostas!.condicoes,
+          peso: respostas!.peso,
+          altura: respostas!.altura,
+          idade: respostas!.idade,
+          atividade: respostas!.atividade,
+          sono: respostas!.sono,
           peptideos: resultado.itens.map((i) => i.peptide.n),
         }),
       });
@@ -134,7 +173,6 @@ export default function FarmaciaPage() {
       /* silencioso — não atrapalha o balcão */
     }
 
-    // Rola até o resultado.
     setTimeout(() => {
       document.getElementById('resultado')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
@@ -159,12 +197,17 @@ export default function FarmaciaPage() {
   };
 
   const novoAtendimento = () => {
+    setObjetivos([]);
+    setPeso('');
+    setAltura('');
+    setIdade('');
+    setSexo('');
+    setNivel('');
+    setAtividade('');
+    setSono('');
+    setCondicoes([]);
     setNome('');
     setTelefone('');
-    setSexo('');
-    setObjetivos([]);
-    setNivel('');
-    setCondicoes([]);
     setRec(null);
     setErro('');
     setEnviado(false);
@@ -183,6 +226,8 @@ export default function FarmaciaPage() {
     setTelefone(out);
   };
 
+  const soNumero = (v: string, max: number) => v.replace(/\D/g, '').slice(0, max);
+
   return (
    <PinGate>
     <div style={{ minHeight: '100vh', background: '#F7F7F7' }} className="grad">
@@ -194,7 +239,7 @@ export default function FarmaciaPage() {
             <div>
               <div style={{ fontWeight: 600, fontSize: 17, letterSpacing: '-.03em' }}>Nuvita</div>
               <div style={{ fontSize: 11, color: '#6B7280', letterSpacing: '.04em', textTransform: 'uppercase' }}>
-                Balcão · Diagnóstico rápido
+                Balcão · Diagnóstico
               </div>
             </div>
           </div>
@@ -209,33 +254,50 @@ export default function FarmaciaPage() {
       <main style={S.main}>
         {/* ─── FORMULÁRIO ─── */}
         <div style={{ opacity: rec ? 0.55 : 1, pointerEvents: rec ? 'none' : 'auto', transition: 'opacity .2s' }}>
-          <h1 style={S.h1}>Vamos encontrar os peptídeos certos</h1>
-          <p style={S.lead}>Preencha com a pessoa. Leva menos de 1 minuto.</p>
+          <h1 style={S.h1}>Diagnóstico rápido de peptídeos</h1>
+          <p style={S.lead}>Responda com a pessoa. As perguntas ajudam a montar o protocolo certo.</p>
 
-          {/* Dados de contato */}
-          <Section n="1" titulo="Dados de contato">
-            <label style={S.label}>Nome da pessoa</label>
-            <input
-              className="inp"
-              placeholder="Nome completo"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              style={S.inpBig}
-            />
-            <label style={{ ...S.label, marginTop: 16 }}>WhatsApp (com DDD)</label>
-            <input
-              className="inp"
-              placeholder="(11) 99999-9999"
-              value={telefone}
-              inputMode="numeric"
-              onChange={(e) => onTelefone(e.target.value)}
-              style={S.inpBig}
-            />
-            <div style={S.hint}>O protocolo será enviado para este número.</div>
+          {/* 1 · Objetivo */}
+          <Section n="1" titulo="Qual o objetivo principal?" hint="Até 3 opções">
+            <div style={S.gridAuto}>
+              {OBJETIVOS.map((o) => (
+                <Chip key={o.key} ativo={objetivos.includes(o.key)} onClick={() => toggleObjetivo(o.key)}>
+                  <span style={{ fontSize: 20, marginRight: 8 }}>{o.e}</span>
+                  {o.label}
+                </Chip>
+              ))}
+            </div>
           </Section>
 
-          {/* Sexo */}
-          <Section n="2" titulo="Sexo" opcional>
+          {/* 2 · Dados físicos */}
+          <Section n="2" titulo="Dados físicos">
+            <div style={S.grid3}>
+              <div>
+                <label style={S.label}>Peso (kg)</label>
+                <input className="inp" placeholder="75" inputMode="numeric" value={peso}
+                  onChange={(e) => setPeso(soNumero(e.target.value, 3))} style={S.inpBig} />
+              </div>
+              <div>
+                <label style={S.label}>Altura (cm)</label>
+                <input className="inp" placeholder="175" inputMode="numeric" value={altura}
+                  onChange={(e) => setAltura(soNumero(e.target.value, 3))} style={S.inpBig} />
+              </div>
+              <div>
+                <label style={S.label}>Idade</label>
+                <input className="inp" placeholder="34" inputMode="numeric" value={idade}
+                  onChange={(e) => setIdade(soNumero(e.target.value, 3))} style={S.inpBig} />
+              </div>
+            </div>
+            {imc && (
+              <div style={S.imcBox}>
+                <span style={{ fontWeight: 600 }}>IMC {imc.valor}</span>
+                <span style={{ color: '#6B7280' }}> · {imc.classe}</span>
+              </div>
+            )}
+          </Section>
+
+          {/* 3 · Sexo */}
+          <Section n="3" titulo="Sexo" opcional>
             <div style={S.grid3}>
               {[
                 { k: 'masculino', l: 'Masculino' },
@@ -249,19 +311,7 @@ export default function FarmaciaPage() {
             </div>
           </Section>
 
-          {/* Objetivo */}
-          <Section n="3" titulo="Objetivo principal" hint="Até 3 opções">
-            <div style={S.gridAuto}>
-              {OBJETIVOS.map((o) => (
-                <Chip key={o.key} ativo={objetivos.includes(o.key)} onClick={() => toggleObjetivo(o.key)}>
-                  <span style={{ fontSize: 20, marginRight: 8 }}>{o.e}</span>
-                  {o.label}
-                </Chip>
-              ))}
-            </div>
-          </Section>
-
-          {/* Experiência */}
+          {/* 4 · Experiência */}
           <Section n="4" titulo="Já usou peptídeos antes?">
             <div style={S.grid3}>
               {NIVEIS.map((o) => (
@@ -273,8 +323,32 @@ export default function FarmaciaPage() {
             </div>
           </Section>
 
-          {/* Condições de saúde */}
-          <Section n="5" titulo="Alguma condição de saúde?" hint="Importante para a segurança">
+          {/* 5 · Atividade física */}
+          <Section n="5" titulo="Nível de atividade física">
+            <div style={S.gridAuto}>
+              {ATIVIDADES.map((o) => (
+                <Chip key={o.key} ativo={atividade === o.key} onClick={() => setAtividade(o.key)} coluna>
+                  <strong style={{ fontSize: 15 }}>{o.label}</strong>
+                  <span style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>{o.sub}</span>
+                </Chip>
+              ))}
+            </div>
+          </Section>
+
+          {/* 6 · Sono */}
+          <Section n="6" titulo="Como está o sono?">
+            <div style={S.grid3}>
+              {SONOS.map((o) => (
+                <Chip key={o.key} ativo={sono === o.key} onClick={() => setSono(o.key)}>
+                  <span style={{ fontSize: 18, marginRight: 8 }}>{o.e}</span>
+                  {o.label}
+                </Chip>
+              ))}
+            </div>
+          </Section>
+
+          {/* 7 · Condições de saúde */}
+          <Section n="7" titulo="Alguma condição de saúde?" hint="Importante para a segurança">
             <div style={S.gridAuto}>
               {CONDICOES.map((o) => (
                 <Chip key={o.key} ativo={condicoes.includes(o.key)} onClick={() => toggleCondicao(o.key)}>
@@ -283,6 +357,17 @@ export default function FarmaciaPage() {
                 </Chip>
               ))}
             </div>
+          </Section>
+
+          {/* 8 · Contato (por último) */}
+          <Section n="8" titulo="Contato para enviar o protocolo">
+            <label style={S.label}>Nome da pessoa</label>
+            <input className="inp" placeholder="Nome completo" value={nome}
+              onChange={(e) => setNome(e.target.value)} style={S.inpBig} />
+            <label style={{ ...S.label, marginTop: 16 }}>WhatsApp (com DDD)</label>
+            <input className="inp" placeholder="(11) 99999-9999" value={telefone} inputMode="numeric"
+              onChange={(e) => onTelefone(e.target.value)} style={S.inpBig} />
+            <div style={S.hint}>O protocolo será enviado para este número.</div>
           </Section>
 
           {erro && <div style={S.erro}>⚠️ {erro}</div>}
@@ -307,6 +392,11 @@ export default function FarmaciaPage() {
                 <span className="pdot" /> Gerado
               </span>
             </div>
+            <div style={S.perfilLinha}>
+              {idade && <span>{idade} anos</span>}
+              {imc && <span>· IMC {imc.valor} ({imc.classe})</span>}
+              {atividade && <span>· {ATIVIDADES.find((a) => a.key === atividade)?.label}</span>}
+            </div>
 
             {/* Avisos de segurança */}
             {rec.avisos.map((a, i) => (
@@ -329,7 +419,7 @@ export default function FarmaciaPage() {
                 {ia?.resumo && (
                   <div style={S.iaResumo}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: '#8B5CF6', letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 6 }}>
-                      ✨ Resumo personalizado
+                      ✨ Resumo para explicar ao paciente
                     </div>
                     <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>{ia.resumo}</p>
                   </div>
@@ -339,8 +429,9 @@ export default function FarmaciaPage() {
                 <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
                   {rec.itens.map((it) => {
                     const pr = PRIORIDADE_STYLE[it.prioridade];
-                    const motivo = ia?.explicacoes[it.peptide.n];
-                    const temIa = !!motivo;
+                    const motivo = ia?.explicacoes[it.peptide.n] || it.peptide.why;
+                    const temIaMotivo = !!ia?.explicacoes[it.peptide.n];
+                    const comoUsar = ia?.comoUsarIA[it.peptide.n] || it.peptide.how;
                     return (
                       <div key={it.peptide.n} style={S.card}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
@@ -351,12 +442,23 @@ export default function FarmaciaPage() {
                           </div>
                           <span style={{ ...S.badge, background: pr.bg, color: pr.tx }}>{pr.label}</span>
                         </div>
-                        {(motivo || it.peptide.why) && (
-                          <div style={temIa ? S.whyIa : S.why}>
-                            {temIa ? '✨ Por que para você: ' : '💡 '}
-                            {motivo || it.peptide.why}
+
+                        {/* Por que recomendado */}
+                        {motivo && (
+                          <div style={temIaMotivo ? S.whyIa : S.why}>
+                            <span style={S.blocoTitulo}>{temIaMotivo ? '✨ Por que para esta pessoa' : '💡 Por que recomendado'}</span>
+                            {motivo}
                           </div>
                         )}
+
+                        {/* Como usar */}
+                        {comoUsar && (
+                          <div style={S.comoUsar}>
+                            <span style={S.blocoTitulo}>📋 Como usar</span>
+                            {comoUsar}
+                          </div>
+                        )}
+
                         <div style={S.specGrid}>
                           <Spec label="Dose" valor={it.dose} destaque />
                           <Spec label="Frequência" valor={it.peptide.freq} />
@@ -405,7 +507,7 @@ export default function FarmaciaPage() {
                 {iaErro && <div style={{ ...S.hint, color: '#B45309', marginTop: 10 }}>{iaErro}</div>}
                 {ia && (
                   <div style={{ ...S.hint, marginTop: 12, color: '#8B5CF6', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    ✨ Protocolo personalizado com IA — as explicações acima e o texto do WhatsApp foram adaptados para esta pessoa.
+                    ✨ Explicações personalizadas com IA — o texto acima e o do WhatsApp foram adaptados para esta pessoa.
                   </div>
                 )}
 
@@ -502,7 +604,6 @@ function Chip({
         alignItems: coluna ? 'flex-start' : 'center',
         justifyContent: coluna ? 'center' : 'flex-start',
         textAlign: 'left',
-        gap: coluna ? 0 : 0,
         padding: '14px 16px',
         borderRadius: 14,
         border: ativo ? '2px solid #22C55E' : '1.5px solid #EBEBEB',
@@ -566,6 +667,7 @@ const S: Record<string, React.CSSProperties> = {
   label: { display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 },
   inpBig: { padding: '14px 16px', fontSize: 16, borderRadius: 12 },
   hint: { fontSize: 12, color: '#9CA3AF', marginTop: 8 },
+  imcBox: { marginTop: 12, padding: '10px 14px', background: '#F2FCF7', border: '1px solid #DCFCE7', borderRadius: 10, fontSize: 14, display: 'inline-block' },
   tagOpt: {
     fontSize: 11,
     color: '#9CA3AF',
@@ -587,10 +689,13 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: 14,
   },
   divider: { height: 1, background: '#EBEBEB', margin: '0 0 24px' },
+  perfilLinha: { display: 'flex', gap: 6, flexWrap: 'wrap', fontSize: 13, color: '#6B7280', marginTop: 6 },
   card: { background: '#fff', border: '1px solid #EBEBEB', borderRadius: 18, padding: 18, boxShadow: '0 1px 3px rgba(0,0,0,.04)' },
   badge: { fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 100, whiteSpace: 'nowrap' },
-  why: { fontSize: 13, color: '#374151', background: '#F7F7F7', borderRadius: 10, padding: '10px 12px', marginBottom: 12, lineHeight: 1.5 },
-  whyIa: { fontSize: 13, color: '#5B21B6', background: '#F5F3FF', border: '1px solid #EDE9FE', borderRadius: 10, padding: '10px 12px', marginBottom: 12, lineHeight: 1.5 },
+  blocoTitulo: { display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '.03em', textTransform: 'uppercase', marginBottom: 4, opacity: 0.85 },
+  why: { fontSize: 13, color: '#374151', background: '#F7F7F7', borderRadius: 10, padding: '10px 12px', marginBottom: 10, lineHeight: 1.5 },
+  whyIa: { fontSize: 13, color: '#5B21B6', background: '#F5F3FF', border: '1px solid #EDE9FE', borderRadius: 10, padding: '10px 12px', marginBottom: 10, lineHeight: 1.5 },
+  comoUsar: { fontSize: 13, color: '#075985', background: '#F0F9FF', border: '1px solid #E0F2FE', borderRadius: 10, padding: '10px 12px', marginBottom: 12, lineHeight: 1.5 },
   iaResumo: { background: '#F5F3FF', border: '1px solid #EDE9FE', borderRadius: 16, padding: '16px 18px', marginTop: 16 },
   iaBtn: { width: '100%', marginTop: 18, padding: 15, borderRadius: 14, border: '1.5px solid #DDD6FE', background: '#F5F3FF', color: '#6D28D9', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, transition: 'all .14s' },
   specGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8 },

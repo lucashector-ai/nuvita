@@ -23,6 +23,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Dados inválidos' }, { status: 400 });
     }
 
+    const numOrNull = (v: any, min: number, max: number) => {
+      const n = Number(v);
+      return Number.isFinite(n) && n >= min && n <= max ? Math.round(n) : null;
+    };
+
     const lead = {
       nome,
       telefone,
@@ -30,6 +35,11 @@ export async function POST(req: NextRequest) {
       objetivos: Array.isArray(body?.objetivos) ? body.objetivos.slice(0, 8) : [],
       nivel: body?.nivel ? String(body.nivel).slice(0, 20) : null,
       condicoes: Array.isArray(body?.condicoes) ? body.condicoes.slice(0, 8) : [],
+      peso: numOrNull(body?.peso, 30, 300),
+      altura: numOrNull(body?.altura, 120, 230),
+      idade: numOrNull(body?.idade, 16, 100),
+      atividade: body?.atividade ? String(body.atividade).slice(0, 20) : null,
+      sono: body?.sono ? String(body.sono).slice(0, 20) : null,
       peptideos: Array.isArray(body?.peptideos) ? body.peptideos.slice(0, 10) : [],
       origem: 'farmacia',
       user_agent: (req.headers.get('user-agent') || '').slice(0, 255),
