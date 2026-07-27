@@ -97,9 +97,12 @@ const COND_LABEL: Record<CondicaoSaude, string> = {
 };
 
 // ─── Segurança ─────────────────────────────────────────────
-const GLICEMICOS = new Set(['Tirzepatide', 'Semaglutide', 'MK-677 (Ibutamoren)']);
-const ANABOLICOS = new Set(['Ipamorelin', 'CJC-1295', 'MK-677 (Ibutamoren)', 'IGF-1 LR3']);
-const PRESSORICOS = new Set(['PT-141 (Bremelanotida)']);
+const GLICEMICOS = new Set(['Tirzepatide', 'Retatrutide', 'Semaglutide', 'MK-677 (Ibutamoren)']);
+const ANABOLICOS = new Set([
+  'Ipamorelin', 'CJC-1295', 'MK-677 (Ibutamoren)', 'IGF-1 LR3',
+  'Tesamorelin', 'HGH (Somatropina)', 'Follistatin-332',
+]);
+const PRESSORICOS = new Set(['PT-141 (Bremelanotida)', 'Melanotan II']);
 
 const PESO_PADRAO = 75;
 const MAX_ITENS = 6;
@@ -184,12 +187,14 @@ function prioridadeDe(i: number): RecomendacaoItem['prioridade'] {
 }
 
 // ─── Fallback determinístico ───────────────────────────────
-export function recomendarPeptideos(r: RespostasFarmacia): Recomendacao {
+export function recomendarPeptideos(r: RespostasFarmacia, estoque?: string[] | null): Recomendacao {
+  const emEstoque = estoque && estoque.length ? new Set(estoque) : null;
   const seen = new Set<string>();
   const candidatos: Peptide[] = [];
   const objetivos = r.objetivos.length ? r.objetivos : (['gordura'] as ObjectiveKey[]);
   objetivos.forEach((obj) => {
     (PEPTIDES[obj] ?? []).forEach((p) => {
+      if (emEstoque && !emEstoque.has(p.n)) return;
       if (!seen.has(p.n)) {
         seen.add(p.n);
         candidatos.push(p);
@@ -245,7 +250,8 @@ Condições de saúde: ${condicoes.length ? condicoes.join(', ') : 'nenhuma decl
 }
 
 // ─── Diagnóstico com IA (a IA escolhe os produtos) ─────────
-export async function diagnosticarComIA(r: RespostasFarmacia): Promise<Recomendacao | null> {
+export async function diagnosticarComIA(r: RespostasFarmacia, estoque?: string[] | null): Promise<Recomendacao | null> {
+  const emEstoque = estoque && estoque.length ? new Set(estoque) : null;
   // Gestação bloqueia antes mesmo de chamar a IA.
   const segPrevia = aplicarSeguranca(ALL_PEPTIDES, r);
   if (segPrevia.bloqueado) {
@@ -256,7 +262,7 @@ export async function diagnosticarComIA(r: RespostasFarmacia): Promise<Recomenda
     const res = await fetch('/api/farmacia/diagnostico', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ perfil: montarPerfilTexto(r) }),
+      body: JSON.stringify({ perfil: montarPerfilTexto(r), estoque: estoque && estoque.length ? estoque : undefined }),
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -285,7 +291,10 @@ export async function diagnosticarComIA(r: RespostasFarmacia): Promise<Recomenda
     // Reaplica segurança sobre a seleção da IA (nunca confiar cegamente).
     const seg = aplicarSeguranca(selecionados.map((s) => s.p), r);
     const permitidosNomes = new Set(seg.permitidos.map((p) => p.n));
-    const finais = selecionados.filter((s) => permitidosNomes.has(s.p.n)).slice(0, MAX_ITENS);
+    const finais = selecionados
+      .filter((s) => permitidosNomes.has(s.p.n))
+      .filter((s) => !emEstoque || emEstoque.has(s.p.n)) // só o que a farmácia tem
+      .slice(0, MAX_ITENS);
     if (finais.length === 0) {
       return { fonte: 'ia', itens: [], bloqueado: false, avisos: seg.avisos, removidosPorSeguranca: seg.removidos };
     }

@@ -165,16 +165,154 @@ const PT141: Peptide = {
   ck: false, doseStr: fixedDose('1–2 mg'),
 };
 
+// ─── Peptídeos adicionais (catálogo Nexxus) ───────────────
+const RETATRUTIDE: Peptide = {
+  n: 'Retatrutide', m: 'Triplo agonista GIP+GLP-1+glucagon — emagrecimento potente',
+  e: '🔥', why: 'Agonista triplo, potencialmente mais eficaz que o Tirzepatide para perda de gordura',
+  freq: '1x/semana', timing: 'Mesmo dia da semana', route: 'SC',
+  cycle: '12–24 semanas', rest: 'A critério médico',
+  how: 'Dose inicial baixa com titulação gradual. Nunca combinar com outro agonista GLP-1. Supervisão médica.',
+  ck: true, doseStr: fixedDose('0,5–2 mg/sem (titular)'),
+};
+const TESAMORELIN: Peptide = {
+  n: 'Tesamorelin', m: 'Análogo de GHRH — reduz gordura visceral e eleva GH',
+  e: '🔥', why: 'Reduz gordura visceral e melhora a composição corporal via GH',
+  freq: 'Diário', timing: 'Antes de dormir', route: 'SC',
+  cycle: '12–24 semanas', rest: '4–8 semanas',
+  how: 'Reconstituir com água bacteriostática. Aplicar à noite, em jejum.',
+  ck: true, doseStr: fixedDose('1–2 mg/dia'),
+};
+const SS31: Peptide = {
+  n: 'SS-31 (Elamipretide)', m: 'Peptídeo mitocondrial — energia celular e longevidade',
+  e: '⚡', why: 'Protege a mitocôndria, melhora energia e marcadores de envelhecimento',
+  freq: 'Diário', timing: 'Manhã', route: 'SC',
+  cycle: '4–8 semanas', rest: '4 semanas',
+  how: 'Reconstituir com água bacteriostática. Manter refrigerado.',
+  ck: true, doseStr: fixedDose('5–10 mg/dia'),
+};
+const SLUPP332: Peptide = {
+  n: 'SLU-PP-332', m: 'Mimético de exercício (agonista ERR) — queima de gordura e resistência',
+  e: '🏃', why: 'Ativa vias do exercício, aumentando gasto energético e oxidação de gordura',
+  freq: 'Diário', timing: 'Manhã / pré-treino', route: 'SC',
+  cycle: '6–8 semanas', rest: '4 semanas',
+  how: 'Uso de pesquisa. Seguir orientação profissional.',
+  ck: false, doseStr: fixedDose('~500 mcg/dia (referência)'),
+};
+const NADPLUS: Peptide = {
+  n: 'NAD+', m: 'Coenzima — energia celular, reparo de DNA e longevidade',
+  e: '⚡', why: 'Repõe NAD+ celular, melhorando energia, foco e sinais de envelhecimento',
+  freq: '2–3x/semana', timing: 'Manhã', route: 'SC ou IV',
+  cycle: '4–8 semanas', rest: '4 semanas',
+  how: 'Aplicação lenta (pode causar rubor/flush). Reconstituir conforme fabricante.',
+  ck: true, doseStr: fixedDose('100–300 mg/dia'),
+};
+const MOTSC: Peptide = {
+  n: 'MOTS-c', m: 'Peptídeo mitocondrial — metabolismo, sensibilidade à insulina e energia',
+  e: '⚡', why: 'Melhora metabolismo, sensibilidade à insulina e disposição',
+  freq: '2–3x/semana', timing: 'Manhã', route: 'SC',
+  cycle: '4–8 semanas', rest: '4 semanas',
+  how: 'Reconstituir com água bacteriostática.',
+  ck: true, doseStr: fixedDose('5–10 mg/semana'),
+};
+const MELANOTAN: Peptide = {
+  n: 'Melanotan II', m: 'Bronzeamento e libido — análogo de α-MSH',
+  e: '🌞', why: 'Estimula melanina (bronzeado) e melhora a libido',
+  freq: 'Conforme protocolo', timing: 'Noite', route: 'SC',
+  cycle: 'Carga + manutenção', rest: 'Conforme necessidade',
+  how: 'Dose de carga baixa, aumentar gradualmente. Pode causar náusea e escurecer pintas.',
+  ck: true, doseStr: fixedDose('250–500 mcg/dia (carga)'),
+};
+const KPV: Peptide = {
+  n: 'KPV', m: 'Anti-inflamatório — intestino, pele e inflamação sistêmica',
+  e: '🛡️', why: 'Tripeptídeo derivado do α-MSH com forte ação anti-inflamatória',
+  freq: 'Diário', timing: 'Qualquer horário', route: 'SC ou oral',
+  cycle: '4–8 semanas', rest: '4 semanas',
+  how: 'Reconstituir com água bacteriostática.',
+  ck: true, doseStr: fixedDose('200–500 mcg/dia'),
+};
+const KLOW: Peptide = {
+  n: 'KLOW (blend)', m: 'Blend GHK-Cu + BPC-157 + TB-500 + KPV — reparo, pele e anti-inflamatório',
+  e: '✨', why: 'Combina cicatrização, colágeno e ação anti-inflamatória num só protocolo',
+  freq: 'Diário', timing: 'Manhã', route: 'SC',
+  cycle: '4–8 semanas', rest: '4 semanas',
+  how: 'Reconstituir o frasco do blend conforme o fabricante e aplicar 1x/dia.',
+  ck: true, doseStr: fixedDose('conforme reconstituição do blend'),
+};
+const KISSPEPTIN: Peptide = {
+  n: 'Kisspeptin-10', m: 'Hormonal — estimula LH/testosterona, libido e fertilidade',
+  e: '⚗️', why: 'Estimula o eixo hormonal (LH), apoiando testosterona, libido e fertilidade',
+  freq: '2–3x/semana', timing: 'Manhã', route: 'SC',
+  cycle: '4–8 semanas', rest: '4 semanas',
+  how: 'Reconstituir com água bacteriostática.',
+  ck: true, doseStr: fixedDose('50–100 mcg'),
+};
+const HGH: Peptide = {
+  n: 'HGH (Somatropina)', m: 'Hormônio do crescimento — massa, recuperação e longevidade',
+  e: '🏋️', why: 'GH exógeno — favorece massa magra, recuperação e queima de gordura',
+  freq: 'Diário', timing: 'Antes de dormir ou pós-treino', route: 'SC',
+  cycle: '12–24 semanas', rest: 'A critério médico',
+  how: 'Reconstituir e refrigerar. Iniciar em dose baixa. Supervisão médica.',
+  ck: true, doseStr: fixedDose('1–4 UI/dia'),
+};
+const HGHFRAG: Peptide = {
+  n: 'HGH Fragment 176-191', m: 'Fragmento lipolítico do GH — queima de gordura',
+  e: '🏃', why: 'Estimula a lipólise sem afetar glicemia ou crescimento (como o AOD-9604)',
+  freq: 'Diário', timing: 'Manhã, jejum', route: 'SC',
+  cycle: '8–12 semanas', rest: '4 semanas',
+  how: 'Aplicar em jejum de 2h. Reconstituir com água bacteriostática.',
+  ck: true, doseStr: fixedDose('250–500 mcg'),
+};
+const GLOW: Peptide = {
+  n: 'GLOW (blend)', m: 'Blend GHK-Cu + BPC-157 + TB-500 — pele, recuperação e anti-idade',
+  e: '✨', why: 'Estimula colágeno e cicatrização — pele e recuperação num protocolo só',
+  freq: 'Diário', timing: 'Manhã', route: 'SC',
+  cycle: '4–8 semanas', rest: '4 semanas',
+  how: 'Reconstituir o frasco do blend conforme o fabricante e aplicar 1x/dia.',
+  ck: true, doseStr: fixedDose('conforme reconstituição do blend'),
+};
+const FOLLISTATIN: Peptide = {
+  n: 'Follistatin-332', m: 'Inibidor de miostatina — crescimento muscular',
+  e: '💪', why: 'Bloqueia a miostatina, favorecendo ganho de massa muscular',
+  freq: 'Diário', timing: 'Pós-treino', route: 'SC',
+  cycle: '2–4 semanas', rest: '4–6 semanas',
+  how: 'Uso avançado. Reconstituir com água bacteriostática.',
+  ck: true, doseStr: fixedDose('~100 mcg/dia (referência)'),
+};
+const CBL514: Peptide = {
+  n: 'CBL-514', m: 'Redução de gordura localizada — apoptose de adipócitos',
+  e: '🔥', why: 'Injeção localizada que reduz a gordura subcutânea na área aplicada',
+  freq: 'Sessões espaçadas', timing: 'Conforme protocolo', route: 'SC (localizado)',
+  cycle: 'Séries de sessões', rest: 'Conforme protocolo',
+  how: 'Aplicação localizada na área a tratar. Seguir protocolo profissional.',
+  ck: false, doseStr: fixedDose('conforme protocolo (localizado)'),
+};
+const AMINO1MQ: Peptide = {
+  n: '5-Amino-1MQ', m: 'Inibidor de NNMT (oral) — metabolismo e queima de gordura',
+  e: '💊', why: 'Inibe a NNMT, aumentando o metabolismo e favorecendo a perda de gordura',
+  freq: 'Diário', timing: 'Manhã', route: 'Oral',
+  cycle: '8–12 semanas', rest: '4 semanas',
+  how: 'Cápsula oral. Tomar pela manhã.',
+  ck: true, doseStr: fixedDose('50–150 mg/dia'),
+};
+const TB500BPC: Peptide = {
+  n: 'TB-500 + BPC-157 (blend)', m: 'Blend de recuperação — reparo tecidual sinérgico',
+  e: '🔄', why: 'Une BPC-157 e TB-500 para acelerar a recuperação de lesões e tecidos',
+  freq: 'Diário ou 2x/semana', timing: 'Qualquer horário', route: 'SC',
+  cycle: '4–6 semanas', rest: '4 semanas',
+  how: 'Reconstituir o frasco do blend conforme o fabricante.',
+  ck: true, doseStr: fixedDose('conforme reconstituição do blend'),
+};
+
 // ─── Mapa por objetivo ────────────────────────────────────
 export const PEPTIDES: Record<ObjectiveKey, Peptide[]> = {
-  gordura:     [TIRZEPATIDE, AOD9604, IPAMORELIN, CJC1295],
-  massa:       [IPAMORELIN, CJC1295, MK677, IGF1LR3, BPC157],
-  recuperacao: [BPC157, TB500, IPAMORELIN, CJC1295],
+  gordura:     [TIRZEPATIDE, RETATRUTIDE, AOD9604, HGHFRAG, TESAMORELIN, MOTSC, SLUPP332, AMINO1MQ, CBL514, IPAMORELIN, CJC1295],
+  massa:       [IPAMORELIN, CJC1295, MK677, IGF1LR3, HGH, FOLLISTATIN, TESAMORELIN, BPC157],
+  recuperacao: [TB500BPC, BPC157, TB500, KPV, KLOW, IPAMORELIN, CJC1295],
   sono:        [IPAMORELIN, DSIP, EPITALON, MK677],
-  pele:        [GHK_CU, SNAP8, BPC157, EPITALON],
-  longevidade: [EPITALON, THYMOSIN_A1, GHK_CU, BPC157, IPAMORELIN],
+  pele:        [GLOW, GHK_CU, KLOW, SNAP8, MELANOTAN, BPC157, EPITALON],
+  longevidade: [EPITALON, NADPLUS, SS31, MOTSC, THYMOSIN_A1, GHK_CU, BPC157, IPAMORELIN],
   cognitivo:   [SEMAX, SELANK, BPC157, IPAMORELIN],
-  hormonal:    [PT141, IPAMORELIN, CJC1295, MK677],
+  hormonal:    [PT141, KISSPEPTIN, MELANOTAN, IPAMORELIN, CJC1295, MK677],
 };
 
 // ─── Catálogo completo (união de todos os peptídeos) ──────

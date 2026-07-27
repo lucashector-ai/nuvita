@@ -9,8 +9,9 @@ const apiKey = process.env.ANTHROPIC_API_KEY;
 const client = apiKey ? new Anthropic({ apiKey }) : null;
 
 // Catálogo detalhado entregue à IA (conhecimento por peptídeo).
-function montarCatalogo(): string {
-  return ALL_PEPTIDES.map((p) => {
+function montarCatalogo(estoque?: string[] | null): string {
+  const lista = estoque && estoque.length ? ALL_PEPTIDES.filter((p) => estoque.includes(p.n)) : ALL_PEPTIDES;
+  return lista.map((p) => {
     const objs = objetivosDoPeptide(p.n).map((o) => OBJ_LABEL[o]).join(', ');
     return `- ${p.n} — ${p.m}
   • Benefício/mecanismo: ${p.why || '—'}
@@ -126,12 +127,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { perfil, modo, peptideo } = await req.json();
+    const { perfil, modo, peptideo, estoque } = await req.json();
     if (!perfil || typeof perfil !== 'string' || perfil.length > 4000) {
       return NextResponse.json({ error: 'perfil inválido' }, { status: 400 });
     }
 
-    const catalogo = montarCatalogo();
+    const estoqueArr = Array.isArray(estoque) ? estoque.map((p: any) => String(p)) : null;
+    const catalogo = montarCatalogo(estoqueArr);
     let system: string;
     let instrucao: string;
 

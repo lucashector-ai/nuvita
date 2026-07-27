@@ -8,10 +8,11 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ObjectiveKey } from '@/types';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
-import PinGate from '@/components/farmacia/PinGate';
+import PinGate, { ESTOQUE_KEY } from '@/components/farmacia/PinGate';
+import Icon from '@/components/farmacia/Icon';
 import {
   recomendarPeptideos,
   diagnosticarComIA,
@@ -32,15 +33,15 @@ import {
 type Modo = 'completo' | 'unico';
 
 // ─── Opções das perguntas ─────────────────────────────────
-const OBJETIVOS: { key: ObjectiveKey; label: string; e: string }[] = [
-  { key: 'gordura', label: 'Emagrecer', e: '🔥' },
-  { key: 'massa', label: 'Ganhar massa', e: '💪' },
-  { key: 'recuperacao', label: 'Recuperação / lesões', e: '🔄' },
-  { key: 'sono', label: 'Dormir melhor', e: '😴' },
-  { key: 'pele', label: 'Pele / anti-idade', e: '✨' },
-  { key: 'longevidade', label: 'Longevidade / energia', e: '🌟' },
-  { key: 'cognitivo', label: 'Foco / cognição', e: '🧠' },
-  { key: 'hormonal', label: 'Libido / hormonal', e: '⚗️' },
+const OBJETIVOS: { key: ObjectiveKey; label: string; icon: string }[] = [
+  { key: 'gordura', label: 'Emagrecer', icon: 'flame' },
+  { key: 'massa', label: 'Ganhar massa', icon: 'dumbbell' },
+  { key: 'recuperacao', label: 'Recuperação / lesões', icon: 'refresh' },
+  { key: 'sono', label: 'Dormir melhor', icon: 'moon' },
+  { key: 'pele', label: 'Pele / anti-idade', icon: 'sparkle' },
+  { key: 'longevidade', label: 'Longevidade / energia', icon: 'bolt' },
+  { key: 'cognitivo', label: 'Foco / cognição', icon: 'focus' },
+  { key: 'hormonal', label: 'Libido / hormonal', icon: 'flask' },
 ];
 
 const NIVEIS: { key: NivelFarmacia; label: string; sub: string }[] = [
@@ -56,20 +57,20 @@ const ATIVIDADES: { key: AtividadeFarmacia; label: string; sub: string }[] = [
   { key: 'muito_ativo', label: 'Muito ativo', sub: 'Treina 6–7x/sem' },
 ];
 
-const SONOS: { key: SonoFarmacia; label: string; e: string }[] = [
-  { key: 'ruim', label: 'Ruim', e: '😣' },
-  { key: 'regular', label: 'Regular', e: '😐' },
-  { key: 'bom', label: 'Bom', e: '😴' },
+const SONOS: { key: SonoFarmacia; label: string }[] = [
+  { key: 'ruim', label: 'Ruim' },
+  { key: 'regular', label: 'Regular' },
+  { key: 'bom', label: 'Bom' },
 ];
 
-const CONDICOES: { key: CondicaoSaude; label: string; e: string }[] = [
-  { key: 'nenhuma', label: 'Nenhuma', e: '✅' },
-  { key: 'diabetes', label: 'Diabetes', e: '🩸' },
-  { key: 'hipertensao', label: 'Pressão alta', e: '❤️' },
-  { key: 'tireoide', label: 'Tireoide', e: '🦋' },
-  { key: 'cancer', label: 'Histórico de câncer', e: '🎗️' },
-  { key: 'gestacao', label: 'Gestante / amamentando', e: '🤰' },
-  { key: 'outros', label: 'Outros', e: '✍️' },
+const CONDICOES: { key: CondicaoSaude; label: string; icon: string }[] = [
+  { key: 'nenhuma', label: 'Nenhuma', icon: 'check' },
+  { key: 'diabetes', label: 'Diabetes', icon: 'drop' },
+  { key: 'hipertensao', label: 'Pressão alta', icon: 'heart' },
+  { key: 'tireoide', label: 'Tireoide', icon: 'pulse' },
+  { key: 'cancer', label: 'Histórico de câncer', icon: 'ribbon' },
+  { key: 'gestacao', label: 'Gestante / amamentando', icon: 'person' },
+  { key: 'outros', label: 'Outros', icon: 'pencil' },
 ];
 
 const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string }> = {
@@ -81,6 +82,7 @@ const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string }
 export default function FarmaciaPage() {
   const [modo, setModo] = useState<Modo>('completo');
   const [peptideoUnico, setPeptideoUnico] = useState('');
+  const [estoque, setEstoque] = useState<string[] | null>(null);
   // Diagnóstico
   const [objetivos, setObjetivos] = useState<ObjectiveKey[]>([]);
   const [peso, setPeso] = useState('');
@@ -102,6 +104,25 @@ export default function FarmaciaPage() {
   const [gerando, setGerando] = useState(false);
 
   const imc = useMemo(() => calcularIMC(Number(peso), Number(altura)), [peso, altura]);
+
+  // Carrega o estoque da farmácia (salvo pelo PinGate ao entrar).
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(ESTOQUE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) setEstoque(arr);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Peptídeos que a farmácia tem (para o modo "um peptídeo").
+  const peptidesDisponiveis = useMemo(
+    () => (estoque && estoque.length ? ALL_PEPTIDES.filter((p) => estoque.includes(p.n)) : ALL_PEPTIDES),
+    [estoque],
+  );
 
   const respostas = useMemo<RespostasFarmacia | null>(() => {
     const objetivoOk = modo === 'unico' ? !!peptideoUnico : objetivos.length > 0;
@@ -162,9 +183,9 @@ export default function FarmaciaPage() {
       resultado = await diagnosticarUmPeptideoIA(respostas!, peptideoUnico);
       if (!resultado) resultado = protocoloUmPeptideo(respostas!, peptideoUnico);
     } else {
-      resultado = await diagnosticarComIA(respostas!);
+      resultado = await diagnosticarComIA(respostas!, estoque);
       if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) {
-        resultado = recomendarPeptideos(respostas!);
+        resultado = recomendarPeptideos(respostas!, estoque);
       }
     }
     setRec(resultado);
@@ -274,7 +295,7 @@ export default function FarmaciaPage() {
               onClick={() => setModo('completo')}
               style={{ ...S.modoTab, ...(modo === 'completo' ? S.modoTabAtivo : {}) }}
             >
-              <span style={{ fontSize: 18 }}>🔍</span>
+              <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="search" size={19} /></span>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>Diagnóstico completo</div>
                 <div style={S.modoSub}>Encontrar os peptídeos ideais</div>
@@ -284,7 +305,7 @@ export default function FarmaciaPage() {
               onClick={() => setModo('unico')}
               style={{ ...S.modoTab, ...(modo === 'unico' ? S.modoTabAtivo : {}) }}
             >
-              <span style={{ fontSize: 18 }}>💊</span>
+              <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="pill" size={19} /></span>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>Um peptídeo só</div>
                 <div style={S.modoSub}>Já sabe qual? Faça o protocolo dele</div>
@@ -297,7 +318,7 @@ export default function FarmaciaPage() {
             <Section n="1" titulo="Qual o objetivo?" hint="até 3">
               <div style={S.gridAuto}>
                 {OBJETIVOS.map((o) => (
-                  <Chip key={o.key} ativo={objetivos.includes(o.key)} onClick={() => toggleObjetivo(o.key)} emoji={o.e}>
+                  <Chip key={o.key} ativo={objetivos.includes(o.key)} onClick={() => toggleObjetivo(o.key)} icon={o.icon}>
                     {o.label}
                   </Chip>
                 ))}
@@ -306,8 +327,8 @@ export default function FarmaciaPage() {
           ) : (
             <Section n="1" titulo="Qual peptídeo a pessoa usa?" hint="escolha 1">
               <div style={S.gridAuto}>
-                {ALL_PEPTIDES.map((p) => (
-                  <Chip key={p.n} ativo={peptideoUnico === p.n} onClick={() => setPeptideoUnico(p.n)} emoji={p.e}>
+                {peptidesDisponiveis.map((p) => (
+                  <Chip key={p.n} ativo={peptideoUnico === p.n} onClick={() => setPeptideoUnico(p.n)}>
                     {p.n}
                   </Chip>
                 ))}
@@ -376,7 +397,7 @@ export default function FarmaciaPage() {
           <Section n="6" titulo="Como está o sono?">
             <div style={S.grid3}>
               {SONOS.map((o) => (
-                <Chip key={o.key} ativo={sono === o.key} onClick={() => setSono(o.key)} emoji={o.e}>
+                <Chip key={o.key} ativo={sono === o.key} onClick={() => setSono(o.key)}>
                   {o.label}
                 </Chip>
               ))}
@@ -387,7 +408,7 @@ export default function FarmaciaPage() {
           <Section n="7" titulo="Condição de saúde?" hint="segurança">
             <div style={S.gridAuto}>
               {CONDICOES.map((o) => (
-                <Chip key={o.key} ativo={condicoes.includes(o.key)} onClick={() => toggleCondicao(o.key)} emoji={o.e}>
+                <Chip key={o.key} ativo={condicoes.includes(o.key)} onClick={() => toggleCondicao(o.key)} icon={o.icon}>
                   {o.label}
                 </Chip>
               ))}
@@ -425,7 +446,7 @@ export default function FarmaciaPage() {
             <button onClick={gerar} disabled={gerando}
               style={{ ...S.cta, opacity: gerando ? 0.7 : 1, cursor: gerando ? 'wait' : 'pointer' }}>
               {gerando
-                ? '🔬 Analisando o perfil…'
+                ? 'Analisando o perfil…'
                 : modo === 'unico' ? 'Gerar protocolo' : 'Gerar diagnóstico'}
             </button>
           )}
@@ -454,7 +475,7 @@ export default function FarmaciaPage() {
 
             {rec.bloqueado || rec.itens.length === 0 ? (
               <div style={{ ...S.card, marginTop: 16, textAlign: 'center', padding: '2.5rem 1.5rem' }}>
-                <div style={{ fontSize: 40, marginBottom: 10 }}>🩺</div>
+                <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 12 }}><Icon name="pulse" size={40} /></div>
                 <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6, maxWidth: 420, margin: '0 auto' }}>
                   Neste caso não é seguro montar um protocolo aqui. Oriente a pessoa a procurar acompanhamento
                   médico antes de qualquer uso.
@@ -464,7 +485,7 @@ export default function FarmaciaPage() {
               <>
                 {rec.resumo && (
                   <div style={S.iaResumo}>
-                    <div style={S.iaResumoTitulo}>✨ Resumo para explicar ao paciente</div>
+                    <div style={S.iaResumoTitulo}>Resumo para explicar ao paciente</div>
                     <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>{rec.resumo}</p>
                   </div>
                 )}
@@ -476,7 +497,7 @@ export default function FarmaciaPage() {
                     return (
                       <div key={it.peptide.n} style={S.card}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                          <span style={S.pepEmoji}>{it.peptide.e}</span>
+                          <span style={S.pepIcon}><Icon name="pill" size={24} /></span>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontWeight: 600, fontSize: 17, letterSpacing: '-.02em' }}>{it.peptide.n}</div>
                             <div style={{ fontSize: 13, color: '#667085', lineHeight: 1.4 }}>{it.peptide.m}</div>
@@ -486,14 +507,20 @@ export default function FarmaciaPage() {
 
                         {it.motivo && (
                           <div style={ehIa ? S.whyIa : S.why}>
-                            <span style={S.blocoTitulo}>{ehIa ? '✨ Por que para esta pessoa' : '💡 Por que recomendado'}</span>
+                            <span style={S.blocoTituloRow}>
+                              <Icon name="bulb" size={13} />
+                              {ehIa ? 'Por que para esta pessoa' : 'Por que recomendado'}
+                            </span>
                             {it.motivo}
                           </div>
                         )}
 
                         {it.comoUsar && (
                           <div style={S.comoUsar}>
-                            <span style={S.blocoTitulo}>📋 Como usar</span>
+                            <span style={S.blocoTituloRow}>
+                              <Icon name="clipboard" size={13} />
+                              Como usar
+                            </span>
                             {it.comoUsar}
                           </div>
                         )}
@@ -519,9 +546,9 @@ export default function FarmaciaPage() {
 
                 {(rec.orientacaoAlimentar || rec.orientacaoTreino || rec.observacoes || rec.avisoMedico) && (
                   <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
-                    {rec.orientacaoAlimentar && <Orientacao e="🥗" titulo="Alimentação" texto={rec.orientacaoAlimentar} />}
-                    {rec.orientacaoTreino && <Orientacao e="🏋️" titulo="Treino" texto={rec.orientacaoTreino} />}
-                    {rec.observacoes && <Orientacao e="👀" titulo="O que observar" texto={rec.observacoes} />}
+                    {rec.orientacaoAlimentar && <Orientacao icon="fork" titulo="Alimentação" texto={rec.orientacaoAlimentar} />}
+                    {rec.orientacaoTreino && <Orientacao icon="dumbbell" titulo="Treino" texto={rec.orientacaoTreino} />}
+                    {rec.observacoes && <Orientacao icon="eye" titulo="O que observar" texto={rec.observacoes} />}
                     {rec.avisoMedico && <div className="disc" style={{ marginTop: 2 }}>{rec.avisoMedico}</div>}
                   </div>
                 )}
@@ -534,7 +561,7 @@ export default function FarmaciaPage() {
                     </div>
                   </div>
                   <button onClick={enviarWhatsApp} style={{ ...S.waBtn, background: enviado ? '#15803D' : '#25D366' }}>
-                    {enviado ? '✓ Enviado' : '📲 Enviar no WhatsApp'}
+                    {enviado ? 'Enviado ✓' : 'Enviar no WhatsApp'}
                   </button>
                 </div>
 
@@ -569,10 +596,10 @@ function Campo({ label, unidade, children }: { label: string; unidade?: string; 
   );
 }
 
-function Orientacao({ e, titulo, texto }: { e: string; titulo: string; texto: string }) {
+function Orientacao({ icon, titulo, texto }: { icon: string; titulo: string; texto: string }) {
   return (
     <div style={{ background: '#fff', border: '1px solid #ECEDEE', borderRadius: 16, padding: '14px 16px', display: 'flex', gap: 12 }}>
-      <span style={{ fontSize: 20 }}>{e}</span>
+      <span style={{ color: '#16A34A', display: 'inline-flex', marginTop: 1 }}><Icon name={icon} size={20} /></span>
       <div>
         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{titulo}</div>
         <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.55 }}>{texto}</div>
@@ -597,9 +624,9 @@ function Section({ n, titulo, hint, opcional, children }: {
   );
 }
 
-function Chip({ ativo, onClick, coluna, emoji, label, sub, children }: {
+function Chip({ ativo, onClick, coluna, icon, label, sub, children }: {
   ativo: boolean; onClick: () => void; coluna?: boolean;
-  emoji?: string; label?: string; sub?: string; children?: React.ReactNode;
+  icon?: string; label?: string; sub?: string; children?: React.ReactNode;
 }) {
   return (
     <button
@@ -633,7 +660,11 @@ function Chip({ ativo, onClick, coluna, emoji, label, sub, children }: {
         </>
       ) : (
         <>
-          {emoji && <span style={{ fontSize: 18, marginRight: 9 }}>{emoji}</span>}
+          {icon && (
+            <span style={{ color: '#16A34A', marginRight: 9, display: 'inline-flex' }}>
+              <Icon name={icon} size={18} />
+            </span>
+          )}
           {children}
         </>
       )}
@@ -800,9 +831,10 @@ const S: Record<string, React.CSSProperties> = {
   perfilLinha: { display: 'flex', gap: 6, flexWrap: 'wrap', fontSize: 13, color: '#667085', marginTop: 7 },
   pillIa: { background: '#F3F0FF', color: '#6D28D9' },
   card: { background: '#fff', border: '1px solid #ECEDEE', borderRadius: 20, padding: 20, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
-  pepEmoji: { fontSize: 28, width: 46, height: 46, borderRadius: 13, background: '#FAFAFA', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  pepIcon: { color: '#16A34A', width: 46, height: 46, borderRadius: 13, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   badge: { fontSize: 11, fontWeight: 600, padding: '5px 11px', borderRadius: 100, whiteSpace: 'nowrap' },
   blocoTitulo: { display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 5, opacity: 0.9 },
+  blocoTituloRow: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 5, opacity: 0.9 },
   why: { fontSize: 13.5, color: '#374151', background: '#FAFAFA', borderRadius: 12, padding: '12px 14px', marginBottom: 10, lineHeight: 1.5 },
   whyIa: { fontSize: 13.5, color: '#5B21B6', background: '#F7F5FF', border: '1px solid #EDE9FE', borderRadius: 12, padding: '12px 14px', marginBottom: 10, lineHeight: 1.5 },
   comoUsar: { fontSize: 13.5, color: '#075985', background: '#F0F9FF', border: '1px solid #E0F2FE', borderRadius: 12, padding: '12px 14px', marginBottom: 14, lineHeight: 1.5 },
