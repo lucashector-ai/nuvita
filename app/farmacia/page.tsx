@@ -15,9 +15,12 @@ import PinGate from '@/components/farmacia/PinGate';
 import {
   recomendarPeptideos,
   diagnosticarComIA,
+  protocoloUmPeptideo,
+  diagnosticarUmPeptideoIA,
   montarMensagemWhatsApp,
   normalizarTelefone,
   calcularIMC,
+  ALL_PEPTIDES,
   type RespostasFarmacia,
   type NivelFarmacia,
   type AtividadeFarmacia,
@@ -25,6 +28,8 @@ import {
   type CondicaoSaude,
   type Recomendacao,
 } from '@/lib/recomendarPeptideos';
+
+type Modo = 'completo' | 'unico';
 
 // ─── Opções das perguntas ─────────────────────────────────
 const OBJETIVOS: { key: ObjectiveKey; label: string; e: string }[] = [
@@ -74,6 +79,8 @@ const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string }
 };
 
 export default function FarmaciaPage() {
+  const [modo, setModo] = useState<Modo>('completo');
+  const [peptideoUnico, setPeptideoUnico] = useState('');
   // Diagnóstico
   const [objetivos, setObjetivos] = useState<ObjectiveKey[]>([]);
   const [peso, setPeso] = useState('');
@@ -97,7 +104,8 @@ export default function FarmaciaPage() {
   const imc = useMemo(() => calcularIMC(Number(peso), Number(altura)), [peso, altura]);
 
   const respostas = useMemo<RespostasFarmacia | null>(() => {
-    if (!nome.trim() || !telefone.trim() || !objetivos.length || !nivel) return null;
+    const objetivoOk = modo === 'unico' ? !!peptideoUnico : objetivos.length > 0;
+    if (!nome.trim() || !telefone.trim() || !objetivoOk || !nivel) return null;
     return {
       nome: nome.trim(),
       telefone: telefone.trim(),
@@ -112,7 +120,7 @@ export default function FarmaciaPage() {
       atividade: atividade || undefined,
       sono: sono || undefined,
     };
-  }, [nome, telefone, sexo, objetivos, nivel, condicoes, condicaoOutros, peso, altura, idade, atividade, sono]);
+  }, [modo, peptideoUnico, nome, telefone, sexo, objetivos, nivel, condicoes, condicaoOutros, peso, altura, idade, atividade, sono]);
 
   // ─── Toggles ─────────────────────────────────────────────
   const toggleObjetivo = (k: ObjectiveKey) => {
@@ -137,7 +145,8 @@ export default function FarmaciaPage() {
   const gerar = async () => {
     setErro('');
     setEnviado(false);
-    if (!objetivos.length) return setErro('Selecione ao menos um objetivo.');
+    if (modo === 'unico' && !peptideoUnico) return setErro('Selecione o peptídeo que a pessoa usa.');
+    if (modo === 'completo' && !objetivos.length) return setErro('Selecione ao menos um objetivo.');
     if (!peso || Number(peso) < 30 || Number(peso) > 300) return setErro('Informe um peso válido (kg).');
     if (!altura || Number(altura) < 120 || Number(altura) > 230) return setErro('Informe uma altura válida (cm).');
     if (!idade || Number(idade) < 16 || Number(idade) > 100) return setErro('Informe uma idade válida.');
@@ -148,9 +157,15 @@ export default function FarmaciaPage() {
 
     setGerando(true);
     // A IA faz o diagnóstico; se indisponível/rate-limit, usa o determinístico.
-    let resultado = await diagnosticarComIA(respostas!);
-    if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) {
-      resultado = recomendarPeptideos(respostas!);
+    let resultado: Recomendacao | null;
+    if (modo === 'unico') {
+      resultado = await diagnosticarUmPeptideoIA(respostas!, peptideoUnico);
+      if (!resultado) resultado = protocoloUmPeptideo(respostas!, peptideoUnico);
+    } else {
+      resultado = await diagnosticarComIA(respostas!);
+      if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) {
+        resultado = recomendarPeptideos(respostas!);
+      }
     }
     setRec(resultado);
     setGerando(false);
@@ -193,6 +208,7 @@ export default function FarmaciaPage() {
   };
 
   const novoAtendimento = () => {
+    setPeptideoUnico('');
     setObjetivos([]);
     setPeso('');
     setAltura('');
@@ -244,20 +260,60 @@ export default function FarmaciaPage() {
         {/* ─── FORMULÁRIO ─── */}
         <div style={{ opacity: rec ? 0.4 : 1, pointerEvents: rec ? 'none' : 'auto', transition: 'opacity .25s' }}>
           <div style={S.hero}>
-            <h1 style={S.h1}>Diagnóstico de peptídeos</h1>
-            <p style={S.lead}>Responda com a pessoa. Rápido e sob medida.</p>
+            <h1 style={S.h1}>{modo === 'unico' ? 'Protocolo de um peptídeo' : 'Diagnóstico de peptídeos'}</h1>
+            <p style={S.lead}>
+              {modo === 'unico'
+                ? 'A pessoa já usa um peptídeo? Monte o protocolo dele.'
+                : 'Responda com a pessoa. Rápido e sob medida.'}
+            </p>
           </div>
 
-          {/* 1 · Objetivo */}
-          <Section n="1" titulo="Qual o objetivo?" hint="até 3">
-            <div style={S.gridAuto}>
-              {OBJETIVOS.map((o) => (
-                <Chip key={o.key} ativo={objetivos.includes(o.key)} onClick={() => toggleObjetivo(o.key)} emoji={o.e}>
-                  {o.label}
-                </Chip>
-              ))}
-            </div>
-          </Section>
+          {/* Seletor de modo */}
+          <div style={S.modoWrap}>
+            <button
+              onClick={() => setModo('completo')}
+              style={{ ...S.modoTab, ...(modo === 'completo' ? S.modoTabAtivo : {}) }}
+            >
+              <span style={{ fontSize: 18 }}>🔍</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>Diagnóstico completo</div>
+                <div style={S.modoSub}>Encontrar os peptídeos ideais</div>
+              </div>
+            </button>
+            <button
+              onClick={() => setModo('unico')}
+              style={{ ...S.modoTab, ...(modo === 'unico' ? S.modoTabAtivo : {}) }}
+            >
+              <span style={{ fontSize: 18 }}>💊</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>Um peptídeo só</div>
+                <div style={S.modoSub}>Já sabe qual? Faça o protocolo dele</div>
+              </div>
+            </button>
+          </div>
+
+          {/* 1 · Objetivo (completo) ou Peptídeo (único) */}
+          {modo === 'completo' ? (
+            <Section n="1" titulo="Qual o objetivo?" hint="até 3">
+              <div style={S.gridAuto}>
+                {OBJETIVOS.map((o) => (
+                  <Chip key={o.key} ativo={objetivos.includes(o.key)} onClick={() => toggleObjetivo(o.key)} emoji={o.e}>
+                    {o.label}
+                  </Chip>
+                ))}
+              </div>
+            </Section>
+          ) : (
+            <Section n="1" titulo="Qual peptídeo a pessoa usa?" hint="escolha 1">
+              <div style={S.gridAuto}>
+                {ALL_PEPTIDES.map((p) => (
+                  <Chip key={p.n} ativo={peptideoUnico === p.n} onClick={() => setPeptideoUnico(p.n)} emoji={p.e}>
+                    {p.n}
+                  </Chip>
+                ))}
+              </div>
+            </Section>
+          )}
 
           {/* 2 · Dados físicos */}
           <Section n="2" titulo="Dados físicos">
@@ -368,7 +424,9 @@ export default function FarmaciaPage() {
           {!rec && (
             <button onClick={gerar} disabled={gerando}
               style={{ ...S.cta, opacity: gerando ? 0.7 : 1, cursor: gerando ? 'wait' : 'pointer' }}>
-              {gerando ? '🔬 Analisando o perfil…' : 'Gerar diagnóstico'}
+              {gerando
+                ? '🔬 Analisando o perfil…'
+                : modo === 'unico' ? 'Gerar protocolo' : 'Gerar diagnóstico'}
             </button>
           )}
         </div>
@@ -643,7 +701,23 @@ const S: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   main: { maxWidth: 680, margin: '0 auto', padding: '32px 20px 90px' },
-  hero: { textAlign: 'center', marginBottom: 28 },
+  hero: { textAlign: 'center', marginBottom: 20 },
+  modoWrap: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 4 },
+  modoTab: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 11,
+    padding: '14px 16px',
+    borderRadius: 16,
+    border: '1.5px solid #ECEDEE',
+    background: '#fff',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    color: '#0E1113',
+    transition: 'border-color .13s, background .13s, box-shadow .13s',
+  },
+  modoTabAtivo: { border: '1.5px solid #16A34A', background: '#F0FDF4', boxShadow: '0 0 0 3px rgba(22,163,74,.09)' },
+  modoSub: { fontSize: 11.5, color: '#98A2B3', marginTop: 1 },
   h1: { fontSize: 30, fontWeight: 600, letterSpacing: '-.045em', lineHeight: 1.1, color: '#0E1113' },
   lead: { fontSize: 15, color: '#667085', marginTop: 8 },
   h2: { fontSize: 25, fontWeight: 600, letterSpacing: '-.035em', color: '#0E1113' },

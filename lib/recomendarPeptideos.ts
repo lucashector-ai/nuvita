@@ -12,6 +12,8 @@
 import type { ObjectiveKey, Peptide } from '@/types';
 import { PEPTIDES, ALL_PEPTIDES, findPeptide } from '@/lib/peptides';
 
+export { ALL_PEPTIDES, findPeptide } from '@/lib/peptides';
+
 export type NivelFarmacia = 'iniciante' | 'intermediario' | 'avancado';
 export type AtividadeFarmacia = 'sedentario' | 'moderado' | 'ativo' | 'muito_ativo';
 export type SonoFarmacia = 'ruim' | 'regular' | 'bom';
@@ -311,6 +313,117 @@ export async function diagnosticarComIA(r: RespostasFarmacia): Promise<Recomenda
     };
   } catch (e) {
     console.error('Erro no diagnóstico com IA:', e);
+    return null;
+  }
+}
+
+// ─── Contraindicação de um peptídeo específico ─────────────
+// No modo "um peptídeo" a pessoa já escolheu o produto — não removemos,
+// mas sinalizamos claramente qualquer incompatibilidade.
+function checarContraindicacao(p: Peptide, r: RespostasFarmacia): string[] {
+  const cond = new Set(r.condicoes.filter((c) => c !== 'nenhuma'));
+  const msgs: string[] = [];
+  if (cond.has('diabetes') && GLICEMICOS.has(p.n)) {
+    msgs.push(`⚠️ ${p.n} afeta a glicemia e a pessoa tem diabetes — usar apenas com supervisão médica.`);
+  }
+  if (cond.has('cancer') && ANABOLICOS.has(p.n)) {
+    msgs.push(`⚠️ ${p.n} é anabólico/secretagogo de GH e há histórico de câncer — evitar sem liberação médica.`);
+  }
+  if (cond.has('hipertensao') && PRESSORICOS.has(p.n)) {
+    msgs.push(`⚠️ ${p.n} pode elevar a pressão e a pessoa tem hipertensão — evitar sem avaliação médica.`);
+  }
+  return msgs;
+}
+
+// Fallback determinístico para o protocolo de UM peptídeo.
+export function protocoloUmPeptideo(r: RespostasFarmacia, nomePeptideo: string): Recomendacao {
+  const p = findPeptide(nomePeptideo);
+  const condicoes = new Set(r.condicoes.filter((c) => c !== 'nenhuma'));
+
+  if (condicoes.has('gestacao')) {
+    return {
+      fonte: 'deterministico',
+      itens: [],
+      bloqueado: true,
+      avisos: ['Gestação/amamentação: nenhum peptídeo é recomendado. Procure acompanhamento médico.'],
+      removidosPorSeguranca: [],
+    };
+  }
+  if (!p) {
+    return { fonte: 'deterministico', itens: [], bloqueado: false, avisos: ['Peptídeo não encontrado no catálogo.'], removidosPorSeguranca: [] };
+  }
+
+  const peso = r.peso && r.peso > 0 ? r.peso : PESO_PADRAO;
+  const avisos = checarContraindicacao(p, r);
+  if (condicoes.has('outros') && r.condicaoOutros?.trim()) {
+    avisos.push(`Condição informada: "${r.condicaoOutros.trim()}". Avalie a compatibilidade com ${p.n}.`);
+  }
+  return {
+    fonte: 'deterministico',
+    itens: [{ peptide: p, dose: p.doseStr(peso), prioridade: 'essencial', motivo: p.why, comoUsar: p.how }],
+    bloqueado: false,
+    avisos,
+    removidosPorSeguranca: [],
+  };
+}
+
+// Protocolo de UM peptídeo com a IA (deep dive personalizado).
+export async function diagnosticarUmPeptideoIA(r: RespostasFarmacia, nomePeptideo: string): Promise<Recomendacao | null> {
+  const p = findPeptide(nomePeptideo);
+  if (!p) return null;
+
+  const condicoes = new Set(r.condicoes.filter((c) => c !== 'nenhuma'));
+  if (condicoes.has('gestacao')) {
+    return {
+      fonte: 'ia',
+      itens: [],
+      bloqueado: true,
+      avisos: ['Gestação/amamentação: nenhum peptídeo é recomendado. Procure acompanhamento médico.'],
+      removidosPorSeguranca: [],
+    };
+  }
+
+  try {
+    const res = await fetch('/api/farmacia/diagnostico', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ perfil: montarPerfilTexto(r), modo: 'unico', peptideo: p.n }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const texto: string = data?.text || '';
+    const match = texto.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    const parsed = JSON.parse(match[0]);
+
+    const item = Array.isArray(parsed.peptideos) ? parsed.peptideos[0] : null;
+    const peso = r.peso && r.peso > 0 ? r.peso : PESO_PADRAO;
+
+    const avisos = checarContraindicacao(p, r);
+    if (condicoes.has('outros') && r.condicaoOutros?.trim()) {
+      avisos.push(`Condição informada: "${r.condicaoOutros.trim()}". Avalie a compatibilidade com ${p.n}.`);
+    }
+
+    return {
+      fonte: 'ia',
+      itens: [{
+        peptide: p,
+        dose: p.doseStr(peso),
+        prioridade: 'essencial',
+        motivo: item?.motivo ? String(item.motivo) : p.why,
+        comoUsar: item?.comoUsar ? String(item.comoUsar) : p.how,
+      }],
+      bloqueado: false,
+      avisos,
+      removidosPorSeguranca: [],
+      resumo: parsed.resumo ? String(parsed.resumo) : undefined,
+      orientacaoAlimentar: parsed.orientacaoAlimentar ? String(parsed.orientacaoAlimentar) : undefined,
+      orientacaoTreino: parsed.orientacaoTreino ? String(parsed.orientacaoTreino) : undefined,
+      observacoes: parsed.observacoes ? String(parsed.observacoes) : undefined,
+      avisoMedico: parsed.avisoMedico ? String(parsed.avisoMedico) : undefined,
+    };
+  } catch (e) {
+    console.error('Erro no protocolo de um peptídeo:', e);
     return null;
   }
 }
