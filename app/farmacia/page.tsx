@@ -525,6 +525,16 @@ export default function FarmaciaPage() {
                           </div>
                         )}
 
+                        {it.alternativa && (
+                          <div style={S.alternativa}>
+                            <span style={S.blocoTituloRow}>
+                              <Icon name="refresh" size={13} />
+                              Comparação / alternativa
+                            </span>
+                            {it.alternativa}
+                          </div>
+                        )}
+
                         <div style={S.specGrid}>
                           <Spec label="Dose" valor={it.dose} destaque />
                           <Spec label="Frequência" valor={it.peptide.freq} />
@@ -837,7 +847,8 @@ const S: Record<string, React.CSSProperties> = {
   blocoTituloRow: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 5, opacity: 0.9 },
   why: { fontSize: 13.5, color: '#374151', background: '#FAFAFA', borderRadius: 12, padding: '12px 14px', marginBottom: 10, lineHeight: 1.5 },
   whyIa: { fontSize: 13.5, color: '#5B21B6', background: '#F7F5FF', border: '1px solid #EDE9FE', borderRadius: 12, padding: '12px 14px', marginBottom: 10, lineHeight: 1.5 },
-  comoUsar: { fontSize: 13.5, color: '#075985', background: '#F0F9FF', border: '1px solid #E0F2FE', borderRadius: 12, padding: '12px 14px', marginBottom: 14, lineHeight: 1.5 },
+  comoUsar: { fontSize: 13.5, color: '#075985', background: '#F0F9FF', border: '1px solid #E0F2FE', borderRadius: 12, padding: '12px 14px', marginBottom: 12, lineHeight: 1.5 },
+  alternativa: { fontSize: 13.5, color: '#92400E', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12, padding: '12px 14px', marginBottom: 14, lineHeight: 1.5 },
   iaResumo: { background: '#F7F5FF', border: '1px solid #EDE9FE', borderRadius: 18, padding: '18px 20px', marginTop: 16 },
   iaResumoTitulo: { fontSize: 12, fontWeight: 700, color: '#8B5CF6', letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 7 },
   iaBtn: { width: '100%', marginTop: 18, padding: 16, borderRadius: 15, border: '1.5px solid #DDD6FE', background: '#F7F5FF', color: '#6D28D9', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, transition: 'all .14s' },

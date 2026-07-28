@@ -46,8 +46,9 @@ export interface RecomendacaoItem {
   peptide: Peptide;
   dose: string;
   prioridade: 'essencial' | 'recomendado' | 'opcional';
-  motivo?: string;   // por que para esta pessoa
-  comoUsar?: string; // como usar na prática
+  motivo?: string;      // por que para esta pessoa
+  comoUsar?: string;    // como usar na prática
+  alternativa?: string; // comparação com opção de efeito parecido
 }
 
 export interface Recomendacao {
@@ -274,7 +275,7 @@ export async function diagnosticarComIA(r: RespostasFarmacia, estoque?: string[]
 
     // Mapeia nomes escolhidos pela IA para o catálogo (dedup + só existentes).
     const seen = new Set<string>();
-    const selecionados: { p: Peptide; motivo?: string; comoUsar?: string }[] = [];
+    const selecionados: { p: Peptide; motivo?: string; comoUsar?: string; alternativa?: string }[] = [];
     for (const item of parsed.peptideos) {
       const p = findPeptide(String(item?.nome || ''));
       if (p && !seen.has(p.n)) {
@@ -283,6 +284,7 @@ export async function diagnosticarComIA(r: RespostasFarmacia, estoque?: string[]
           p,
           motivo: item?.motivo ? String(item.motivo) : undefined,
           comoUsar: item?.comoUsar ? String(item.comoUsar) : undefined,
+          alternativa: item?.alternativa ? String(item.alternativa) : undefined,
         });
       }
     }
@@ -306,6 +308,7 @@ export async function diagnosticarComIA(r: RespostasFarmacia, estoque?: string[]
       prioridade: prioridadeDe(i),
       motivo: s.motivo || s.p.why,
       comoUsar: s.comoUsar || s.p.how,
+      alternativa: s.alternativa && s.alternativa.trim() ? s.alternativa.trim() : undefined,
     }));
 
     return {
@@ -421,6 +424,7 @@ export async function diagnosticarUmPeptideoIA(r: RespostasFarmacia, nomePeptide
         prioridade: 'essencial',
         motivo: item?.motivo ? String(item.motivo) : p.why,
         comoUsar: item?.comoUsar ? String(item.comoUsar) : p.how,
+        alternativa: item?.alternativa && String(item.alternativa).trim() ? String(item.alternativa).trim() : undefined,
       }],
       bloqueado: false,
       avisos,
@@ -470,6 +474,7 @@ export function montarMensagemWhatsApp(r: RespostasFarmacia, rec: Recomendacao):
     L.push(`   • Ciclo: ${p.cycle}`);
     if (it.motivo) L.push(`   • Por quê: ${it.motivo}`);
     if (it.comoUsar) L.push(`   • Como usar: ${it.comoUsar}`);
+    if (it.alternativa) L.push(`   • Comparação: ${it.alternativa}`);
     L.push('');
   });
 

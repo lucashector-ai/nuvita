@@ -48,6 +48,46 @@ Sinergias e regras:
 - Evite redundância: não empilhe dois peptídeos com o mesmo mecanismo.
 - Para vários objetivos ("para tudo"), monte um stack coerente que cubra os principais sem inflar a lista.
 
+═══════════════════════════════════════
+GUIA COMPARATIVO — QUANDO ESCOLHER QUAL (efeitos parecidos)
+Escolha SEMPRE apenas um de cada grupo e saiba justificar a escolha.
+═══════════════════════════════════════
+
+EMAGRECER — incretinas (ordem de potência crescente):
+- Semaglutide (GLP-1): mais estabelecido, boa tolerância, menos potente. 1ª linha suave / iniciante sensível.
+- Tirzepatide (GIP+GLP-1): mais potente que o Semaglutide, ótimo equilíbrio potência × tolerância. Padrão-ouro para a maioria.
+- Retatrutide (GIP+GLP-1+glucagon): o MAIS potente, melhor em gordura visceral e casos resistentes; tende a mais efeitos gastrointestinais no início.
+- Como decidir: iniciante / quer suave → Semaglutide ou Tirzepatide. Muito a perder / platô com Tirzepatide / experiente que tolera bem → Retatrutide. NUNCA combine dois. "Forma": os três são SC 1x/semana; a diferença está no nº de receptores (mecanismo) e na potência.
+
+EMAGRECER — apoio não-incretina (geralmente adjuvante, não substituto):
+- AOD-9604 e HGH Fragment 176-191: praticamente o MESMO mecanismo (fragmento lipolítico do GH). Escolha um — HGH Frag é um pouco mais "cru"/potente; AOD é mais refinado/estável.
+- 5-Amino-1MQ: ORAL (sem agulha), mecanismo diferente (NNMT). Ótimo para quem recusa injeção.
+- SLU-PP-332: mimético de exercício — bom para sedentário / suporte metabólico.
+- MOTS-c: metabolismo e sensibilidade à insulina — bom no sobrepeso metabólico.
+- CBL-514: gordura LOCALIZADA (injeção na área), não sistêmico — para pontos específicos.
+
+GH / MASSA:
+- CJC-1295 + Ipamorelin: stack padrão, pulsátil e fisiológico, mais seguro e barato. 1ª escolha de GH.
+- MK-677: ORAL, conveniente, eleva IGF-1/GH, apetite e sono; retém água. Bom para quem não quer injetar.
+- Tesamorelin: foco em gordura VISCERAL + GH; mais caro.
+- HGH (Somatropina): GH exógeno direto, mais potente porém mais caro/arriscado — avançado, com supervisão.
+- Como decidir: iniciante/custo → CJC+Ipamorelin ou MK-677; gordura visceral → Tesamorelin; resultado máximo → HGH (supervisão).
+
+RECUPERAÇÃO:
+- BPC-157 (coringa: tendão, intestino, sistêmico) e TB-500 (reparo sistêmico, anti-inflamatório). O blend TB-500 + BPC-157 junta os dois num frasco.
+- KPV entra quando há inflamação/intestino. GLOW (GHK+BPC+TB) = recuperação + pele; KLOW (+KPV) acrescenta anti-inflamatório.
+
+PELE:
+- GHK-Cu (colágeno) é a base; GLOW/KLOW são blends que somam cicatrização; SNAP-8 age diferente (relaxa músculo, rugas de expressão). Melanotan II é bronzeado, não cuidado de pele.
+
+LONGEVIDADE/ENERGIA:
+- NAD+ (energia rápida, reparo de DNA) × SS-31 (mitocondrial) × MOTS-c (metabólico) × Epitalon (telômeros/sono, protocolo de carga) × Timalfasina (imunidade). Energia imediata → NAD+; fadiga mitocondrial → SS-31/MOTS-c; longevidade estrutural → Epitalon.
+
+HORMONAL/LIBIDO:
+- PT-141 (libido aguda via SNC, conforme necessidade) × Kisspeptin-10 (estimula o eixo LH→testosterona, mais fisiológico/fertilidade) × Melanotan II (libido + bronzeado). Libido pontual → PT-141; eixo hormonal/testosterona → Kisspeptin.
+
+REGRA DE COMPARAÇÃO: quando dois produtos servirem para o mesmo objetivo, escolha o melhor para ESTE perfil e explique a diferença (potência, via/forma, tolerância, experiência necessária, custo) — é isso que faz o atendente entregar o resultado certo.
+
 Segurança (invioláveis):
 - Diabetes/pré-diabetes → não indique Tirzepatide, Semaglutide nem MK-677 (glicêmicos).
 - Histórico de câncer → não indique anabólicos/secretagogos de GH (Ipamorelin, CJC-1295, MK-677, IGF-1 LR3).
@@ -61,7 +101,8 @@ const FORMATO_COMPLETO = `FORMATO (responda APENAS JSON válido, nada fora do JS
     {
       "nome": "nome EXATO do catálogo",
       "motivo": "por que ELA deve usar este peptídeo — específico ao perfil, 1-2 frases simples",
-      "comoUsar": "como usar na prática, linguagem simples para leigo (quando/como aplicar + dica de adesão), 1-2 frases"
+      "comoUsar": "como usar na prática, linguagem simples para leigo (quando/como aplicar + dica de adesão), 1-2 frases",
+      "alternativa": "SÓ quando existir um produto de efeito parecido: cite a alternativa e explique em 1 frase a diferença (potência/via/forma/tolerância) e por que escolhemos ESTE para o perfil dela. Deixe \"\" se não houver alternativa relevante."
     }
   ],
   "orientacaoAlimentar": "orientação alimentar prática ligada ao objetivo e ao IMC (1-2 frases)",
@@ -75,6 +116,7 @@ const SYSTEM_COMPLETO = (catalogo: string) => `Você é um especialista clínico
 Sua missão: analisar o perfil e MONTAR O PROTOCOLO — escolhendo os peptídeos certos, do catálogo, para o caso específico.
 - Recomende de 3 a 6 peptídeos. Prefira mais de 2 quando fizer sentido clínico, mas nunca inclua algo que não ajude.
 - Use SOMENTE nomes do catálogo, exatamente como escritos. Ordene do essencial ao de apoio.
+- Quando dois produtos servirem para o mesmo objetivo (ex.: Tirzepatide vs Retatrutide; AOD-9604 vs HGH Fragment; CJC-1295+Ipamorelin vs MK-677 vs HGH), escolha o melhor para ESTE perfil e preencha "alternativa" explicando a diferença e o porquê da escolha.
 
 ═══════ CATÁLOGO ═══════
 ${catalogo}
@@ -103,7 +145,8 @@ FORMATO (responda APENAS JSON válido, nada fora do JSON):
     {
       "nome": "${peptideo}",
       "motivo": "por que este peptídeo faz sentido (ou os cuidados) para o perfil dela, 1-2 frases",
-      "comoUsar": "como usar na prática, linguagem simples: quando/como aplicar, o que esperar, dica de adesão, 2-3 frases"
+      "comoUsar": "como usar na prática, linguagem simples: quando/como aplicar, o que esperar, dica de adesão, 2-3 frases",
+      "alternativa": "SÓ se houver um produto de efeito parecido que valha citar (ex.: quem usa Tirzepatide pode considerar Retatrutide se precisar de mais potência; AOD-9604 tem efeito próximo ao HGH Fragment). Explique a diferença em 1 frase. Deixe \"\" se não houver."
     }
   ],
   "orientacaoAlimentar": "orientação alimentar que potencializa o resultado (1-2 frases)",
@@ -149,7 +192,7 @@ export async function POST(req: NextRequest) {
 
     const msg = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
+      max_tokens: 2600,
       system,
       messages: [{ role: 'user', content: instrucao }],
     });
