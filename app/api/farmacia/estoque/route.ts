@@ -3,15 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/serverAuth';
 import { rateLimit, getClientIp } from '@/lib/rateLimit';
-import { ALL_PEPTIDES } from '@/lib/peptides';
 
 // Hash do código de acesso (nunca guardamos o código em texto).
 function hashCodigo(codigo: string): string {
   const pepper = process.env.FARMACIA_ESTOQUE_SECRET || 'nuvita-estoque-pepper';
   return createHmac('sha256', pepper).update(codigo.trim().toLowerCase()).digest('hex');
 }
-
-const NOMES_VALIDOS = new Set(ALL_PEPTIDES.map((p) => p.n));
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,25 +36,9 @@ export async function POST(req: NextRequest) {
 
     const codigo_hash = hashCodigo(codigo);
 
-    if (action === 'save') {
-      const nome = body?.nome ? String(body.nome).slice(0, 120) : null;
-      const peptideos = Array.isArray(body?.peptideos)
-        ? body.peptideos.map((p: any) => String(p)).filter((p: string) => NOMES_VALIDOS.has(p)).slice(0, 200)
-        : [];
-      const { error } = await admin
-        .from('farmacia_estoque')
-        .upsert(
-          { codigo_hash, nome, peptideos, updated_at: new Date().toISOString() },
-          { onConflict: 'codigo_hash' },
-        );
-      if (error) {
-        console.warn('estoque save:', error.message);
-        return NextResponse.json({ error: 'Não foi possível salvar.' }, { status: 500 });
-      }
-      return NextResponse.json({ ok: true, peptideos, nome });
-    }
-
-    // action === 'get'
+    // Só leitura: a farmácia entra com a senha e o balcão carrega o estoque.
+    // A EDIÇÃO é exclusiva do admin (ver /api/farmacia/admin).
+    void action;
     const { data } = await admin
       .from('farmacia_estoque')
       .select('nome, peptideos')
