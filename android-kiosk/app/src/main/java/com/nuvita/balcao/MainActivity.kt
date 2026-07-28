@@ -22,11 +22,10 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         // ════════════════════════════════════════════════════════════
-        //  ⚠️  TROQUE pela URL do balcão em produção (o seu domínio):
-        //  Ex.: "https://nuvita.vercel.app/farmacia"
-        //       ou o domínio próprio, ex.: "https://balcao.nuvita.com.br/farmacia"
+        //  URL do balcão em produção (Vercel). Se trocar de domínio,
+        //  altere aqui e refaça o APK (o build na nuvem gera automático).
         // ════════════════════════════════════════════════════════════
-        const val KIOSK_URL = "https://nuvita.vercel.app/farmacia"
+        const val KIOSK_URL = "https://nuvita-l1wk.vercel.app/farmacia"
 
         // Nº de toques no canto superior esquerdo para SAIR do quiosque (manutenção).
         private const val MAINT_TAPS = 7

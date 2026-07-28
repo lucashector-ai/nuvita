@@ -20,13 +20,13 @@ para virar **Device Owner** via ADB, **sem MDM e sem custo**.
 
 ## 1. Configurar a URL do balcão
 
-Abra **`app/src/main/java/com/nuvita/balcao/MainActivity.kt`** e troque a constante:
+Já está apontando para a produção atual:
 
 ```kotlin
-const val KIOSK_URL = "https://nuvita.vercel.app/farmacia"
+const val KIOSK_URL = "https://nuvita-l1wk.vercel.app/farmacia"
 ```
 
-Coloque o domínio real de produção (ex.: `https://balcao.nuvita.com.br/farmacia`).
+Se um dia trocar de domínio, altere essa constante e refaça o APK.
 > O PIN da tela do balcão continua valendo — ele roda dentro do WebView normalmente.
 
 ---
