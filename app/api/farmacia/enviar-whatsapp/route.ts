@@ -1,26 +1,37 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rateLimit';
+import { getSupabaseAdmin } from '@/lib/serverAuth';
 
-// Envia o protocolo direto para o WhatsApp da pessoa via API oficial da Meta
-// (WhatsApp Cloud API) — sem precisar abrir o WhatsApp no tablet.
+// ════════════════════════════════════════════════
+//  Balcão → WhatsApp (API oficial da Meta / WhatsApp Cloud API)
 //
-// Configure no Vercel (credenciais do número da Nexxus na Meta):
-//   WHATSAPP_PHONE_NUMBER_ID  → ID do número de telefone (Meta)
+//  Fluxo novo (interativo):
+//   1) O balcão manda o protocolo (texto) + telefone.
+//   2) Guardamos o protocolo em farmacia_protocolos (por telefone).
+//   3) Enviamos uma mensagem com 2 botões:
+//        [RECEBER PROTOCOLO] [NÃO RECEBER]
+//   4) Quando a pessoa toca "RECEBER", o webhook
+//      (/api/farmacia/whatsapp-webhook) gera o PDF e envia o arquivo.
+//
+//  Configure no Vercel:
+//   WHATSAPP_PHONE_NUMBER_ID  → ID do número (Meta)
 //   WHATSAPP_TOKEN            → token de acesso permanente (Meta)
 //   WHATSAPP_API_VERSION      → opcional (default v21.0)
-//   WHATSAPP_TEMPLATE_NAME    → opcional: envia um template aprovado em vez de texto
-//   WHATSAPP_TEMPLATE_LANG    → opcional (default pt_BR)
+// ════════════════════════════════════════════════
 
 const PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const TOKEN = process.env.WHATSAPP_TOKEN;
 const API_VERSION = process.env.WHATSAPP_API_VERSION || 'v21.0';
-const TEMPLATE_NAME = process.env.WHATSAPP_TEMPLATE_NAME;
-const TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANG || 'pt_BR';
+
+const CONVITE =
+  'Olá, tudo bem? 👋 Recebemos seu pedido de protocolo. ' +
+  'Deseja receber aqui mesmo, de forma gratuita, o seu protocolo completo?';
 
 function normalizarTelefone(tel: string): string {
   let d = (tel || '').replace(/\D/g, '');
-  if (d.length <= 11 && !d.startsWith('55')) d = '55' + d;
+  // Sem DDI reconhecido (55 Brasil / 595 Paraguai) e curto → assume Brasil.
+  if (d.length <= 11 && !d.startsWith('55') && !d.startsWith('595')) d = '55' + d;
   return d;
 }
 
@@ -41,7 +52,8 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     const telefone = normalizarTelefone(String(body?.telefone || ''));
-    const mensagem = String(body?.mensagem || '').slice(0, 4000);
+    const mensagem = String(body?.mensagem || '').slice(0, 6000);
+    const nome = String(body?.nome || '').slice(0, 120).trim() || null;
     if (telefone.length < 12) {
       return NextResponse.json({ ok: false, error: 'Telefone inválido.' }, { status: 400 });
     }
@@ -49,27 +61,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Mensagem vazia.' }, { status: 400 });
     }
 
-    // Monta o payload: template aprovado (para contato "frio") ou texto livre
-    // (funciona dentro da janela de 24h de atendimento).
-    const payload: any = TEMPLATE_NAME
-      ? {
-          messaging_product: 'whatsapp',
-          to: telefone,
-          type: 'template',
-          template: {
-            name: TEMPLATE_NAME,
-            language: { code: TEMPLATE_LANG },
-            components: [
-              { type: 'body', parameters: [{ type: 'text', text: mensagem.replace(/\n+/g, ' ').slice(0, 900) }] },
-            ],
-          },
-        }
-      : {
-          messaging_product: 'whatsapp',
-          to: telefone,
-          type: 'text',
-          text: { preview_url: false, body: mensagem },
-        };
+    // 1) Guarda o protocolo para o webhook entregar quando confirmarem.
+    try {
+      const admin = getSupabaseAdmin();
+      const { error } = await admin
+        .from('farmacia_protocolos')
+        .insert({ telefone, nome, mensagem, entregue: false });
+      if (error) console.warn('farmacia_protocolos insert:', error.message);
+    } catch (e: any) {
+      console.warn('protocolo store (supabase indisponível):', e?.message);
+      // Sem persistência não dá para entregar depois — avisa e para.
+      return NextResponse.json(
+        { ok: false, error: 'Armazenamento indisponível. Configure o Supabase.' },
+        { status: 503 },
+      );
+    }
+
+    // 2) Envia a mensagem interativa com os botões.
+    const payload = {
+      messaging_product: 'whatsapp',
+      to: telefone,
+      type: 'interactive',
+      interactive: {
+        type: 'button',
+        body: { text: CONVITE },
+        action: {
+          buttons: [
+            { type: 'reply', reply: { id: 'receber_protocolo', title: 'Receber protocolo' } },
+            { type: 'reply', reply: { id: 'nao_receber', title: 'Não receber' } },
+          ],
+        },
+      },
+    };
 
     const res = await fetch(`https://graph.facebook.com/${API_VERSION}/${PHONE_ID}/messages`, {
       method: 'POST',
@@ -85,7 +108,14 @@ export async function POST(req: NextRequest) {
       const foraDaJanela = code === 131047 || code === 131026;
       console.warn('WhatsApp send error:', code, msg);
       return NextResponse.json(
-        { ok: false, error: foraDaJanela ? 'Fora da janela de 24h — configure um template aprovado.' : msg, code, foraDaJanela },
+        {
+          ok: false,
+          error: foraDaJanela
+            ? 'A pessoa precisa mandar uma mensagem primeiro (janela de 24h). Peça para ela abrir a conversa e enviar um "oi".'
+            : msg,
+          code,
+          foraDaJanela,
+        },
         { status: 502 },
       );
     }

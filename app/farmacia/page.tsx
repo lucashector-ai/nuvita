@@ -19,7 +19,6 @@ import {
   protocoloUmPeptideo,
   diagnosticarUmPeptideoIA,
   montarMensagemWhatsApp,
-  normalizarTelefone,
   calcularIMC,
   ALL_PEPTIDES,
   type RespostasFarmacia,
@@ -31,6 +30,13 @@ import {
 } from '@/lib/recomendarPeptideos';
 
 type Modo = 'completo' | 'unico' | 'catalogo';
+type Pais = 'BR' | 'PY';
+
+// País do WhatsApp (formato do número).
+const PAISES: Record<Pais, { ddi: string; label: string; flag: string; max: number; ph: string }> = {
+  BR: { ddi: '55', label: 'Brasil', flag: '🇧🇷', max: 11, ph: '(11) 99999-9999' },
+  PY: { ddi: '595', label: 'Paraguai', flag: '🇵🇾', max: 10, ph: '0981 234 567' },
+};
 
 // ─── Opções das perguntas ─────────────────────────────────
 const OBJETIVOS: { key: ObjectiveKey; label: string; icon: string }[] = [
@@ -99,6 +105,7 @@ export default function FarmaciaPage() {
   // Contato (por último)
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [pais, setPais] = useState<'BR' | 'PY'>('BR');
 
   const [rec, setRec] = useState<Recomendacao | null>(null);
   const [erro, setErro] = useState('');
@@ -206,10 +213,11 @@ export default function FarmaciaPage() {
     if (!respostas || !rec) return;
     setEnviarErro('');
     if (!nome.trim()) return setEnviarErro('Preencha o nome da pessoa.');
-    if (normalizarTelefone(telefone).length < 12) return setEnviarErro('Informe um WhatsApp válido com DDD.');
+    const telFull = telefoneE164();
+    if (telFull.length < 12) return setEnviarErro('Informe um WhatsApp válido com DDD.');
 
     setEnviando(true);
-    const rComContato = { ...respostas, nome: nome.trim(), telefone: telefone.trim() };
+    const rComContato = { ...respostas, nome: nome.trim(), telefone: telFull };
     const msg = montarMensagemWhatsApp(rComContato, rec);
 
     // Salva o lead agora (a pessoa consentiu em receber).
@@ -260,9 +268,9 @@ export default function FarmaciaPage() {
   // Alternativa manual: abre o WhatsApp (para aparelhos que têm o app).
   const abrirWhatsAppManual = () => {
     if (!rec) return;
-    const rComContato = { ...respostas!, nome: nome.trim() || 'Paciente', telefone: telefone.trim() };
+    const tel = telefoneE164();
+    const rComContato = { ...respostas!, nome: nome.trim() || 'Paciente', telefone: tel };
     const msg = montarMensagemWhatsApp(rComContato, rec);
-    const tel = normalizarTelefone(telefone);
     window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   };
 
@@ -290,11 +298,34 @@ export default function FarmaciaPage() {
   };
 
   const onTelefone = (v: string) => {
-    const d = v.replace(/\D/g, '').slice(0, 11);
+    const d = v.replace(/\D/g, '').slice(0, PAISES[pais].max);
     let out = d;
-    if (d.length > 2) out = `(${d.slice(0, 2)}) ${d.slice(2)}`;
-    if (d.length > 7) out = `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+    if (pais === 'BR') {
+      if (d.length > 2) out = `(${d.slice(0, 2)}) ${d.slice(2)}`;
+      if (d.length > 7) out = `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+    } else {
+      // Paraguai: 0981 234 567
+      if (d.length > 4) out = `${d.slice(0, 4)} ${d.slice(4)}`;
+      if (d.length > 7) out = `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7)}`;
+    }
     setTelefone(out);
+  };
+
+  const trocarPais = (p: Pais) => {
+    setPais(p);
+    setTelefone('');
+    setEnviarErro('');
+  };
+
+  // Número final em E.164 (só dígitos, com DDI) conforme o país escolhido.
+  const telefoneE164 = () => {
+    let d = telefone.replace(/\D/g, '');
+    if (pais === 'PY') {
+      d = d.replace(/^0+/, ''); // Paraguai: remove o 0 inicial
+      return '595' + d;
+    }
+    if (!d.startsWith('55')) d = '55' + d;
+    return d;
   };
 
   const soNumero = (v: string, max: number) => v.replace(/\D/g, '').slice(0, max);
@@ -662,25 +693,36 @@ export default function FarmaciaPage() {
                       <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
                         <Icon name="check" size={30} />
                       </div>
-                      <div style={{ fontWeight: 600, fontSize: 16 }}>Protocolo enviado no WhatsApp!</div>
+                      <div style={{ fontWeight: 600, fontSize: 16 }}>Convite enviado no WhatsApp!</div>
                       <div style={{ fontSize: 13, color: '#667085', marginTop: 3 }}>
-                        Enviado para {normalizarTelefone(telefone).replace(/^55/, '')}
+                        Enviamos para +{telefoneE164()}. É só a pessoa tocar em <b>Receber protocolo</b> na
+                        conversa que o PDF chega automaticamente.
                       </div>
                     </div>
                   ) : (
                     <>
                       <div style={{ fontWeight: 600, fontSize: 16 }}>Quer receber o protocolo?</div>
                       <div style={{ fontSize: 13, color: '#667085', marginTop: 3, marginBottom: 14 }}>
-                        Se a pessoa tiver interesse, preencha os dados que enviamos direto no WhatsApp dela.
+                        Se a pessoa tiver interesse, mandamos uma mensagem no WhatsApp dela com o botão
+                        <b> Receber protocolo</b> — ao tocar, ela recebe o PDF completo.
                       </div>
                       <Campo label="Nome da pessoa">
                         <input className="inp" placeholder="Nome completo" value={nome}
                           onChange={(e) => { setEnviarErro(''); setNome(e.target.value); }} style={S.inpBig} />
                       </Campo>
                       <div style={{ marginTop: 12 }}>
-                        <Campo label="WhatsApp (com DDD)">
-                          <input className="inp" placeholder="(11) 99999-9999" value={telefone} inputMode="numeric"
-                            onChange={(e) => { setEnviarErro(''); onTelefone(e.target.value); }} style={S.inpBig} />
+                        <Campo label="WhatsApp">
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <select value={pais} onChange={(e) => trocarPais(e.target.value as Pais)}
+                              style={S.paisSelect} aria-label="País do número">
+                              {(Object.keys(PAISES) as Pais[]).map((p) => (
+                                <option key={p} value={p}>{PAISES[p].flag} +{PAISES[p].ddi}</option>
+                              ))}
+                            </select>
+                            <input className="inp" placeholder={PAISES[pais].ph} value={telefone} inputMode="numeric"
+                              onChange={(e) => { setEnviarErro(''); onTelefone(e.target.value); }}
+                              style={{ ...S.inpBig, flex: 1 }} />
+                          </div>
                         </Campo>
                       </div>
                       {enviarErro && (
@@ -690,7 +732,7 @@ export default function FarmaciaPage() {
                       )}
                       <button onClick={enviarProtocolo} disabled={enviando}
                         style={{ ...S.waBtn, ...S.waBtnFull, opacity: enviando ? 0.7 : 1 }}>
-                        {enviando ? 'Enviando…' : 'Enviar protocolo no WhatsApp'}
+                        {enviando ? 'Enviando…' : 'Enviar no WhatsApp'}
                       </button>
                     </>
                   )}
@@ -977,6 +1019,7 @@ const S: Record<string, React.CSSProperties> = {
   },
   label: { display: 'block', fontSize: 13, fontWeight: 500, color: '#475467', marginBottom: 7 },
   inpBig: { padding: '14px 16px', fontSize: 16, borderRadius: 12, borderColor: '#E7E7E7' },
+  paisSelect: { padding: '14px 10px', fontSize: 15, borderRadius: 12, border: '1px solid #E7E7E7', background: '#fff', fontFamily: 'inherit', color: '#0E1113', cursor: 'pointer' },
   hint: { fontSize: 12, color: '#98A2B3', marginTop: 10 },
   hintTag: { fontSize: 12, color: '#98A2B3', marginLeft: 'auto' },
   imcBox: {
