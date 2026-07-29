@@ -102,6 +102,8 @@ export default function FarmaciaPage() {
   const [erro, setErro] = useState('');
   const [enviado, setEnviado] = useState(false);
   const [gerando, setGerando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [enviarErro, setEnviarErro] = useState('');
 
   const imc = useMemo(() => calcularIMC(Number(peso), Number(altura)), [peso, altura]);
 
@@ -126,9 +128,10 @@ export default function FarmaciaPage() {
 
   const respostas = useMemo<RespostasFarmacia | null>(() => {
     const objetivoOk = modo === 'unico' ? !!peptideoUnico : objetivos.length > 0;
-    if (!nome.trim() || !telefone.trim() || !objetivoOk || !nivel) return null;
+    // Nome/WhatsApp NÃO são exigidos para diagnosticar — só na hora de enviar.
+    if (!objetivoOk || !nivel) return null;
     return {
-      nome: nome.trim(),
+      nome: nome.trim() || 'Paciente',
       telefone: telefone.trim(),
       sexo: sexo || undefined,
       objetivos,
@@ -173,8 +176,7 @@ export default function FarmaciaPage() {
     if (!idade || Number(idade) < 16 || Number(idade) > 100) return setErro('Informe uma idade válida.');
     if (!nivel) return setErro('Selecione a experiência com peptídeos.');
     if (condicoes.includes('outros') && !condicaoOutros.trim()) return setErro('Descreva a outra condição de saúde.');
-    if (!nome.trim()) return setErro('Preencha o nome da pessoa.');
-    if (normalizarTelefone(telefone).length < 12) return setErro('Preencha um telefone/WhatsApp válido com DDD.');
+    // Nome e WhatsApp são pedidos só depois, se a pessoa quiser receber o protocolo.
 
     setGerando(true);
     // A IA faz o diagnóstico; se indisponível/rate-limit, usa o determinístico.
@@ -191,41 +193,75 @@ export default function FarmaciaPage() {
     setRec(resultado);
     setGerando(false);
 
-    try {
-      await fetch('/api/farmacia/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome: respostas!.nome,
-          telefone: respostas!.telefone,
-          sexo: respostas!.sexo,
-          objetivos: respostas!.objetivos,
-          nivel: respostas!.nivel,
-          condicoes: respostas!.condicoes,
-          condicaoOutros: respostas!.condicaoOutros,
-          peso: respostas!.peso,
-          altura: respostas!.altura,
-          idade: respostas!.idade,
-          atividade: respostas!.atividade,
-          sono: respostas!.sono,
-          peptideos: resultado.itens.map((i) => i.peptide.n),
-        }),
-      });
-    } catch {
-      /* silencioso — não atrapalha o balcão */
-    }
-
     setTimeout(() => {
       document.getElementById('resultado')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
   };
 
-  const enviarWhatsApp = () => {
+  // Envia o protocolo direto pro WhatsApp da pessoa (só se ela quiser receber).
+  // Nome + WhatsApp são coletados agora, com consentimento.
+  const enviarProtocolo = async () => {
     if (!respostas || !rec) return;
-    const msg = montarMensagemWhatsApp(respostas, rec);
-    const tel = normalizarTelefone(respostas.telefone);
+    setEnviarErro('');
+    if (!nome.trim()) return setEnviarErro('Preencha o nome da pessoa.');
+    if (normalizarTelefone(telefone).length < 12) return setEnviarErro('Informe um WhatsApp válido com DDD.');
+
+    setEnviando(true);
+    const rComContato = { ...respostas, nome: nome.trim(), telefone: telefone.trim() };
+    const msg = montarMensagemWhatsApp(rComContato, rec);
+
+    // Salva o lead agora (a pessoa consentiu em receber).
+    try {
+      await fetch('/api/farmacia/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: rComContato.nome,
+          telefone: rComContato.telefone,
+          sexo: rComContato.sexo,
+          objetivos: rComContato.objetivos,
+          nivel: rComContato.nivel,
+          condicoes: rComContato.condicoes,
+          condicaoOutros: rComContato.condicaoOutros,
+          peso: rComContato.peso,
+          altura: rComContato.altura,
+          idade: rComContato.idade,
+          atividade: rComContato.atividade,
+          sono: rComContato.sono,
+          peptideos: rec.itens.map((i) => i.peptide.n),
+        }),
+      });
+    } catch {
+      /* silencioso */
+    }
+
+    // Envia direto pela API oficial da Meta (sem abrir o WhatsApp).
+    try {
+      const res = await fetch('/api/farmacia/enviar-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telefone: rComContato.telefone, mensagem: msg, nome: rComContato.nome }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.ok) {
+        setEnviado(true);
+      } else {
+        setEnviarErro(data?.error || 'Não foi possível enviar automaticamente.');
+      }
+    } catch {
+      setEnviarErro('Erro de conexão ao enviar.');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  // Alternativa manual: abre o WhatsApp (para aparelhos que têm o app).
+  const abrirWhatsAppManual = () => {
+    if (!rec) return;
+    const rComContato = { ...respostas!, nome: nome.trim() || 'Paciente', telefone: telefone.trim() };
+    const msg = montarMensagemWhatsApp(rComContato, rec);
+    const tel = normalizarTelefone(telefone);
     window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
-    setEnviado(true);
   };
 
   const novoAtendimento = () => {
@@ -246,6 +282,8 @@ export default function FarmaciaPage() {
     setErro('');
     setEnviado(false);
     setGerando(false);
+    setEnviando(false);
+    setEnviarErro('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -443,21 +481,6 @@ export default function FarmaciaPage() {
             )}
           </Section>
 
-          {/* 8 · Contato (por último) */}
-          <Section n="8" titulo="Contato para enviar">
-            <Campo label="Nome da pessoa">
-              <input className="inp" placeholder="Nome completo" value={nome}
-                onChange={(e) => setNome(e.target.value)} style={S.inpBig} />
-            </Campo>
-            <div style={{ marginTop: 16 }}>
-              <Campo label="WhatsApp (com DDD)">
-                <input className="inp" placeholder="(11) 99999-9999" value={telefone} inputMode="numeric"
-                  onChange={(e) => onTelefone(e.target.value)} style={S.inpBig} />
-              </Campo>
-            </div>
-            <div style={S.hint}>O protocolo será enviado para este número.</div>
-          </Section>
-
           {erro && <div style={S.erro}>⚠️ {erro}</div>}
 
           {!rec && (
@@ -476,7 +499,7 @@ export default function FarmaciaPage() {
             <div style={S.divider} />
 
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-              <h2 style={S.h2}>Protocolo de {nome.split(' ')[0]}</h2>
+              <h2 style={S.h2}>{nome.trim() ? `Protocolo de ${nome.split(' ')[0]}` : 'Protocolo'}</h2>
               <span className="pill" style={rec.fonte === 'ia' ? S.pillIa : undefined}>
                 <span className="pdot" /> {rec.fonte === 'ia' ? 'Diagnóstico IA' : 'Gerado'}
               </span>
@@ -581,16 +604,45 @@ export default function FarmaciaPage() {
                   </div>
                 )}
 
-                <div style={S.waBox}>
-                  <div style={{ flex: 1, minWidth: 200 }}>
-                    <div style={{ fontWeight: 600, fontSize: 15 }}>Enviar por WhatsApp</div>
-                    <div style={{ fontSize: 13, color: '#667085' }}>
-                      Para {normalizarTelefone(telefone).replace(/^55/, '')}
+                {/* Receber o protocolo — só se a pessoa tiver interesse */}
+                <div style={S.receberCard}>
+                  {enviado ? (
+                    <div style={{ textAlign: 'center', padding: '6px 0' }}>
+                      <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+                        <Icon name="check" size={30} />
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: 16 }}>Protocolo enviado no WhatsApp!</div>
+                      <div style={{ fontSize: 13, color: '#667085', marginTop: 3 }}>
+                        Enviado para {normalizarTelefone(telefone).replace(/^55/, '')}
+                      </div>
                     </div>
-                  </div>
-                  <button onClick={enviarWhatsApp} style={{ ...S.waBtn, background: enviado ? '#15803D' : '#25D366' }}>
-                    {enviado ? 'Enviado ✓' : 'Enviar no WhatsApp'}
-                  </button>
+                  ) : (
+                    <>
+                      <div style={{ fontWeight: 600, fontSize: 16 }}>Quer receber o protocolo?</div>
+                      <div style={{ fontSize: 13, color: '#667085', marginTop: 3, marginBottom: 14 }}>
+                        Se a pessoa tiver interesse, preencha os dados que enviamos direto no WhatsApp dela.
+                      </div>
+                      <Campo label="Nome da pessoa">
+                        <input className="inp" placeholder="Nome completo" value={nome}
+                          onChange={(e) => { setEnviarErro(''); setNome(e.target.value); }} style={S.inpBig} />
+                      </Campo>
+                      <div style={{ marginTop: 12 }}>
+                        <Campo label="WhatsApp (com DDD)">
+                          <input className="inp" placeholder="(11) 99999-9999" value={telefone} inputMode="numeric"
+                            onChange={(e) => { setEnviarErro(''); onTelefone(e.target.value); }} style={S.inpBig} />
+                        </Campo>
+                      </div>
+                      {enviarErro && (
+                        <div style={{ ...S.hint, color: '#B45309', marginTop: 10 }}>
+                          {enviarErro} <button onClick={abrirWhatsAppManual} style={S.linkBtn}>Abrir no WhatsApp</button>
+                        </div>
+                      )}
+                      <button onClick={enviarProtocolo} disabled={enviando}
+                        style={{ ...S.waBtn, ...S.waBtnFull, opacity: enviando ? 0.7 : 1 }}>
+                        {enviando ? 'Enviando…' : 'Enviar protocolo no WhatsApp'}
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 <button onClick={novoAtendimento} style={S.secondaryBtn}>
@@ -925,7 +977,11 @@ const S: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     transition: 'all .14s',
     whiteSpace: 'nowrap',
+    background: '#25D366',
     boxShadow: '0 4px 12px rgba(37,211,102,.28)',
   },
+  waBtnFull: { width: '100%', marginTop: 16 },
+  receberCard: { marginTop: 24, padding: 20, background: '#fff', border: '1px solid #ECEDEE', borderRadius: 20, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
+  linkBtn: { background: 'none', border: 'none', color: '#16A34A', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 },
   disclaimer: { fontSize: 12, color: '#98A2B3', lineHeight: 1.6, marginTop: 30, textAlign: 'center', maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' },
 };

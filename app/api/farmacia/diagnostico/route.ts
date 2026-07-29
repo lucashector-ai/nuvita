@@ -100,8 +100,8 @@ const FORMATO_COMPLETO = `FORMATO (responda APENAS JSON válido, nada fora do JS
   "peptideos": [
     {
       "nome": "nome EXATO do catálogo",
-      "motivo": "por que ELA deve usar este peptídeo — específico ao perfil, 1-2 frases simples",
-      "comoUsar": "como usar na prática, linguagem simples para leigo (quando/como aplicar + dica de adesão), 1-2 frases",
+      "motivo": "por que ELA deve usar este peptídeo — o que ele faz no corpo e o que esperar, específico ao perfil (sexo/idade/IMC/atividade/sono), 2-3 frases simples e completas",
+      "comoUsar": "passo a passo prático e detalhado em linguagem de leigo: como preparar/reconstituir se precisar, quando e onde aplicar, ritmo de titulação, o que sentir nas primeiras semanas e uma dica de adesão, 3-4 frases",
       "alternativa": "SÓ quando existir um produto de efeito parecido: cite a alternativa e explique em 1 frase a diferença (potência/via/forma/tolerância) e por que escolhemos ESTE para o perfil dela. Deixe \"\" se não houver alternativa relevante."
     }
   ],
@@ -117,6 +117,11 @@ Sua missão: analisar o perfil e MONTAR O PROTOCOLO — escolhendo os peptídeos
 - Recomende de 3 a 6 peptídeos. Prefira mais de 2 quando fizer sentido clínico, mas nunca inclua algo que não ajude.
 - Use SOMENTE nomes do catálogo, exatamente como escritos. Ordene do essencial ao de apoio.
 - Quando dois produtos servirem para o mesmo objetivo (ex.: Tirzepatide vs Retatrutide; AOD-9604 vs HGH Fragment; CJC-1295+Ipamorelin vs MK-677 vs HGH), escolha o melhor para ESTE perfil e preencha "alternativa" explicando a diferença e o porquê da escolha.
+
+PRECISÃO E CLAREZA (muito importante):
+- Nunca invente peptídeo, dose ou efeito. Se não tiver certeza, seja conservador e sinalize no avisoMedico. É melhor recomendar menos e certo do que mais e errado.
+- Explique TUDO "timtim por timtim", em linguagem simples que um leigo entenda — como funciona no corpo, o que a pessoa vai sentir, e cada passo do uso. O atendente vai ler isso em voz alta para o paciente.
+- Raciocine com cuidado antes de responder; confira se cada escolha faz sentido para o sexo, idade, IMC, atividade e condições da pessoa.
 
 ═══════ CATÁLOGO ═══════
 ${catalogo}
@@ -191,12 +196,17 @@ export async function POST(req: NextRequest) {
     }
 
     const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2600,
+      model: 'claude-opus-5',
+      max_tokens: 12000, // espaço para o raciocínio (ligado por padrão no Opus 5) + o JSON detalhado
       system,
       messages: [{ role: 'user', content: instrucao }],
     });
 
+    // Se o modelo recusar (classificadores de segurança), devolve vazio →
+    // o cliente cai no fallback determinístico (nunca quebra o balcão).
+    if (msg.stop_reason === 'refusal') {
+      return NextResponse.json({ text: '' });
+    }
     const text = msg.content.find((b) => b.type === 'text')?.text || '';
     return NextResponse.json({ text });
   } catch (e: any) {
