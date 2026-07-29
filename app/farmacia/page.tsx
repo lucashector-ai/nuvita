@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ObjectiveKey } from '@/types';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
-import PinGate, { ESTOQUE_KEY } from '@/components/farmacia/PinGate';
+import PinGate, { ESTOQUE_KEY, OK_KEY, NOME_KEY } from '@/components/farmacia/PinGate';
 import Icon from '@/components/farmacia/Icon';
 import {
   recomendarPeptideos,
@@ -259,12 +259,27 @@ export default function FarmaciaPage() {
 
   const soNumero = (v: string, max: number) => v.replace(/\D/g, '').slice(0, max);
 
+  // Sair: volta para a tela de senha (bloqueia o balcão de novo).
+  const sair = () => {
+    try {
+      sessionStorage.removeItem(OK_KEY);
+      sessionStorage.removeItem(ESTOQUE_KEY);
+      sessionStorage.removeItem(NOME_KEY);
+    } catch {
+      /* ignore */
+    }
+    window.location.reload();
+  };
+
   return (
    <PinGate>
     <div style={S.page} className="grad">
       {/* Cabeçalho com logo centralizada */}
       <header style={S.header}>
         <div style={S.headerIn}>
+          <button onClick={sair} style={S.sairBtn} title="Voltar para a tela de senha">
+            Sair
+          </button>
           <div style={S.brand}>
             <NuvitaLogo width={104} height={22} />
             <span style={S.brandTag}>Balcão</span>
@@ -729,6 +744,21 @@ const S: Record<string, React.CSSProperties> = {
   resetBtn: {
     position: 'absolute',
     right: 20,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: '#fff',
+    border: '1px solid #E7E7E7',
+    color: '#475467',
+    padding: '7px 14px',
+    borderRadius: 100,
+    fontFamily: 'inherit',
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+  sairBtn: {
+    position: 'absolute',
+    left: 20,
     top: '50%',
     transform: 'translateY(-50%)',
     background: '#fff',

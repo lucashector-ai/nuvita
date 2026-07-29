@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
 
-const OK_KEY = 'nv_farmacia_ok';
+export const OK_KEY = 'nv_farmacia_ok';
 export const ESTOQUE_KEY = 'nv_farmacia_estoque';
 export const NOME_KEY = 'nv_farmacia_nome';
 
