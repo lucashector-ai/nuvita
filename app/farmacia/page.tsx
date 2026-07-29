@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ObjectiveKey, Peptide } from '@/types';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import PinGate, { ESTOQUE_KEY, OK_KEY, NOME_KEY } from '@/components/farmacia/PinGate';
@@ -245,7 +245,7 @@ export default function FarmaciaPage() {
       /* silencioso */
     }
 
-    // Envia direto pela API oficial da Meta (sem abrir o WhatsApp).
+    // Envia pelo relay da Nexxus (sem abrir o WhatsApp).
     try {
       const res = await fetch('/api/farmacia/enviar-whatsapp', {
         method: 'POST',
@@ -326,6 +326,21 @@ export default function FarmaciaPage() {
     }
     if (!d.startsWith('55')) d = '55' + d;
     return d;
+  };
+
+  // Ao terminar de digitar o WhatsApp, pede à Nexxus para silenciar a Emili
+  // ANTES do "oi" de abertura da janela (best-effort; não trava nada). Guardado
+  // por número para não repetir a chamada a cada blur.
+  const ultimoMutado = useRef('');
+  const prepararWhatsApp = () => {
+    const tel = telefoneE164();
+    if (tel.length < 12 || ultimoMutado.current === tel) return;
+    ultimoMutado.current = tel;
+    fetch('/api/farmacia/preparar-whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telefone: tel }),
+    }).catch(() => {});
   };
 
   const soNumero = (v: string, max: number) => v.replace(/\D/g, '').slice(0, max);
@@ -720,6 +735,7 @@ export default function FarmaciaPage() {
                             </select>
                             <input className="inp" placeholder={PAISES[pais].ph} value={telefone} inputMode="numeric"
                               onChange={(e) => { setEnviarErro(''); onTelefone(e.target.value); }}
+                              onBlur={prepararWhatsApp}
                               style={{ ...S.inpBig, flex: 1 }} />
                           </div>
                         </Campo>

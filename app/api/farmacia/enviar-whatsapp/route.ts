@@ -3,19 +3,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rateLimit';
 import { getSupabaseAdmin } from '@/lib/serverAuth';
 import { gerarPdfProtocolo } from '@/lib/gerarPdfProtocolo';
-import { metaConfigurada, normalizarTelefone, uploadPdf, enviarDocumento } from '@/lib/whatsappMeta';
+import { normalizarTelefone } from '@/lib/whatsappMeta';
+import { relayConfigurado, enviarDocumentoViaNexxus } from '@/lib/nexxusRelay';
 
 // ════════════════════════════════════════════════
-//  Balcão → WhatsApp (API oficial da Meta / WhatsApp Cloud API)
+//  Balcão → WhatsApp (via relay da Nexxus)
 //
-//  Envio DIRETO do PDF: a pessoa já demonstrou interesse no balcão,
-//  então ao clicar "Enviar" geramos o protocolo em PDF e mandamos
-//  como documento — sem depender de webhook (que é da Nexxus).
+//  O número está conectado à Meta pela Nexxus. Ao clicar "Enviar" geramos o
+//  protocolo em PDF e o enviamos ao endpoint da Nexxus, que faz o disparo pelo
+//  número. O token permanente da Meta fica só na Nexxus — aqui só o segredo do
+//  relay.
 //
-//  Configure no Vercel (credenciais do número na Meta):
-//   WHATSAPP_PHONE_NUMBER_ID  → ID do número (Meta)
-//   WHATSAPP_TOKEN            → token de acesso permanente (Meta)
-//   WHATSAPP_API_VERSION      → opcional (default v21.0)
+//  Configure no Vercel:
+//   NEXXUS_WHATSAPP_URL  → base da Nexxus (ex.: https://shop.nexxuslabs.de)
+//   NEXXUS_RELAY_TOKEN   → o mesmo valor de WHATSAPP_RELAY_TOKEN na Nexxus
 // ════════════════════════════════════════════════
 
 export async function POST(req: NextRequest) {
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Muitas requisições — aguarde.' }, { status: 429 });
     }
 
-    if (!metaConfigurada()) {
+    if (!relayConfigurado()) {
       return NextResponse.json(
         { ok: false, error: 'Envio automático não configurado.', naoConfigurado: true },
         { status: 503 },
@@ -53,19 +54,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Não foi possível gerar o PDF.' }, { status: 500 });
     }
 
-    // 2) Sobe o PDF para a mídia da Meta.
-    const mediaId = await uploadPdf(pdf, 'Protocolo-Nuvita.pdf');
-    if (!mediaId) {
-      return NextResponse.json({ ok: false, error: 'Falha ao preparar o arquivo.' }, { status: 502 });
-    }
-
-    // 3) Envia o documento direto para a pessoa.
+    // 2) Envia o PDF para a Nexxus, que sobe na Meta e dispara o documento.
     const primeiroNome = (nome || '').split(' ')[0];
     const caption = primeiroNome
       ? `${primeiroNome}, aqui está o seu protocolo completo, montado especialmente para você. 💚`
       : 'Aqui está o seu protocolo completo, montado especialmente para você. 💚';
 
-    const envio = await enviarDocumento(telefone, mediaId, 'Protocolo Nuvita.pdf', caption);
+    const envio = await enviarDocumentoViaNexxus(telefone, pdf, 'Protocolo Nuvita.pdf', caption);
 
     if (!envio.ok) {
       console.warn('WhatsApp send error:', envio.code, envio.error);
