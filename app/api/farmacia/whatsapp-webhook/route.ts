@@ -3,33 +3,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/serverAuth';
 import { gerarPdfProtocolo } from '@/lib/gerarPdfProtocolo';
+import { uploadPdf, enviarDocumento, enviarTexto } from '@/lib/whatsappMeta';
 
 // ════════════════════════════════════════════════
-//  Webhook do WhatsApp (Meta Cloud API) — nosso sistema.
+//  Webhook do WhatsApp (Meta Cloud API).
 //
-//  Aponte o webhook do número na Meta para:
-//     https://SEU-DOMINIO/api/farmacia/whatsapp-webhook
-//  Campo assinado: "messages".
+//  ⚠️ HOJE ESTE WEBHOOK ESTÁ DORMENTE: o número do balcão é o mesmo
+//  da Nexxus, e a Meta só permite UM webhook por número — ele é da
+//  Nexxus. O balcão entrega o PDF direto (ver /api/farmacia/enviar-whatsapp).
 //
-//  GET  → verificação do webhook (hub.challenge).
-//  POST → eventos. Quando a pessoa toca "RECEBER PROTOCOLO",
-//         geramos o PDF do protocolo dela e enviamos o arquivo.
+//  Este endpoint fica pronto para o dia em que:
+//   - o balcão usar um número próprio (aponte o webhook aqui), OU
+//   - a Nexxus repassar os eventos de botão para esta URL.
+//  Aí voltamos ao fluxo com botões RECEBER / NÃO RECEBER.
 //
 //  Configure no Vercel:
-//   WHATSAPP_PHONE_NUMBER_ID   → ID do número (Meta)
-//   WHATSAPP_TOKEN             → token de acesso permanente (Meta)
-//   WHATSAPP_API_VERSION       → opcional (default v21.0)
-//   WHATSAPP_VERIFY_TOKEN      → string que você define aqui e na Meta
-//   WHATSAPP_APP_SECRET        → opcional: valida a assinatura X-Hub-Signature-256
+//   WHATSAPP_VERIFY_TOKEN   → string que você define aqui e na Meta
+//   WHATSAPP_APP_SECRET     → opcional: valida X-Hub-Signature-256
 // ════════════════════════════════════════════════
 
-const PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-const TOKEN = process.env.WHATSAPP_TOKEN;
-const API_VERSION = process.env.WHATSAPP_API_VERSION || 'v21.0';
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'nuvita-verify';
 const APP_SECRET = process.env.WHATSAPP_APP_SECRET;
-
-const GRAPH = `https://graph.facebook.com/${API_VERSION}`;
 
 // ─── Verificação do webhook (Meta chama com GET) ───
 export async function GET(req: NextRequest) {
@@ -43,11 +37,10 @@ export async function GET(req: NextRequest) {
   return new NextResponse('Forbidden', { status: 403 });
 }
 
-// ─── Eventos (mensagens / cliques de botão) ───
+// ─── Eventos (cliques de botão) ───
 export async function POST(req: NextRequest) {
   const raw = await req.text();
 
-  // Valida a assinatura da Meta, se o segredo estiver configurado.
   if (APP_SECRET) {
     const sig = req.headers.get('x-hub-signature-256') || '';
     if (!assinaturaValida(raw, sig, APP_SECRET)) {
@@ -60,13 +53,12 @@ export async function POST(req: NextRequest) {
   try {
     payload = JSON.parse(raw);
   } catch {
-    return NextResponse.json({ ok: true }); // sempre 200 para a Meta não re-tentar
+    return NextResponse.json({ ok: true });
   }
 
   try {
-    const msgs = extrairMensagens(payload);
-    for (const m of msgs) {
-      const de = m.from as string; // telefone da pessoa (dígitos, com DDI)
+    for (const m of extrairMensagens(payload)) {
+      const de = m.from as string;
       const acao = idDoClique(m);
       if (!acao || !de) continue;
 
@@ -83,11 +75,10 @@ export async function POST(req: NextRequest) {
     console.error('webhook processing error:', e?.message);
   }
 
-  // A Meta espera 200 rápido, sempre.
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true }); // a Meta espera 200 rápido, sempre
 }
 
-// ─── Entrega: busca o protocolo, gera o PDF e envia o arquivo ───
+// ─── Busca o protocolo, gera o PDF e envia o arquivo ───
 async function entregarProtocolo(telefone: string) {
   let admin;
   try {
@@ -136,61 +127,6 @@ async function entregarProtocolo(telefone: string) {
   }
 }
 
-// ─── Helpers Meta Cloud API ───
-async function uploadPdf(bytes: Uint8Array, filename: string): Promise<string | null> {
-  if (!PHONE_ID || !TOKEN) return null;
-  const form = new FormData();
-  form.append('messaging_product', 'whatsapp');
-  form.append('type', 'application/pdf');
-  form.append(
-    'file',
-    new Blob([bytes as unknown as BlobPart], { type: 'application/pdf' }),
-    filename,
-  );
-  const res = await fetch(`${GRAPH}/${PHONE_ID}/media`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${TOKEN}` },
-    body: form,
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    console.warn('upload media erro:', data?.error?.message);
-    return null;
-  }
-  return data?.id || null;
-}
-
-async function enviarDocumento(to: string, mediaId: string, filename: string, caption: string) {
-  await enviarPayload({
-    messaging_product: 'whatsapp',
-    to,
-    type: 'document',
-    document: { id: mediaId, filename, caption },
-  });
-}
-
-async function enviarTexto(to: string, body: string) {
-  await enviarPayload({
-    messaging_product: 'whatsapp',
-    to,
-    type: 'text',
-    text: { preview_url: false, body },
-  });
-}
-
-async function enviarPayload(payload: any) {
-  if (!PHONE_ID || !TOKEN) return;
-  const res = await fetch(`${GRAPH}/${PHONE_ID}/messages`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    console.warn('enviarPayload erro:', data?.error?.message);
-  }
-}
-
 // ─── Parsing do payload da Meta ───
 function extrairMensagens(payload: any): any[] {
   const out: any[] = [];
@@ -205,12 +141,10 @@ function extrairMensagens(payload: any): any[] {
   return out;
 }
 
-// Extrai o id do botão clicado (interactive) ou o payload de um quick-reply.
 function idDoClique(m: any): string | null {
   if (m?.type === 'interactive' && m?.interactive?.type === 'button_reply') {
     return m.interactive.button_reply?.id || null;
   }
-  // Botão de template (quick reply) chega como type "button".
   if (m?.type === 'button') {
     return m.button?.payload || m.button?.text || null;
   }

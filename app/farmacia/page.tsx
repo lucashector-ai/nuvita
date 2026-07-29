@@ -693,18 +693,17 @@ export default function FarmaciaPage() {
                       <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
                         <Icon name="check" size={30} />
                       </div>
-                      <div style={{ fontWeight: 600, fontSize: 16 }}>Convite enviado no WhatsApp!</div>
+                      <div style={{ fontWeight: 600, fontSize: 16 }}>Protocolo enviado no WhatsApp!</div>
                       <div style={{ fontSize: 13, color: '#667085', marginTop: 3 }}>
-                        Enviamos para +{telefoneE164()}. É só a pessoa tocar em <b>Receber protocolo</b> na
-                        conversa que o PDF chega automaticamente.
+                        Enviamos o PDF para +{telefoneE164()}.
                       </div>
                     </div>
                   ) : (
                     <>
                       <div style={{ fontWeight: 600, fontSize: 16 }}>Quer receber o protocolo?</div>
                       <div style={{ fontSize: 13, color: '#667085', marginTop: 3, marginBottom: 14 }}>
-                        Se a pessoa tiver interesse, mandamos uma mensagem no WhatsApp dela com o botão
-                        <b> Receber protocolo</b> — ao tocar, ela recebe o PDF completo.
+                        Se a pessoa tiver interesse, preencha os dados que enviamos o protocolo em PDF
+                        direto no WhatsApp dela.
                       </div>
                       <Campo label="Nome da pessoa">
                         <input className="inp" placeholder="Nome completo" value={nome}
