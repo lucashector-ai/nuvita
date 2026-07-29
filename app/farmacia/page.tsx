@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { ObjectiveKey } from '@/types';
+import type { ObjectiveKey, Peptide } from '@/types';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import PinGate, { ESTOQUE_KEY, OK_KEY, NOME_KEY } from '@/components/farmacia/PinGate';
 import Icon from '@/components/farmacia/Icon';
@@ -30,7 +30,7 @@ import {
   type Recomendacao,
 } from '@/lib/recomendarPeptideos';
 
-type Modo = 'completo' | 'unico';
+type Modo = 'completo' | 'unico' | 'catalogo';
 
 // ─── Opções das perguntas ─────────────────────────────────
 const OBJETIVOS: { key: ObjectiveKey; label: string; icon: string }[] = [
@@ -82,6 +82,8 @@ const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string }
 export default function FarmaciaPage() {
   const [modo, setModo] = useState<Modo>('completo');
   const [peptideoUnico, setPeptideoUnico] = useState('');
+  const [catalogoSel, setCatalogoSel] = useState<Peptide | null>(null);
+  const [buscaCatalogo, setBuscaCatalogo] = useState('');
   const [estoque, setEstoque] = useState<string[] | null>(null);
   // Diagnóstico
   const [objetivos, setObjetivos] = useState<ObjectiveKey[]>([]);
@@ -337,11 +339,15 @@ export default function FarmaciaPage() {
         {/* ─── FORMULÁRIO ─── */}
         <div style={{ opacity: rec ? 0.4 : 1, pointerEvents: rec ? 'none' : 'auto', transition: 'opacity .25s' }}>
           <div style={S.hero}>
-            <h1 style={S.h1}>{modo === 'unico' ? 'Protocolo de um peptídeo' : 'Diagnóstico de peptídeos'}</h1>
+            <h1 style={S.h1}>
+              {modo === 'unico' ? 'Protocolo de um peptídeo' : modo === 'catalogo' ? 'Catálogo de peptídeos' : 'Diagnóstico de peptídeos'}
+            </h1>
             <p style={S.lead}>
               {modo === 'unico'
                 ? 'A pessoa já usa um peptídeo? Monte o protocolo dele.'
-                : 'Responda com a pessoa. Rápido e sob medida.'}
+                : modo === 'catalogo'
+                  ? 'Toque em um produto para ver o que é, o que faz e como usar.'
+                  : 'Responda com a pessoa. Rápido e sob medida.'}
             </p>
           </div>
 
@@ -367,8 +373,51 @@ export default function FarmaciaPage() {
                 <div style={S.modoSub}>Já sabe qual? Faça o protocolo dele</div>
               </div>
             </button>
+            <button
+              onClick={() => setModo('catalogo')}
+              style={{ ...S.modoTab, ...(modo === 'catalogo' ? S.modoTabAtivo : {}) }}
+            >
+              <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="clipboard" size={19} /></span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>Catálogo</div>
+                <div style={S.modoSub}>Ver o que cada produto faz</div>
+              </div>
+            </button>
           </div>
 
+          {/* ─── CATÁLOGO ─── */}
+          {modo === 'catalogo' && (
+            <div style={S.section}>
+              <input
+                className="inp"
+                placeholder="Buscar produto…"
+                value={buscaCatalogo}
+                onChange={(e) => setBuscaCatalogo(e.target.value)}
+                style={{ ...S.inpBig, marginBottom: 14 }}
+              />
+              <div style={S.catGrid}>
+                {peptidesDisponiveis
+                  .filter((p) => {
+                    const q = buscaCatalogo.trim().toLowerCase();
+                    return !q || p.n.toLowerCase().includes(q) || p.m.toLowerCase().includes(q);
+                  })
+                  .map((p) => (
+                    <button key={p.n} onClick={() => setCatalogoSel(p)} style={S.catItem}>
+                      <span style={S.pepIconSm}><Icon name="pill" size={18} /></span>
+                      <span style={{ flex: 1 }}>
+                        <span style={{ fontWeight: 600, fontSize: 14.5, display: 'block' }}>{p.n}</span>
+                        <span style={{ fontSize: 12, color: '#98A2B3', lineHeight: 1.35 }}>{p.m}</span>
+                      </span>
+                      <span style={{ color: '#16A34A', fontSize: 13, fontWeight: 600 }}>Ver</span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* ─── DIAGNÓSTICO / PROTOCOLO ─── */}
+          {modo !== 'catalogo' && (
+          <>
           {/* 1 · Objetivo (completo) ou Peptídeo (único) */}
           {modo === 'completo' ? (
             <Section n="1" titulo="Qual o objetivo?" hint="até 3">
@@ -490,6 +539,8 @@ export default function FarmaciaPage() {
                 ? 'Analisando o perfil…'
                 : modo === 'unico' ? 'Gerar protocolo' : 'Gerar diagnóstico'}
             </button>
+          )}
+          </>
           )}
         </div>
 
@@ -658,6 +709,44 @@ export default function FarmaciaPage() {
           </div>
         )}
       </main>
+
+      {/* Modal do catálogo */}
+      {catalogoSel && (
+        <div style={S.overlay} onClick={() => setCatalogoSel(null)}>
+          <div style={S.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <span style={S.pepIcon}><Icon name="pill" size={24} /></span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 18, letterSpacing: '-.02em' }}>{catalogoSel.n}</div>
+                <div style={{ fontSize: 13, color: '#667085', lineHeight: 1.4 }}>{catalogoSel.m}</div>
+              </div>
+              <button onClick={() => setCatalogoSel(null)} style={S.modalClose} aria-label="Fechar">✕</button>
+            </div>
+
+            {catalogoSel.why && (
+              <div style={S.why}>
+                <span style={S.blocoTituloRow}><Icon name="bulb" size={13} /> O que faz</span>
+                {catalogoSel.why}
+              </div>
+            )}
+            <div style={S.comoUsar}>
+              <span style={S.blocoTituloRow}><Icon name="clipboard" size={13} /> Como usar</span>
+              {catalogoSel.how}
+            </div>
+            <div style={S.specGrid}>
+              <Spec label="Dose (ref. 75kg)" valor={catalogoSel.doseStr(75)} destaque />
+              <Spec label="Frequência" valor={catalogoSel.freq} />
+              <Spec label="Quando" valor={catalogoSel.timing} />
+              <Spec label="Via" valor={catalogoSel.route} />
+              <Spec label="Ciclo" valor={catalogoSel.cycle} />
+              <Spec label="Descanso" valor={catalogoSel.rest} />
+            </div>
+            <p style={{ ...S.disclaimer, marginTop: 18 }}>
+              Orientação educacional. Cada organismo reage de forma diferente — considere avaliação profissional.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
    </PinGate>
   );
@@ -944,6 +1033,12 @@ const S: Record<string, React.CSSProperties> = {
   pillIa: { background: '#F3F0FF', color: '#6D28D9' },
   card: { background: '#fff', border: '1px solid #ECEDEE', borderRadius: 20, padding: 20, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
   pepIcon: { color: '#16A34A', width: 46, height: 46, borderRadius: 13, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  pepIconSm: { color: '#16A34A', width: 38, height: 38, borderRadius: 11, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  catGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 },
+  catItem: { display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', borderRadius: 14, border: '1.5px solid #ECEDEE', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', color: '#0E1113', textAlign: 'left' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(16,24,40,.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 100 },
+  modalCard: { background: '#fff', borderRadius: 22, padding: 22, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(16,24,40,.25)' },
+  modalClose: { background: '#F5F5F5', border: 'none', width: 32, height: 32, borderRadius: '50%', fontSize: 15, color: '#667085', cursor: 'pointer', flexShrink: 0 },
   badge: { fontSize: 11, fontWeight: 600, padding: '5px 11px', borderRadius: 100, whiteSpace: 'nowrap' },
   blocoTitulo: { display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 5, opacity: 0.9 },
   blocoTituloRow: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 5, opacity: 0.9 },
