@@ -1,0 +1,47 @@
+name: Build APK do Balcão (Nuvita Kiosk)
+
+# Compila o APK do quiosque na nuvem e disponibiliza para download.
+# Rode manualmente em Actions → "Build APK do Balcão" → Run workflow,
+# ou ele roda sozinho a cada push que altere android-kiosk/.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android-kiosk/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar pacotes do SDK
+        run: sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Gerar o Gradle wrapper
+        working-directory: android-kiosk
+        run: gradle wrapper --gradle-version 8.7 --no-daemon
+
+      - name: Compilar o APK (debug)
+        working-directory: android-kiosk
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Publicar o APK como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuvita-balcao-apk
+          path: android-kiosk/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
