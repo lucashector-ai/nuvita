@@ -271,24 +271,27 @@ export default function FarmaciaPage() {
     window.location.reload();
   };
 
+  // Recarregar: atualiza a página (pega a versão nova do site) sem deslogar.
+  const recarregar = () => window.location.reload();
+
   return (
    <PinGate>
     <div style={S.page} className="grad">
       {/* Cabeçalho com logo centralizada */}
       <header style={S.header}>
         <div style={S.headerIn}>
-          <button onClick={sair} style={S.sairBtn} title="Voltar para a tela de senha">
-            Sair
-          </button>
           <div style={S.brand}>
             <NuvitaLogo width={104} height={22} />
             <span style={S.brandTag}>Balcão</span>
           </div>
-          {rec && (
-            <button onClick={novoAtendimento} style={S.resetBtn}>
-              ↺ Novo
+          <div style={S.headerRight}>
+            <button onClick={recarregar} style={S.iconBtn} title="Atualizar a página" aria-label="Atualizar">
+              <Icon name="refresh" size={18} />
             </button>
-          )}
+            <button onClick={sair} style={S.sairBtn} title="Voltar para a tela de senha">
+              Sair
+            </button>
+          </div>
         </div>
       </header>
 
@@ -756,15 +759,32 @@ const S: Record<string, React.CSSProperties> = {
     fontWeight: 500,
     cursor: 'pointer',
   },
-  sairBtn: {
+  headerRight: {
     position: 'absolute',
-    left: 20,
+    right: 20,
     top: '50%',
     transform: 'translateY(-50%)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: '50%',
+    background: '#fff',
+    border: '1px solid #E7E7E7',
+    color: '#16A34A',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  sairBtn: {
     background: '#fff',
     border: '1px solid #E7E7E7',
     color: '#475467',
-    padding: '7px 14px',
+    padding: '8px 16px',
     borderRadius: 100,
     fontFamily: 'inherit',
     fontSize: 13,
