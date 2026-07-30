@@ -251,7 +251,7 @@ Condições de saúde: ${condicoes.length ? condicoes.join(', ') : 'nenhuma decl
 }
 
 // ─── Diagnóstico com IA (a IA escolhe os produtos) ─────────
-export async function diagnosticarComIA(r: RespostasFarmacia, estoque?: string[] | null): Promise<Recomendacao | null> {
+export async function diagnosticarComIA(r: RespostasFarmacia, estoque?: string[] | null, idioma: 'pt' | 'es' = 'pt'): Promise<Recomendacao | null> {
   const emEstoque = estoque && estoque.length ? new Set(estoque) : null;
   // Gestação bloqueia antes mesmo de chamar a IA.
   const segPrevia = aplicarSeguranca(ALL_PEPTIDES, r);
@@ -263,7 +263,7 @@ export async function diagnosticarComIA(r: RespostasFarmacia, estoque?: string[]
     const res = await fetch('/api/farmacia/diagnostico', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ perfil: montarPerfilTexto(r), estoque: estoque && estoque.length ? estoque : undefined }),
+      body: JSON.stringify({ perfil: montarPerfilTexto(r), estoque: estoque && estoque.length ? estoque : undefined, idioma }),
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -380,7 +380,7 @@ export function protocoloUmPeptideo(r: RespostasFarmacia, nomePeptideo: string):
 }
 
 // Protocolo de UM peptídeo com a IA (deep dive personalizado).
-export async function diagnosticarUmPeptideoIA(r: RespostasFarmacia, nomePeptideo: string): Promise<Recomendacao | null> {
+export async function diagnosticarUmPeptideoIA(r: RespostasFarmacia, nomePeptideo: string, idioma: 'pt' | 'es' = 'pt'): Promise<Recomendacao | null> {
   const p = findPeptide(nomePeptideo);
   if (!p) return null;
 
@@ -399,7 +399,7 @@ export async function diagnosticarUmPeptideoIA(r: RespostasFarmacia, nomePeptide
     const res = await fetch('/api/farmacia/diagnostico', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ perfil: montarPerfilTexto(r), modo: 'unico', peptideo: p.n }),
+      body: JSON.stringify({ perfil: montarPerfilTexto(r), modo: 'unico', peptideo: p.n, idioma }),
     });
     if (!res.ok) return null;
     const data = await res.json();

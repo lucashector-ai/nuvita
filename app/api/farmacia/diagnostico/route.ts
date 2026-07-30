@@ -175,10 +175,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { perfil, modo, peptideo, estoque } = await req.json();
+    const { perfil, modo, peptideo, estoque, idioma } = await req.json();
     if (!perfil || typeof perfil !== 'string' || perfil.length > 4000) {
       return NextResponse.json({ error: 'perfil inválido' }, { status: 400 });
     }
+
+    // Idioma da resposta (os campos do JSON saem no idioma escolhido).
+    const lang = idioma === 'es' ? 'es' : 'pt';
+    const IDIOMA_INSTR = lang === 'es'
+      ? '\n\nIDIOMA: responda TODO o conteúdo dos campos do JSON em ESPANHOL (español) — resumo, motivo, comoUsar, alternativa, orientações e avisos. Mantenha as CHAVES do JSON e os NOMES dos peptídeos exatamente como no catálogo (não traduza os nomes dos produtos).'
+      : '';
 
     const estoqueArr = Array.isArray(estoque) ? estoque.map((p: any) => String(p)) : null;
     const catalogo = montarCatalogo(estoqueArr);
@@ -188,16 +194,21 @@ export async function POST(req: NextRequest) {
     if (modo === 'unico') {
       const p = findPeptide(String(peptideo || ''));
       if (!p) return NextResponse.json({ error: 'peptídeo inválido' }, { status: 400 });
-      system = SYSTEM_UNICO(catalogo, p.n);
+      system = SYSTEM_UNICO(catalogo, p.n) + IDIOMA_INSTR;
       instrucao = `PERFIL DA PESSOA:\n${perfil}\n\nMonte o protocolo COMPLETO apenas de ${p.n} para esta pessoa, em JSON.`;
     } else {
-      system = SYSTEM_COMPLETO(catalogo);
+      system = SYSTEM_COMPLETO(catalogo) + IDIOMA_INSTR;
       instrucao = `PERFIL DA PESSOA (atendimento no balcão):\n${perfil}\n\nFaça o diagnóstico e monte o protocolo em JSON.`;
     }
 
     const msg = await client.messages.create({
       model: 'claude-opus-5',
-      max_tokens: 12000, // espaço para o raciocínio (ligado por padrão no Opus 5) + o JSON detalhado
+      max_tokens: 6000, // só o JSON — sem raciocínio ocupando tokens
+      // Balcão precisa ser RÁPIDO: desliga o "pensar" (adaptativo é lento) e
+      // usa esforço médio. O Opus 5 continua montando o protocolo com qualidade,
+      // mas sem a latência do raciocínio estendido.
+      thinking: { type: 'disabled' },
+      output_config: { effort: 'medium' },
       system,
       messages: [{ role: 'user', content: instrucao }],
     });

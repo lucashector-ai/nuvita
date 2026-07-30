@@ -13,6 +13,8 @@ import type { ObjectiveKey, Peptide } from '@/types';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import PinGate, { ESTOQUE_KEY, OK_KEY, NOME_KEY } from '@/components/farmacia/PinGate';
 import Icon from '@/components/farmacia/Icon';
+import TabelaFarmacia from '@/components/farmacia/TabelaFarmacia';
+import { tf, IDIOMA_KEY, type Lang } from '@/lib/farmaciaI18n';
 import {
   recomendarPeptideos,
   diagnosticarComIA,
@@ -39,44 +41,45 @@ const PAISES: Record<Pais, { ddi: string; label: string; flag: string; max: numb
 };
 
 // ─── Opções das perguntas ─────────────────────────────────
-const OBJETIVOS: { key: ObjectiveKey; label: string; icon: string }[] = [
-  { key: 'gordura', label: 'Emagrecer', icon: 'flame' },
-  { key: 'massa', label: 'Ganhar massa', icon: 'dumbbell' },
-  { key: 'recuperacao', label: 'Recuperação / lesões', icon: 'refresh' },
-  { key: 'sono', label: 'Dormir melhor', icon: 'moon' },
-  { key: 'pele', label: 'Pele / anti-idade', icon: 'sparkle' },
-  { key: 'longevidade', label: 'Longevidade / energia', icon: 'bolt' },
-  { key: 'cognitivo', label: 'Foco / cognição', icon: 'focus' },
-  { key: 'hormonal', label: 'Libido / hormonal', icon: 'flask' },
+// le = label (español); se = sub (español)
+const OBJETIVOS: { key: ObjectiveKey; label: string; le: string; icon: string }[] = [
+  { key: 'gordura', label: 'Emagrecer', le: 'Adelgazar', icon: 'flame' },
+  { key: 'massa', label: 'Ganhar massa', le: 'Ganar masa', icon: 'dumbbell' },
+  { key: 'recuperacao', label: 'Recuperação / lesões', le: 'Recuperación / lesiones', icon: 'refresh' },
+  { key: 'sono', label: 'Dormir melhor', le: 'Dormir mejor', icon: 'moon' },
+  { key: 'pele', label: 'Pele / anti-idade', le: 'Piel / antiedad', icon: 'sparkle' },
+  { key: 'longevidade', label: 'Longevidade / energia', le: 'Longevidad / energía', icon: 'bolt' },
+  { key: 'cognitivo', label: 'Foco / cognição', le: 'Enfoque / cognición', icon: 'focus' },
+  { key: 'hormonal', label: 'Libido / hormonal', le: 'Libido / hormonal', icon: 'flask' },
 ];
 
-const NIVEIS: { key: NivelFarmacia; label: string; sub: string }[] = [
-  { key: 'iniciante', label: 'Nunca usou', sub: 'Primeira vez' },
-  { key: 'intermediario', label: 'Já usou', sub: 'Alguma experiência' },
-  { key: 'avancado', label: 'Usa sempre', sub: 'Experiente' },
+const NIVEIS: { key: NivelFarmacia; label: string; le: string; sub: string; se: string }[] = [
+  { key: 'iniciante', label: 'Nunca usou', le: 'Nunca usó', sub: 'Primeira vez', se: 'Primera vez' },
+  { key: 'intermediario', label: 'Já usou', le: 'Ya usó', sub: 'Alguma experiência', se: 'Algo de experiencia' },
+  { key: 'avancado', label: 'Usa sempre', le: 'Usa siempre', sub: 'Experiente', se: 'Experto' },
 ];
 
-const ATIVIDADES: { key: AtividadeFarmacia; label: string; sub: string }[] = [
-  { key: 'sedentario', label: 'Sedentário', sub: 'Pouco exercício' },
-  { key: 'moderado', label: 'Moderado', sub: 'Treina 1–3x/sem' },
-  { key: 'ativo', label: 'Ativo', sub: 'Treina 4–5x/sem' },
-  { key: 'muito_ativo', label: 'Muito ativo', sub: 'Treina 6–7x/sem' },
+const ATIVIDADES: { key: AtividadeFarmacia; label: string; le: string; sub: string; se: string }[] = [
+  { key: 'sedentario', label: 'Sedentário', le: 'Sedentario', sub: 'Pouco exercício', se: 'Poco ejercicio' },
+  { key: 'moderado', label: 'Moderado', le: 'Moderado', sub: 'Treina 1–3x/sem', se: 'Entrena 1–3x/sem' },
+  { key: 'ativo', label: 'Ativo', le: 'Activo', sub: 'Treina 4–5x/sem', se: 'Entrena 4–5x/sem' },
+  { key: 'muito_ativo', label: 'Muito ativo', le: 'Muy activo', sub: 'Treina 6–7x/sem', se: 'Entrena 6–7x/sem' },
 ];
 
-const SONOS: { key: SonoFarmacia; label: string }[] = [
-  { key: 'ruim', label: 'Ruim' },
-  { key: 'regular', label: 'Regular' },
-  { key: 'bom', label: 'Bom' },
+const SONOS: { key: SonoFarmacia; label: string; le: string }[] = [
+  { key: 'ruim', label: 'Ruim', le: 'Malo' },
+  { key: 'regular', label: 'Regular', le: 'Regular' },
+  { key: 'bom', label: 'Bom', le: 'Bueno' },
 ];
 
-const CONDICOES: { key: CondicaoSaude; label: string; icon: string }[] = [
-  { key: 'nenhuma', label: 'Nenhuma', icon: 'check' },
-  { key: 'diabetes', label: 'Diabetes', icon: 'drop' },
-  { key: 'hipertensao', label: 'Pressão alta', icon: 'heart' },
-  { key: 'tireoide', label: 'Tireoide', icon: 'pulse' },
-  { key: 'cancer', label: 'Histórico de câncer', icon: 'ribbon' },
-  { key: 'gestacao', label: 'Gestante / amamentando', icon: 'person' },
-  { key: 'outros', label: 'Outros', icon: 'pencil' },
+const CONDICOES: { key: CondicaoSaude; label: string; le: string; icon: string }[] = [
+  { key: 'nenhuma', label: 'Nenhuma', le: 'Ninguna', icon: 'check' },
+  { key: 'diabetes', label: 'Diabetes', le: 'Diabetes', icon: 'drop' },
+  { key: 'hipertensao', label: 'Pressão alta', le: 'Presión alta', icon: 'heart' },
+  { key: 'tireoide', label: 'Tireoide', le: 'Tiroides', icon: 'pulse' },
+  { key: 'cancer', label: 'Histórico de câncer', le: 'Antecedente de cáncer', icon: 'ribbon' },
+  { key: 'gestacao', label: 'Gestante / amamentando', le: 'Embarazo / lactancia', icon: 'person' },
+  { key: 'outros', label: 'Outros', le: 'Otros', icon: 'pencil' },
 ];
 
 const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string }> = {
@@ -107,6 +110,8 @@ export default function FarmaciaPage() {
   const [telefone, setTelefone] = useState('');
   const [pais, setPais] = useState<'BR' | 'PY'>('BR');
 
+  const [idioma, setIdioma] = useState<Lang>('pt');
+
   const [rec, setRec] = useState<Recomendacao | null>(null);
   const [erro, setErro] = useState('');
   const [enviado, setEnviado] = useState(false);
@@ -124,10 +129,19 @@ export default function FarmaciaPage() {
         const arr = JSON.parse(raw);
         if (Array.isArray(arr)) setEstoque(arr);
       }
+      const idi = sessionStorage.getItem(IDIOMA_KEY);
+      if (idi === 'es' || idi === 'pt') setIdioma(idi);
     } catch {
       /* ignore */
     }
   }, []);
+
+  const trocarIdioma = (l: Lang) => {
+    setIdioma(l);
+    try { sessionStorage.setItem(IDIOMA_KEY, l); } catch { /* ignore */ }
+  };
+  // Atalho de tradução: t('português', 'español')
+  const t = (pt: string, es: string) => tf(idioma, pt, es);
 
   // Peptídeos que a farmácia tem (para o modo "um peptídeo").
   const peptidesDisponiveis = useMemo(
@@ -178,23 +192,23 @@ export default function FarmaciaPage() {
   const gerar = async () => {
     setErro('');
     setEnviado(false);
-    if (modo === 'unico' && !peptideoUnico) return setErro('Selecione o peptídeo que a pessoa usa.');
-    if (modo === 'completo' && !objetivos.length) return setErro('Selecione ao menos um objetivo.');
-    if (!peso || Number(peso) < 30 || Number(peso) > 300) return setErro('Informe um peso válido (kg).');
-    if (!altura || Number(altura) < 120 || Number(altura) > 230) return setErro('Informe uma altura válida (cm).');
-    if (!idade || Number(idade) < 16 || Number(idade) > 100) return setErro('Informe uma idade válida.');
-    if (!nivel) return setErro('Selecione a experiência com peptídeos.');
-    if (condicoes.includes('outros') && !condicaoOutros.trim()) return setErro('Descreva a outra condição de saúde.');
+    if (modo === 'unico' && !peptideoUnico) return setErro(t('Selecione o peptídeo que a pessoa usa.', 'Seleccione el péptido que la persona usa.'));
+    if (modo === 'completo' && !objetivos.length) return setErro(t('Selecione ao menos um objetivo.', 'Seleccione al menos un objetivo.'));
+    if (!peso || Number(peso) < 30 || Number(peso) > 300) return setErro(t('Informe um peso válido (kg).', 'Ingrese un peso válido (kg).'));
+    if (!altura || Number(altura) < 120 || Number(altura) > 230) return setErro(t('Informe uma altura válida (cm).', 'Ingrese una altura válida (cm).'));
+    if (!idade || Number(idade) < 16 || Number(idade) > 100) return setErro(t('Informe uma idade válida.', 'Ingrese una edad válida.'));
+    if (!nivel) return setErro(t('Selecione a experiência com peptídeos.', 'Seleccione la experiencia con péptidos.'));
+    if (condicoes.includes('outros') && !condicaoOutros.trim()) return setErro(t('Descreva a outra condição de saúde.', 'Describa la otra condición de salud.'));
     // Nome e WhatsApp são pedidos só depois, se a pessoa quiser receber o protocolo.
 
     setGerando(true);
     // A IA faz o diagnóstico; se indisponível/rate-limit, usa o determinístico.
     let resultado: Recomendacao | null;
     if (modo === 'unico') {
-      resultado = await diagnosticarUmPeptideoIA(respostas!, peptideoUnico);
+      resultado = await diagnosticarUmPeptideoIA(respostas!, peptideoUnico, idioma);
       if (!resultado) resultado = protocoloUmPeptideo(respostas!, peptideoUnico);
     } else {
-      resultado = await diagnosticarComIA(respostas!, estoque);
+      resultado = await diagnosticarComIA(respostas!, estoque, idioma);
       if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) {
         resultado = recomendarPeptideos(respostas!, estoque);
       }
@@ -371,11 +385,17 @@ export default function FarmaciaPage() {
             <span style={S.brandTag}>Balcão</span>
           </div>
           <div style={S.headerRight}>
-            <button onClick={recarregar} style={S.iconBtn} title="Atualizar a página" aria-label="Atualizar">
+            <div style={S.langWrap} role="group" aria-label="Idioma">
+              <button onClick={() => trocarIdioma('pt')}
+                style={{ ...S.langBtn, ...(idioma === 'pt' ? S.langBtnOn : {}) }}>PT</button>
+              <button onClick={() => trocarIdioma('es')}
+                style={{ ...S.langBtn, ...(idioma === 'es' ? S.langBtnOn : {}) }}>ES</button>
+            </div>
+            <button onClick={recarregar} style={S.iconBtn} title={t('Atualizar a página', 'Actualizar la página')} aria-label={t('Atualizar', 'Actualizar')}>
               <Icon name="refresh" size={18} />
             </button>
-            <button onClick={sair} style={S.sairBtn} title="Voltar para a tela de senha">
-              Sair
+            <button onClick={sair} style={S.sairBtn} title={t('Voltar para a tela de senha', 'Volver a la pantalla de contraseña')}>
+              {t('Sair', 'Salir')}
             </button>
           </div>
         </div>
@@ -386,14 +406,18 @@ export default function FarmaciaPage() {
         <div style={{ opacity: rec ? 0.4 : 1, pointerEvents: rec ? 'none' : 'auto', transition: 'opacity .25s' }}>
           <div style={S.hero}>
             <h1 style={S.h1}>
-              {modo === 'unico' ? 'Protocolo de um peptídeo' : modo === 'catalogo' ? 'Catálogo de peptídeos' : 'Diagnóstico de peptídeos'}
+              {modo === 'unico'
+                ? t('Protocolo de um peptídeo', 'Protocolo de un péptido')
+                : modo === 'catalogo'
+                  ? t('Catálogo de peptídeos', 'Catálogo de péptidos')
+                  : t('Diagnóstico de peptídeos', 'Diagnóstico de péptidos')}
             </h1>
             <p style={S.lead}>
               {modo === 'unico'
-                ? 'A pessoa já usa um peptídeo? Monte o protocolo dele.'
+                ? t('A pessoa já usa um peptídeo? Monte o protocolo dele.', '¿La persona ya usa un péptido? Arme su protocolo.')
                 : modo === 'catalogo'
-                  ? 'Toque em um produto para ver o que é, o que faz e como usar.'
-                  : 'Responda com a pessoa. Rápido e sob medida.'}
+                  ? t('Toque em um produto para ver o que é, o que faz e como usar.', 'Toque un producto para ver qué es, qué hace y cómo usar.')
+                  : t('Responda com a pessoa. Rápido e sob medida.', 'Responda con la persona. Rápido y a medida.')}
             </p>
           </div>
 
@@ -405,8 +429,8 @@ export default function FarmaciaPage() {
             >
               <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="search" size={19} /></span>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>Diagnóstico completo</div>
-                <div style={S.modoSub}>Encontrar os peptídeos ideais</div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Diagnóstico completo', 'Diagnóstico completo')}</div>
+                <div style={S.modoSub}>{t('Encontrar os peptídeos ideais', 'Encontrar los péptidos ideales')}</div>
               </div>
             </button>
             <button
@@ -415,8 +439,8 @@ export default function FarmaciaPage() {
             >
               <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="pill" size={19} /></span>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>Um peptídeo só</div>
-                <div style={S.modoSub}>Já sabe qual? Faça o protocolo dele</div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Um peptídeo só', 'Un solo péptido')}</div>
+                <div style={S.modoSub}>{t('Já sabe qual? Faça o protocolo dele', '¿Ya sabe cuál? Arme su protocolo')}</div>
               </div>
             </button>
             <button
@@ -425,8 +449,8 @@ export default function FarmaciaPage() {
             >
               <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="clipboard" size={19} /></span>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>Catálogo</div>
-                <div style={S.modoSub}>Ver o que cada produto faz</div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Catálogo', 'Catálogo')}</div>
+                <div style={S.modoSub}>{t('Ver o que cada produto faz', 'Ver qué hace cada producto')}</div>
               </div>
             </button>
           </div>
@@ -436,7 +460,7 @@ export default function FarmaciaPage() {
             <div style={S.section}>
               <input
                 className="inp"
-                placeholder="Buscar produto…"
+                placeholder={t('Buscar produto…', 'Buscar producto…')}
                 value={buscaCatalogo}
                 onChange={(e) => setBuscaCatalogo(e.target.value)}
                 style={{ ...S.inpBig, marginBottom: 14 }}
@@ -454,7 +478,7 @@ export default function FarmaciaPage() {
                         <span style={{ fontWeight: 600, fontSize: 14.5, display: 'block' }}>{p.n}</span>
                         <span style={{ fontSize: 12, color: '#98A2B3', lineHeight: 1.35 }}>{p.m}</span>
                       </span>
-                      <span style={{ color: '#16A34A', fontSize: 13, fontWeight: 600 }}>Ver</span>
+                      <span style={{ color: '#16A34A', fontSize: 13, fontWeight: 600 }}>{t('Ver', 'Ver')}</span>
                     </button>
                   ))}
               </div>
@@ -466,17 +490,17 @@ export default function FarmaciaPage() {
           <>
           {/* 1 · Objetivo (completo) ou Peptídeo (único) */}
           {modo === 'completo' ? (
-            <Section n="1" titulo="Qual o objetivo?" hint="até 3">
+            <Section n="1" titulo={t('Qual o objetivo?', '¿Cuál es el objetivo?')} hint={t('até 3', 'hasta 3')}>
               <div style={S.gridAuto}>
                 {OBJETIVOS.map((o) => (
                   <Chip key={o.key} ativo={objetivos.includes(o.key)} onClick={() => toggleObjetivo(o.key)} icon={o.icon}>
-                    {o.label}
+                    {idioma === 'es' ? o.le : o.label}
                   </Chip>
                 ))}
               </div>
             </Section>
           ) : (
-            <Section n="1" titulo="Qual peptídeo a pessoa usa?" hint="escolha 1">
+            <Section n="1" titulo={t('Qual peptídeo a pessoa usa?', '¿Qué péptido usa la persona?')} hint={t('escolha 1', 'elija 1')}>
               <div style={S.gridAuto}>
                 {peptidesDisponiveis.map((p) => (
                   <Chip key={p.n} ativo={peptideoUnico === p.n} onClick={() => setPeptideoUnico(p.n)}>
@@ -488,17 +512,17 @@ export default function FarmaciaPage() {
           )}
 
           {/* 2 · Dados físicos */}
-          <Section n="2" titulo="Dados físicos">
+          <Section n="2" titulo={t('Dados físicos', 'Datos físicos')}>
             <div style={S.grid3}>
-              <Campo label="Peso" unidade="kg">
+              <Campo label={t('Peso', 'Peso')} unidade="kg">
                 <input className="inp" placeholder="75" inputMode="numeric" value={peso}
                   onChange={(e) => setPeso(soNumero(e.target.value, 3))} style={S.inpBig} />
               </Campo>
-              <Campo label="Altura" unidade="cm">
+              <Campo label={t('Altura', 'Altura')} unidade="cm">
                 <input className="inp" placeholder="175" inputMode="numeric" value={altura}
                   onChange={(e) => setAltura(soNumero(e.target.value, 3))} style={S.inpBig} />
               </Campo>
-              <Campo label="Idade" unidade="anos">
+              <Campo label={t('Idade', 'Edad')} unidade={t('anos', 'años')}>
                 <input className="inp" placeholder="34" inputMode="numeric" value={idade}
                   onChange={(e) => setIdade(soNumero(e.target.value, 3))} style={S.inpBig} />
               </Campo>
@@ -512,12 +536,12 @@ export default function FarmaciaPage() {
           </Section>
 
           {/* 3 · Sexo */}
-          <Section n="3" titulo="Sexo" opcional>
+          <Section n="3" titulo={t('Sexo', 'Sexo')} opcional>
             <div style={S.grid3}>
               {[
-                { k: 'masculino', l: 'Masculino' },
-                { k: 'feminino', l: 'Feminino' },
-                { k: 'ni', l: 'Prefiro não dizer' },
+                { k: 'masculino', l: t('Masculino', 'Masculino') },
+                { k: 'feminino', l: t('Feminino', 'Femenino') },
+                { k: 'ni', l: t('Prefiro não dizer', 'Prefiero no decir') },
               ].map((o) => (
                 <Chip key={o.k} ativo={sexo === o.k} onClick={() => setSexo(o.k as any)}>
                   {o.l}
@@ -527,47 +551,47 @@ export default function FarmaciaPage() {
           </Section>
 
           {/* 4 · Experiência */}
-          <Section n="4" titulo="Já usou peptídeos?">
+          <Section n="4" titulo={t('Já usou peptídeos?', '¿Ya usó péptidos?')}>
             <div style={S.grid3}>
               {NIVEIS.map((o) => (
-                <Chip key={o.key} ativo={nivel === o.key} onClick={() => setNivel(o.key)} coluna label={o.label} sub={o.sub} />
+                <Chip key={o.key} ativo={nivel === o.key} onClick={() => setNivel(o.key)} coluna label={idioma === 'es' ? o.le : o.label} sub={idioma === 'es' ? o.se : o.sub} />
               ))}
             </div>
           </Section>
 
           {/* 5 · Atividade física */}
-          <Section n="5" titulo="Atividade física">
+          <Section n="5" titulo={t('Atividade física', 'Actividad física')}>
             <div style={S.gridAuto}>
               {ATIVIDADES.map((o) => (
-                <Chip key={o.key} ativo={atividade === o.key} onClick={() => setAtividade(o.key)} coluna label={o.label} sub={o.sub} />
+                <Chip key={o.key} ativo={atividade === o.key} onClick={() => setAtividade(o.key)} coluna label={idioma === 'es' ? o.le : o.label} sub={idioma === 'es' ? o.se : o.sub} />
               ))}
             </div>
           </Section>
 
           {/* 6 · Sono */}
-          <Section n="6" titulo="Como está o sono?">
+          <Section n="6" titulo={t('Como está o sono?', '¿Cómo está el sueño?')}>
             <div style={S.grid3}>
               {SONOS.map((o) => (
                 <Chip key={o.key} ativo={sono === o.key} onClick={() => setSono(o.key)}>
-                  {o.label}
+                  {idioma === 'es' ? o.le : o.label}
                 </Chip>
               ))}
             </div>
           </Section>
 
           {/* 7 · Condições de saúde */}
-          <Section n="7" titulo="Condição de saúde?" hint="segurança">
+          <Section n="7" titulo={t('Condição de saúde?', '¿Condición de salud?')} hint={t('segurança', 'seguridad')}>
             <div style={S.gridAuto}>
               {CONDICOES.map((o) => (
                 <Chip key={o.key} ativo={condicoes.includes(o.key)} onClick={() => toggleCondicao(o.key)} icon={o.icon}>
-                  {o.label}
+                  {idioma === 'es' ? o.le : o.label}
                 </Chip>
               ))}
             </div>
             {condicoes.includes('outros') && (
               <input
                 className="inp"
-                placeholder="Qual condição? (ex.: problema renal, alergia…)"
+                placeholder={t('Qual condição? (ex.: problema renal, alergia…)', '¿Qué condición? (ej.: problema renal, alergia…)')}
                 value={condicaoOutros}
                 onChange={(e) => setCondicaoOutros(e.target.value.slice(0, 120))}
                 style={{ ...S.inpBig, marginTop: 12 }}
@@ -582,8 +606,8 @@ export default function FarmaciaPage() {
             <button onClick={gerar} disabled={gerando}
               style={{ ...S.cta, opacity: gerando ? 0.7 : 1, cursor: gerando ? 'wait' : 'pointer' }}>
               {gerando
-                ? 'Analisando o perfil…'
-                : modo === 'unico' ? 'Gerar protocolo' : 'Gerar diagnóstico'}
+                ? t('Analisando o perfil…', 'Analizando el perfil…')
+                : modo === 'unico' ? t('Gerar protocolo', 'Generar protocolo') : t('Gerar diagnóstico', 'Generar diagnóstico')}
             </button>
           )}
           </>
@@ -596,15 +620,15 @@ export default function FarmaciaPage() {
             <div style={S.divider} />
 
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-              <h2 style={S.h2}>{nome.trim() ? `Protocolo de ${nome.split(' ')[0]}` : 'Protocolo'}</h2>
+              <h2 style={S.h2}>{nome.trim() ? `${t('Protocolo de', 'Protocolo de')} ${nome.split(' ')[0]}` : t('Protocolo', 'Protocolo')}</h2>
               <span className="pill" style={rec.fonte === 'ia' ? S.pillIa : undefined}>
-                <span className="pdot" /> {rec.fonte === 'ia' ? 'Diagnóstico IA' : 'Gerado'}
+                <span className="pdot" /> {rec.fonte === 'ia' ? t('Diagnóstico IA', 'Diagnóstico IA') : t('Gerado', 'Generado')}
               </span>
             </div>
             <div style={S.perfilLinha}>
-              {idade && <span>{idade} anos</span>}
+              {idade && <span>{idade} {t('anos', 'años')}</span>}
               {imc && <span>· IMC {imc.valor} ({imc.classe})</span>}
-              {atividade && <span>· {ATIVIDADES.find((a) => a.key === atividade)?.label}</span>}
+              {atividade && <span>· {idioma === 'es' ? ATIVIDADES.find((a) => a.key === atividade)?.le : ATIVIDADES.find((a) => a.key === atividade)?.label}</span>}
             </div>
 
             {rec.avisos.map((a, i) => (
@@ -623,7 +647,7 @@ export default function FarmaciaPage() {
               <>
                 {rec.resumo && (
                   <div style={S.iaResumo}>
-                    <div style={S.iaResumoTitulo}>Resumo para explicar ao paciente</div>
+                    <div style={S.iaResumoTitulo}>{t('Resumo para explicar ao paciente', 'Resumen para explicar al paciente')}</div>
                     <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>{rec.resumo}</p>
                   </div>
                 )}
@@ -647,7 +671,7 @@ export default function FarmaciaPage() {
                           <div style={ehIa ? S.whyIa : S.why}>
                             <span style={S.blocoTituloRow}>
                               <Icon name="bulb" size={13} />
-                              {ehIa ? 'Por que para esta pessoa' : 'Por que recomendado'}
+                              {ehIa ? t('Por que para esta pessoa', 'Por qué para esta persona') : t('Por que recomendado', 'Por qué recomendado')}
                             </span>
                             {it.motivo}
                           </div>
@@ -657,7 +681,7 @@ export default function FarmaciaPage() {
                           <div style={S.comoUsar}>
                             <span style={S.blocoTituloRow}>
                               <Icon name="clipboard" size={13} />
-                              Como usar
+                              {t('Como usar', 'Cómo usar')}
                             </span>
                             {it.comoUsar}
                           </div>
@@ -667,19 +691,19 @@ export default function FarmaciaPage() {
                           <div style={S.alternativa}>
                             <span style={S.blocoTituloRow}>
                               <Icon name="refresh" size={13} />
-                              Comparação / alternativa
+                              {t('Comparação / alternativa', 'Comparación / alternativa')}
                             </span>
                             {it.alternativa}
                           </div>
                         )}
 
                         <div style={S.specGrid}>
-                          <Spec label="Dose" valor={it.dose} destaque />
-                          <Spec label="Frequência" valor={it.peptide.freq} />
-                          <Spec label="Quando" valor={it.peptide.timing} />
-                          <Spec label="Via" valor={it.peptide.route} />
-                          <Spec label="Ciclo" valor={it.peptide.cycle} />
-                          <Spec label="Descanso" valor={it.peptide.rest} />
+                          <Spec label={t('Dose', 'Dosis')} valor={it.dose} destaque />
+                          <Spec label={t('Frequência', 'Frecuencia')} valor={it.peptide.freq} />
+                          <Spec label={t('Quando', 'Cuándo')} valor={it.peptide.timing} />
+                          <Spec label={t('Via', 'Vía')} valor={it.peptide.route} />
+                          <Spec label={t('Ciclo', 'Ciclo')} valor={it.peptide.cycle} />
+                          <Spec label={t('Descanso', 'Descanso')} valor={it.peptide.rest} />
                         </div>
                       </div>
                     );
@@ -688,15 +712,18 @@ export default function FarmaciaPage() {
 
                 {rec.removidosPorSeguranca.length > 0 && (
                   <div style={{ ...S.hint, marginTop: 14 }}>
-                    Removido(s) por segurança: {rec.removidosPorSeguranca.join(', ')}.
+                    {t('Removido(s) por segurança', 'Removido(s) por seguridad')}: {rec.removidosPorSeguranca.join(', ')}.
                   </div>
                 )}
 
+                {/* Tabela de quantidade/preparo — só para a farmácia */}
+                <TabelaFarmacia rec={rec} lang={idioma} />
+
                 {(rec.orientacaoAlimentar || rec.orientacaoTreino || rec.observacoes || rec.avisoMedico) && (
                   <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
-                    {rec.orientacaoAlimentar && <Orientacao icon="fork" titulo="Alimentação" texto={rec.orientacaoAlimentar} />}
-                    {rec.orientacaoTreino && <Orientacao icon="dumbbell" titulo="Treino" texto={rec.orientacaoTreino} />}
-                    {rec.observacoes && <Orientacao icon="eye" titulo="O que observar" texto={rec.observacoes} />}
+                    {rec.orientacaoAlimentar && <Orientacao icon="fork" titulo={t('Alimentação', 'Alimentación')} texto={rec.orientacaoAlimentar} />}
+                    {rec.orientacaoTreino && <Orientacao icon="dumbbell" titulo={t('Treino', 'Entrenamiento')} texto={rec.orientacaoTreino} />}
+                    {rec.observacoes && <Orientacao icon="eye" titulo={t('O que observar', 'Qué observar')} texto={rec.observacoes} />}
                     {rec.avisoMedico && <div className="disc" style={{ marginTop: 2 }}>{rec.avisoMedico}</div>}
                   </div>
                 )}
@@ -708,20 +735,20 @@ export default function FarmaciaPage() {
                       <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
                         <Icon name="check" size={30} />
                       </div>
-                      <div style={{ fontWeight: 600, fontSize: 16 }}>Protocolo enviado no WhatsApp!</div>
+                      <div style={{ fontWeight: 600, fontSize: 16 }}>{t('Protocolo enviado no WhatsApp!', '¡Protocolo enviado por WhatsApp!')}</div>
                       <div style={{ fontSize: 13, color: '#667085', marginTop: 3 }}>
-                        Enviamos o PDF para +{telefoneE164()}.
+                        {t('Enviamos o PDF para', 'Enviamos el PDF a')} +{telefoneE164()}.
                       </div>
                     </div>
                   ) : (
                     <>
-                      <div style={{ fontWeight: 600, fontSize: 16 }}>Quer receber o protocolo?</div>
+                      <div style={{ fontWeight: 600, fontSize: 16 }}>{t('Quer receber o protocolo?', '¿Quiere recibir el protocolo?')}</div>
                       <div style={{ fontSize: 13, color: '#667085', marginTop: 3, marginBottom: 14 }}>
-                        Se a pessoa tiver interesse, preencha os dados que enviamos o protocolo em PDF
-                        direto no WhatsApp dela.
+                        {t('Se a pessoa tiver interesse, preencha os dados que enviamos o protocolo em PDF direto no WhatsApp dela.',
+                           'Si la persona tiene interés, complete los datos y enviamos el protocolo en PDF directo a su WhatsApp.')}
                       </div>
-                      <Campo label="Nome da pessoa">
-                        <input className="inp" placeholder="Nome completo" value={nome}
+                      <Campo label={t('Nome da pessoa', 'Nombre de la persona')}>
+                        <input className="inp" placeholder={t('Nome completo', 'Nombre completo')} value={nome}
                           onChange={(e) => { setEnviarErro(''); setNome(e.target.value); }} style={S.inpBig} />
                       </Campo>
                       <div style={{ marginTop: 12 }}>
@@ -742,26 +769,28 @@ export default function FarmaciaPage() {
                       </div>
                       {enviarErro && (
                         <div style={{ ...S.hint, color: '#B45309', marginTop: 10 }}>
-                          {enviarErro} <button onClick={abrirWhatsAppManual} style={S.linkBtn}>Abrir no WhatsApp</button>
+                          {enviarErro} <button onClick={abrirWhatsAppManual} style={S.linkBtn}>{t('Abrir no WhatsApp', 'Abrir en WhatsApp')}</button>
                         </div>
                       )}
                       <button onClick={enviarProtocolo} disabled={enviando}
                         style={{ ...S.waBtn, ...S.waBtnFull, opacity: enviando ? 0.7 : 1 }}>
-                        {enviando ? 'Enviando…' : 'Enviar no WhatsApp'}
+                        {enviando ? t('Enviando…', 'Enviando…') : t('Enviar no WhatsApp', 'Enviar por WhatsApp')}
                       </button>
                     </>
                   )}
                 </div>
 
                 <button onClick={novoAtendimento} style={S.secondaryBtn}>
-                  ↺ Iniciar novo atendimento
+                  ↺ {t('Iniciar novo atendimento', 'Iniciar nueva atención')}
                 </button>
               </>
             )}
 
             <p style={S.disclaimer}>
-              A Nuvita oferece orientação educacional. Cada organismo reage de forma diferente — o uso deve
-              considerar avaliação profissional quando indicado.
+              {t(
+                'A Nuvita oferece orientação educacional. Cada organismo reage de forma diferente — o uso deve considerar avaliação profissional quando indicado.',
+                'Nuvita ofrece orientación educativa. Cada organismo reacciona de forma diferente — el uso debe considerar evaluación profesional cuando corresponda.',
+              )}
             </p>
           </div>
         )}
@@ -777,29 +806,30 @@ export default function FarmaciaPage() {
                 <div style={{ fontWeight: 600, fontSize: 18, letterSpacing: '-.02em' }}>{catalogoSel.n}</div>
                 <div style={{ fontSize: 13, color: '#667085', lineHeight: 1.4 }}>{catalogoSel.m}</div>
               </div>
-              <button onClick={() => setCatalogoSel(null)} style={S.modalClose} aria-label="Fechar">✕</button>
+              <button onClick={() => setCatalogoSel(null)} style={S.modalClose} aria-label={t('Fechar', 'Cerrar')}>✕</button>
             </div>
 
             {catalogoSel.why && (
               <div style={S.why}>
-                <span style={S.blocoTituloRow}><Icon name="bulb" size={13} /> O que faz</span>
+                <span style={S.blocoTituloRow}><Icon name="bulb" size={13} /> {t('O que faz', 'Qué hace')}</span>
                 {catalogoSel.why}
               </div>
             )}
             <div style={S.comoUsar}>
-              <span style={S.blocoTituloRow}><Icon name="clipboard" size={13} /> Como usar</span>
+              <span style={S.blocoTituloRow}><Icon name="clipboard" size={13} /> {t('Como usar', 'Cómo usar')}</span>
               {catalogoSel.how}
             </div>
             <div style={S.specGrid}>
-              <Spec label="Dose (ref. 75kg)" valor={catalogoSel.doseStr(75)} destaque />
-              <Spec label="Frequência" valor={catalogoSel.freq} />
-              <Spec label="Quando" valor={catalogoSel.timing} />
-              <Spec label="Via" valor={catalogoSel.route} />
-              <Spec label="Ciclo" valor={catalogoSel.cycle} />
-              <Spec label="Descanso" valor={catalogoSel.rest} />
+              <Spec label={t('Dose (ref. 75kg)', 'Dosis (ref. 75kg)')} valor={catalogoSel.doseStr(75)} destaque />
+              <Spec label={t('Frequência', 'Frecuencia')} valor={catalogoSel.freq} />
+              <Spec label={t('Quando', 'Cuándo')} valor={catalogoSel.timing} />
+              <Spec label={t('Via', 'Vía')} valor={catalogoSel.route} />
+              <Spec label={t('Ciclo', 'Ciclo')} valor={catalogoSel.cycle} />
+              <Spec label={t('Descanso', 'Descanso')} valor={catalogoSel.rest} />
             </div>
             <p style={{ ...S.disclaimer, marginTop: 18 }}>
-              Orientação educacional. Cada organismo reage de forma diferente — considere avaliação profissional.
+              {t('Orientação educacional. Cada organismo reage de forma diferente — considere avaliação profissional.',
+                 'Orientación educativa. Cada organismo reacciona de forma diferente — considere evaluación profesional.')}
             </p>
           </div>
         </div>
@@ -966,6 +996,9 @@ const S: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 8,
   },
+  langWrap: { display: 'flex', border: '1px solid #E7E7E7', borderRadius: 999, overflow: 'hidden', background: '#fff' },
+  langBtn: { padding: '7px 12px', fontSize: 12.5, fontWeight: 600, border: 'none', background: 'transparent', color: '#98A2B3', cursor: 'pointer', fontFamily: 'inherit' },
+  langBtnOn: { background: '#16A34A', color: '#fff' },
   iconBtn: {
     width: 38,
     height: 38,
