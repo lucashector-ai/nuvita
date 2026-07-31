@@ -38,16 +38,6 @@ const IPAMORELIN: Peptide = {
   ck: true, doseStr: fixedDose('200–300 mcg'),
 };
 
-const CJC1295: Peptide = {
-  n: 'CJC-1295', m: 'GHRH análogo — amplifica pulsos de GH, sinérgico com Ipamorelin',
-  e: '⚗️', why: 'Aumenta a amplitude dos pulsos de GH quando combinado com secretagogos',
-  freq: '2–3x/semana', timing: 'Antes de dormir, jejum de 2h', route: 'SC',
-  cycle: '8–12 semanas', rest: '4 semanas',
-  how: 'Geralmente combinado com Ipamorelin na mesma seringa.',
-  ck: false, doseStr: fixedDose('100–200 mcg'),
-};
-
-
 const TIRZEPATIDE: Peptide = {
   n: 'Tirzepatide', m: 'Agonista duplo GIP+GLP-1 — emagrecimento, saciedade, controle glicêmico',
   e: '🔥', why: 'O mais eficaz disponível para perda de gordura — reduz apetite, estimula lipólise e melhora metabolismo',
@@ -73,15 +63,6 @@ const AOD9604: Peptide = {
   cycle: '8–12 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática. Aplicar em jejum de 2h.',
   ck: true, doseStr: fixedDose('300 mcg'),
-};
-
-const MK677: Peptide = {
-  n: 'MK-677 (Ibutamoren)', m: 'Secretagogo oral de GH — anabolismo, sono profundo, IGF-1',
-  e: '💊', why: 'Aumenta IGF-1 e GH sem injeções, favorece ganho de massa e sono',
-  freq: 'Diário', timing: 'Antes de dormir', route: 'Oral',
-  cycle: '12–24 semanas', rest: '8 semanas',
-  how: 'Cápsula ou solução oral. Pode causar retenção hídrica inicial.',
-  ck: true, doseStr: fixedDose('15–25 mg/dia'),
 };
 
 const IGF1LR3: Peptide = {
@@ -118,15 +99,6 @@ const GHK_CU: Peptide = {
   cycle: '8–16 semanas', rest: '4 semanas',
   how: 'Tópico: aplicar no rosto após limpeza. SC: reconstituir em água bacteriostática.',
   ck: true, doseStr: fixedDose('1–2 mg/dia (SC) ou 2–5% (tópico)'),
-};
-
-const SNAP8: Peptide = {
-  n: 'SNAP-8 / Argireline', m: 'Relaxante muscular tópico — reduz linhas de expressão',
-  e: '💆', why: 'Inibe contrações musculares na face, reduzindo rugas dinâmicas',
-  freq: 'Diário', timing: 'Manhã e noite', route: 'Tópico',
-  cycle: 'Contínuo', rest: 'Não necessário',
-  how: 'Aplicar 2x/dia nas áreas com rugas de expressão. Concentração usual: 5–10%.',
-  ck: false, doseStr: fixedDose('5–10% (tópico)'),
 };
 
 const SEMAX: Peptide = {
@@ -302,17 +274,33 @@ const TB500BPC: Peptide = {
   how: 'Reconstituir o frasco do blend conforme o fabricante.',
   ck: true, doseStr: fixedDose('conforme reconstituição do blend'),
 };
+const SERMORELIN: Peptide = {
+  n: 'Sermorelin', m: 'Análogo de GHRH — estimula GH natural, sono, recuperação e composição corporal',
+  e: '🌙', why: 'Estimula a hipófise a liberar GH de forma pulsátil e fisiológica, apoiando massa magra, sono e recuperação',
+  freq: 'Diário', timing: 'Antes de dormir, jejum de 2h', route: 'SC',
+  cycle: '12–24 semanas', rest: '4 semanas',
+  how: 'Reconstituir com água bacteriostática. Aplicar à noite, em jejum.',
+  ck: true, doseStr: fixedDose('100–300 mcg'),
+};
+const GLUTATHIONE: Peptide = {
+  n: 'Glutathione', m: 'Antioxidante mestre — detox, pele e longevidade celular',
+  e: '✨', why: 'Principal antioxidante do corpo: protege as células, clareia e uniformiza a pele e apoia a detoxificação',
+  freq: '2–3x/semana', timing: 'Qualquer horário', route: 'SC, IM ou IV',
+  cycle: '4–8 semanas', rest: '4 semanas',
+  how: 'Reconstituir conforme o fabricante. Proteger da luz.',
+  ck: true, doseStr: fixedDose('600–1500 mg'),
+};
 
 // ─── Mapa por objetivo ────────────────────────────────────
 export const PEPTIDES: Record<ObjectiveKey, Peptide[]> = {
-  gordura:     [TIRZEPATIDE, RETATRUTIDE, AOD9604, HGHFRAG, TESAMORELIN, MOTSC, SLUPP332, AMINO1MQ, CBL514, IPAMORELIN, CJC1295],
-  massa:       [IPAMORELIN, CJC1295, MK677, IGF1LR3, HGH, FOLLISTATIN, TESAMORELIN, BPC157],
-  recuperacao: [TB500BPC, BPC157, TB500, KPV, KLOW, IPAMORELIN, CJC1295],
-  sono:        [IPAMORELIN, DSIP, EPITALON, MK677],
-  pele:        [GLOW, GHK_CU, KLOW, SNAP8, MELANOTAN, BPC157, EPITALON],
-  longevidade: [EPITALON, NADPLUS, SS31, MOTSC, THYMOSIN_A1, GHK_CU, BPC157, IPAMORELIN],
+  gordura:     [TIRZEPATIDE, RETATRUTIDE, AOD9604, HGHFRAG, TESAMORELIN, MOTSC, SLUPP332, AMINO1MQ, CBL514, IPAMORELIN],
+  massa:       [IPAMORELIN, SERMORELIN, IGF1LR3, HGH, FOLLISTATIN, TESAMORELIN, BPC157],
+  recuperacao: [TB500BPC, BPC157, TB500, KPV, KLOW, IPAMORELIN, SERMORELIN],
+  sono:        [IPAMORELIN, DSIP, EPITALON, SERMORELIN],
+  pele:        [GLOW, GHK_CU, KLOW, GLUTATHIONE, MELANOTAN, BPC157, EPITALON],
+  longevidade: [EPITALON, NADPLUS, SS31, MOTSC, THYMOSIN_A1, GHK_CU, GLUTATHIONE, BPC157, IPAMORELIN],
   cognitivo:   [SEMAX, SELANK, BPC157, IPAMORELIN],
-  hormonal:    [PT141, KISSPEPTIN, MELANOTAN, IPAMORELIN, CJC1295, MK677],
+  hormonal:    [PT141, KISSPEPTIN, MELANOTAN, IPAMORELIN],
 };
 
 // ─── Catálogo completo (união de todos os peptídeos) ──────

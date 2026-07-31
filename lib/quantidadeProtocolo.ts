@@ -141,6 +141,8 @@ export const FRASCO_MG: Record<string, number> = {
   'Selank': 11,
   'PT-141 (Bremelanotida)': 10,
   'Kisspeptin-10': 10,
+  'Sermorelin': 10,
+  'Glutathione': 1500,
 };
 
 // Frasco do peptídeo pelo nome (catálogo). Se não houver, usa o padrão pela dose.

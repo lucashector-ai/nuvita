@@ -98,9 +98,9 @@ const COND_LABEL: Record<CondicaoSaude, string> = {
 };
 
 // ─── Segurança ─────────────────────────────────────────────
-const GLICEMICOS = new Set(['Tirzepatide', 'Retatrutide', 'Semaglutide', 'MK-677 (Ibutamoren)']);
+const GLICEMICOS = new Set(['Tirzepatide', 'Retatrutide', 'Semaglutide']);
 const ANABOLICOS = new Set([
-  'Ipamorelin', 'CJC-1295', 'MK-677 (Ibutamoren)', 'IGF-1 LR3',
+  'Ipamorelin', 'Sermorelin', 'IGF-1 LR3',
   'Tesamorelin', 'HGH (Somatropina)', 'Follistatin-332',
 ]);
 const PRESSORICOS = new Set(['PT-141 (Bremelanotida)', 'Melanotan II']);

@@ -35,16 +35,16 @@ Como ler o diagnóstico:
 
 Protocolos por objetivo:
 - EMAGRECER: Tirzepatide é o principal (duplo GIP+GLP-1, mais eficaz). AOD-9604 apoia a lipólise sem afetar glicemia. NUNCA use dois agonistas GLP-1 juntos (ex.: Tirzepatide + Semaglutide).
-- MASSA/COMPOSIÇÃO: stack CJC-1295 + Ipamorelin (sinérgico — amplia pulsos de GH). IGF-1 LR3 para quem treina pesado. MK-677 (oral) pela praticidade e sono.
+- MASSA/COMPOSIÇÃO: Ipamorelin ou Sermorelin (secretagogos de GH, pulsáteis e fisiológicos). IGF-1 LR3 para quem treina pesado. Tesamorelin quando há gordura visceral.
 - RECUPERAÇÃO/LESÕES: BPC-157 + TB-500 (stack sinérgico de reparo).
 - PELE/ANTI-IDADE: GHK-Cu (colágeno/elastina). BPC-157 apoia cicatrização.
-- SONO: Ipamorelin e/ou DSIP.
+- SONO: Ipamorelin, Sermorelin e/ou DSIP.
 - LONGEVIDADE/ENERGIA: Epitalon (telômeros, sono profundo); Timalfasina (imunidade).
 - COGNIÇÃO/FOCO: Semax; Selank quando há ansiedade.
 - HORMONAL/LIBIDO: PT-141 (conforme necessidade, não diário).
 
 Sinergias e regras:
-- Secretagogos de GH combinam bem (CJC-1295 + Ipamorelin). BPC-157 é um "coringa" (recuperação, intestino, apoio geral).
+- Secretagogos de GH (Ipamorelin, Sermorelin, Tesamorelin) apoiam massa, sono e recuperação. BPC-157 é um "coringa" (recuperação, intestino, apoio geral).
 - Evite redundância: não empilhe dois peptídeos com o mesmo mecanismo.
 - Para vários objetivos ("para tudo"), monte um stack coerente que cubra os principais sem inflar a lista.
 
@@ -67,18 +67,18 @@ EMAGRECER — apoio não-incretina (geralmente adjuvante, não substituto):
 - CBL-514: gordura LOCALIZADA (injeção na área), não sistêmico — para pontos específicos.
 
 GH / MASSA:
-- CJC-1295 + Ipamorelin: stack padrão, pulsátil e fisiológico, mais seguro e barato. 1ª escolha de GH.
-- MK-677: ORAL, conveniente, eleva IGF-1/GH, apetite e sono; retém água. Bom para quem não quer injetar.
+- Ipamorelin: secretagogo seletivo de GH, pulsátil e fisiológico, ótimo para sono e composição. 1ª escolha.
+- Sermorelin: análogo de GHRH, estimula o GH natural; combina bem com Ipamorelin e é boa opção de custo.
 - Tesamorelin: foco em gordura VISCERAL + GH; mais caro.
 - HGH (Somatropina): GH exógeno direto, mais potente porém mais caro/arriscado — avançado, com supervisão.
-- Como decidir: iniciante/custo → CJC+Ipamorelin ou MK-677; gordura visceral → Tesamorelin; resultado máximo → HGH (supervisão).
+- Como decidir: iniciante/custo → Ipamorelin (± Sermorelin); gordura visceral → Tesamorelin; resultado máximo → HGH (supervisão).
 
 RECUPERAÇÃO:
 - BPC-157 (coringa: tendão, intestino, sistêmico) e TB-500 (reparo sistêmico, anti-inflamatório). O blend TB-500 + BPC-157 junta os dois num frasco.
 - KPV entra quando há inflamação/intestino. GLOW (GHK+BPC+TB) = recuperação + pele; KLOW (+KPV) acrescenta anti-inflamatório.
 
 PELE:
-- GHK-Cu (colágeno) é a base; GLOW/KLOW são blends que somam cicatrização; SNAP-8 age diferente (relaxa músculo, rugas de expressão). Melanotan II é bronzeado, não cuidado de pele.
+- GHK-Cu (colágeno) é a base; GLOW/KLOW são blends que somam cicatrização; Glutathione clareia/uniformiza a pele e é antioxidante. Melanotan II é bronzeado, não cuidado de pele.
 
 LONGEVIDADE/ENERGIA:
 - NAD+ (energia rápida, reparo de DNA) × SS-31 (mitocondrial) × MOTS-c (metabólico) × Epitalon (telômeros/sono, protocolo de carga) × Timalfasina (imunidade). Energia imediata → NAD+; fadiga mitocondrial → SS-31/MOTS-c; longevidade estrutural → Epitalon.
@@ -89,8 +89,8 @@ HORMONAL/LIBIDO:
 REGRA DE COMPARAÇÃO: quando dois produtos servirem para o mesmo objetivo, escolha o melhor para ESTE perfil e explique a diferença (potência, via/forma, tolerância, experiência necessária, custo) — é isso que faz o atendente entregar o resultado certo.
 
 Segurança (invioláveis):
-- Diabetes/pré-diabetes → não indique Tirzepatide, Semaglutide nem MK-677 (glicêmicos).
-- Histórico de câncer → não indique anabólicos/secretagogos de GH (Ipamorelin, CJC-1295, MK-677, IGF-1 LR3).
+- Diabetes/pré-diabetes → não indique Tirzepatide nem Semaglutide (glicêmicos).
+- Histórico de câncer → não indique anabólicos/secretagogos de GH (Ipamorelin, Sermorelin, IGF-1 LR3, Tesamorelin, HGH).
 - Hipertensão → não indique PT-141.
 - Gestação/amamentação → não indique nada.`;
 
