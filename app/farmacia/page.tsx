@@ -378,13 +378,9 @@ export default function FarmaciaPage() {
   return (
    <PinGate>
     <div style={S.page} className="grad">
-      {/* Cabeçalho com logo centralizada */}
+      {/* Cabeçalho: controles à esquerda, logo à direita (canto sup. esquerdo livre) */}
       <header style={S.header}>
         <div style={S.headerIn}>
-          <div style={S.brand}>
-            <NuvitaLogo width={104} height={22} />
-            <span style={S.brandTag}>Balcão</span>
-          </div>
           <div style={S.headerRight}>
             <div style={S.langWrap} role="group" aria-label="Idioma">
               <button onClick={() => trocarIdioma('pt')}
@@ -398,6 +394,10 @@ export default function FarmaciaPage() {
             <button onClick={sair} style={S.sairBtn} title={t('Voltar para a tela de senha', 'Volver a la pantalla de contraseña')}>
               {t('Sair', 'Salir')}
             </button>
+          </div>
+          <div style={S.brand}>
+            <span style={S.brandTag}>Balcão</span>
+            <NuvitaLogo width={104} height={22} />
           </div>
         </div>
       </header>
@@ -984,8 +984,8 @@ const S: Record<string, React.CSSProperties> = {
     padding: '15px 20px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    justifyContent: 'flex-end',
+    gap: 16,
   },
   brand: { display: 'flex', alignItems: 'center', gap: 10 },
   brandTag: {
@@ -994,8 +994,8 @@ const S: Record<string, React.CSSProperties> = {
     letterSpacing: '.12em',
     textTransform: 'uppercase',
     fontWeight: 600,
-    borderLeft: '1px solid #E4E4E4',
-    paddingLeft: 10,
+    borderRight: '1px solid #E4E4E4',
+    paddingRight: 10,
   },
   resetBtn: {
     position: 'absolute',
@@ -1013,10 +1013,6 @@ const S: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   headerRight: {
-    position: 'absolute',
-    right: 20,
-    top: '50%',
-    transform: 'translateY(-50%)',
     display: 'flex',
     alignItems: 'center',
     gap: 8,

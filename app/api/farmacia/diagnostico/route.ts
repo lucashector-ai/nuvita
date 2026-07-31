@@ -201,15 +201,19 @@ export async function POST(req: NextRequest) {
       instrucao = `PERFIL DA PESSOA (atendimento no balcão):\n${perfil}\n\nFaça o diagnóstico e monte o protocolo em JSON.`;
     }
 
+    // Velocidade do balcão (o atendente não pode esperar):
+    //  • Sonnet 5 → bem mais rápido que o Opus, mantendo alta qualidade no
+    //    protocolo estruturado com base de conhecimento.
+    //  • thinking desligado + esforço baixo → sem latência de raciocínio.
+    //  • cache do prompt (cache_control) → o texto grande e fixo (conhecimento +
+    //    catálogo + formato) fica em cache; do 2º atendimento em diante a IA
+    //    responde muito mais rápido (só processa o perfil da pessoa).
     const msg = await client.messages.create({
-      model: 'claude-opus-5',
-      max_tokens: 6000, // só o JSON — sem raciocínio ocupando tokens
-      // Balcão precisa ser RÁPIDO: desliga o "pensar" (adaptativo é lento) e
-      // usa esforço médio. O Opus 5 continua montando o protocolo com qualidade,
-      // mas sem a latência do raciocínio estendido.
+      model: 'claude-sonnet-5',
+      max_tokens: 6000,
       thinking: { type: 'disabled' },
-      output_config: { effort: 'medium' },
-      system,
+      output_config: { effort: 'low' },
+      system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: instrucao }],
     });
 
