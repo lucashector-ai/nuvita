@@ -107,3 +107,43 @@ export function frascoPadrao(dose: FaixaMg): number {
   // Doses em mg (GLP-1 etc.) costumam vir em frascos maiores.
   return dose.max >= 3 ? 10 : 5;
 }
+
+// Tamanho REAL do frasco (mg) por peptídeo, conforme o catálogo da Nexxus.
+// Para produtos com mais de um tamanho, usamos um representativo (a farmácia
+// ajusta). HGH (Somatropina) é em UI — tratado à parte.
+export const FRASCO_MG: Record<string, number> = {
+  'Tirzepatide': 60,
+  'Retatrutide': 40,
+  'AOD-9604': 10,
+  'HGH Fragment 176-191': 5,
+  'Tesamorelin': 10,
+  'MOTS-c': 10,
+  'SLU-PP-332': 5,
+  '5-Amino-1MQ': 1,
+  'CBL-514': 30,
+  'Ipamorelin': 10,
+  'IGF-1 LR3': 1,
+  'Follistatin-332': 1,
+  'BPC-157': 10,
+  'TB-500 + BPC-157 (blend)': 10,
+  'TB-500': 10,
+  'KPV': 10,
+  'KLOW (blend)': 80,
+  'DSIP (Delta Sleep-Inducing Peptide)': 15,
+  'Epithalamin (Epitalon)': 10,
+  'GLOW (blend)': 70,
+  'GHK-Cu (Tripeptídeo de cobre)': 50,
+  'Melanotan II': 10,
+  'NAD+': 500,
+  'SS-31 (Elamipretide)': 10,
+  'Timalfasina (Thymosin α1)': 10,
+  'Semax': 11,
+  'Selank': 11,
+  'PT-141 (Bremelanotida)': 10,
+  'Kisspeptin-10': 10,
+};
+
+// Frasco do peptídeo pelo nome (catálogo). Se não houver, usa o padrão pela dose.
+export function frascoDoPeptideo(nome: string, dose: FaixaMg): number {
+  return FRASCO_MG[nome] ?? frascoPadrao(dose);
+}

@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ObjectiveKey, Peptide } from '@/types';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
-import PinGate, { ESTOQUE_KEY, OK_KEY, NOME_KEY } from '@/components/farmacia/PinGate';
+import PinGate, { ESTOQUE_KEY, OK_KEY, NOME_KEY, CODE_KEY } from '@/components/farmacia/PinGate';
 import Icon from '@/components/farmacia/Icon';
 import TabelaFarmacia from '@/components/farmacia/TabelaFarmacia';
 import CalculadoraPeptideo from '@/components/farmacia/CalculadoraPeptideo';
@@ -132,6 +132,29 @@ export default function FarmaciaPage() {
       }
       const idi = sessionStorage.getItem(IDIOMA_KEY);
       if (idi === 'es' || idi === 'pt') setIdioma(idi);
+    } catch {
+      /* ignore */
+    }
+
+    // Recarrega o estoque do servidor (o do login pode estar desatualizado se a
+    // farmácia foi editada no admin). Mantém o balcão sempre com o estoque atual.
+    try {
+      const codigo = sessionStorage.getItem(CODE_KEY);
+      if (codigo) {
+        fetch('/api/farmacia/estoque', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get', codigo }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data?.found && Array.isArray(data.peptideos)) {
+              setEstoque(data.peptideos);
+              try { sessionStorage.setItem(ESTOQUE_KEY, JSON.stringify(data.peptideos)); } catch { /* ignore */ }
+            }
+          })
+          .catch(() => { /* mantém o estoque do cache */ });
+      }
     } catch {
       /* ignore */
     }
@@ -366,6 +389,7 @@ export default function FarmaciaPage() {
       sessionStorage.removeItem(OK_KEY);
       sessionStorage.removeItem(ESTOQUE_KEY);
       sessionStorage.removeItem(NOME_KEY);
+      sessionStorage.removeItem(CODE_KEY);
     } catch {
       /* ignore */
     }
@@ -378,9 +402,13 @@ export default function FarmaciaPage() {
   return (
    <PinGate>
     <div style={S.page} className="grad">
-      {/* Cabeçalho: controles à esquerda, logo à direita (canto sup. esquerdo livre) */}
+      {/* Cabeçalho: logo à esquerda, controles à direita */}
       <header style={S.header}>
         <div style={S.headerIn}>
+          <div style={S.brand}>
+            <NuvitaLogo width={104} height={22} />
+            <span style={S.brandTag}>Balcão</span>
+          </div>
           <div style={S.headerRight}>
             <div style={S.langWrap} role="group" aria-label="Idioma">
               <button onClick={() => trocarIdioma('pt')}
@@ -394,10 +422,6 @@ export default function FarmaciaPage() {
             <button onClick={sair} style={S.sairBtn} title={t('Voltar para a tela de senha', 'Volver a la pantalla de contraseña')}>
               {t('Sair', 'Salir')}
             </button>
-          </div>
-          <div style={S.brand}>
-            <span style={S.brandTag}>Balcão</span>
-            <NuvitaLogo width={104} height={22} />
           </div>
         </div>
       </header>
@@ -984,8 +1008,8 @@ const S: Record<string, React.CSSProperties> = {
     padding: '15px 20px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 16,
+    justifyContent: 'space-between',
+    gap: 12,
   },
   brand: { display: 'flex', alignItems: 'center', gap: 10 },
   brandTag: {
@@ -994,8 +1018,8 @@ const S: Record<string, React.CSSProperties> = {
     letterSpacing: '.12em',
     textTransform: 'uppercase',
     fontWeight: 600,
-    borderRight: '1px solid #E4E4E4',
-    paddingRight: 10,
+    borderLeft: '1px solid #E4E4E4',
+    paddingLeft: 10,
   },
   resetBtn: {
     position: 'absolute',

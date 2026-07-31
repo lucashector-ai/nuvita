@@ -14,6 +14,7 @@ import NuvitaLogo from '@/components/ui/NuvitaLogo';
 export const OK_KEY = 'nv_farmacia_ok';
 export const ESTOQUE_KEY = 'nv_farmacia_estoque';
 export const NOME_KEY = 'nv_farmacia_nome';
+export const CODE_KEY = 'nv_farmacia_code';
 
 const PIN_LEN = 6;
 
@@ -47,6 +48,7 @@ export default function PinGate({ children }: { children: React.ReactNode }) {
         try {
           sessionStorage.setItem(OK_KEY, '1');
           sessionStorage.setItem(ESTOQUE_KEY, JSON.stringify(Array.isArray(data.peptideos) ? data.peptideos : []));
+          sessionStorage.setItem(CODE_KEY, codigo); // permite recarregar o estoque depois
           if (data.nome) sessionStorage.setItem(NOME_KEY, data.nome);
         } catch {
           /* ignore */

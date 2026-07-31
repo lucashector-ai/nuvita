@@ -17,7 +17,7 @@ import {
   totalMg,
   frascosNecessarios,
   fmtFaixaMg,
-  frascoPadrao,
+  frascoDoPeptideo,
 } from '@/lib/quantidadeProtocolo';
 
 export default function TabelaFarmacia({ rec, lang }: { rec: Recomendacao; lang: Lang }) {
@@ -58,7 +58,7 @@ export default function TabelaFarmacia({ rec, lang }: { rec: Recomendacao; lang:
           }
 
           const tot = totalMg(dose, apps, semanas);
-          const vialMg = frascoPadrao(dose);
+          const vialMg = frascoDoPeptideo(it.peptide.n, dose);
           // Frascos pela MÉDIA da faixa (doses tituladas não usam o máximo o ciclo todo).
           const frascos = frascosNecessarios((tot.min + tot.max) / 2, vialMg);
 
