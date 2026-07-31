@@ -14,6 +14,7 @@ import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import PinGate, { ESTOQUE_KEY, OK_KEY, NOME_KEY } from '@/components/farmacia/PinGate';
 import Icon from '@/components/farmacia/Icon';
 import TabelaFarmacia from '@/components/farmacia/TabelaFarmacia';
+import CalculadoraPeptideo from '@/components/farmacia/CalculadoraPeptideo';
 import { tf, IDIOMA_KEY, type Lang } from '@/lib/farmaciaI18n';
 import {
   recomendarPeptideos,
@@ -31,7 +32,7 @@ import {
   type Recomendacao,
 } from '@/lib/recomendarPeptideos';
 
-type Modo = 'completo' | 'unico' | 'catalogo';
+type Modo = 'completo' | 'unico' | 'catalogo' | 'calculadora';
 type Pais = 'BR' | 'PY';
 
 // País do WhatsApp (formato do número).
@@ -410,14 +411,18 @@ export default function FarmaciaPage() {
                 ? t('Protocolo de um peptídeo', 'Protocolo de un péptido')
                 : modo === 'catalogo'
                   ? t('Catálogo de peptídeos', 'Catálogo de péptidos')
-                  : t('Diagnóstico de peptídeos', 'Diagnóstico de péptidos')}
+                  : modo === 'calculadora'
+                    ? t('Calculadora de peptídeo', 'Calculadora de péptido')
+                    : t('Diagnóstico de peptídeos', 'Diagnóstico de péptidos')}
             </h1>
             <p style={S.lead}>
               {modo === 'unico'
                 ? t('A pessoa já usa um peptídeo? Monte o protocolo dele.', '¿La persona ya usa un péptido? Arme su protocolo.')
                 : modo === 'catalogo'
                   ? t('Toque em um produto para ver o que é, o que faz e como usar.', 'Toque un producto para ver qué es, qué hace y cómo usar.')
-                  : t('Responda com a pessoa. Rápido e sob medida.', 'Responda con la persona. Rápido y a medida.')}
+                  : modo === 'calculadora'
+                    ? t('Quantas unidades puxar na seringa para a dose certa.', 'Cuántas unidades jalar en la jeringa para la dosis correcta.')
+                    : t('Responda com a pessoa. Rápido e sob medida.', 'Responda con la persona. Rápido y a medida.')}
             </p>
           </div>
 
@@ -453,7 +458,24 @@ export default function FarmaciaPage() {
                 <div style={S.modoSub}>{t('Ver o que cada produto faz', 'Ver qué hace cada producto')}</div>
               </div>
             </button>
+            <button
+              onClick={() => setModo('calculadora')}
+              style={{ ...S.modoTab, ...(modo === 'calculadora' ? S.modoTabAtivo : {}) }}
+            >
+              <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="flask" size={19} /></span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Calculadora', 'Calculadora')}</div>
+                <div style={S.modoSub}>{t('Dose na seringa (UI)', 'Dosis en la jeringa (UI)')}</div>
+              </div>
+            </button>
           </div>
+
+          {/* ─── CALCULADORA ─── */}
+          {modo === 'calculadora' && (
+            <div style={S.section}>
+              <CalculadoraPeptideo lang={idioma} />
+            </div>
+          )}
 
           {/* ─── CATÁLOGO ─── */}
           {modo === 'catalogo' && (
@@ -486,7 +508,7 @@ export default function FarmaciaPage() {
           )}
 
           {/* ─── DIAGNÓSTICO / PROTOCOLO ─── */}
-          {modo !== 'catalogo' && (
+          {(modo === 'completo' || modo === 'unico') && (
           <>
           {/* 1 · Objetivo (completo) ou Peptídeo (único) */}
           {modo === 'completo' ? (
@@ -716,9 +738,6 @@ export default function FarmaciaPage() {
                   </div>
                 )}
 
-                {/* Tabela de quantidade/preparo — só para a farmácia */}
-                <TabelaFarmacia rec={rec} lang={idioma} />
-
                 {(rec.orientacaoAlimentar || rec.orientacaoTreino || rec.observacoes || rec.avisoMedico) && (
                   <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
                     {rec.orientacaoAlimentar && <Orientacao icon="fork" titulo={t('Alimentação', 'Alimentación')} texto={rec.orientacaoAlimentar} />}
@@ -776,9 +795,15 @@ export default function FarmaciaPage() {
                         style={{ ...S.waBtn, ...S.waBtnFull, opacity: enviando ? 0.7 : 1 }}>
                         {enviando ? t('Enviando…', 'Enviando…') : t('Enviar no WhatsApp', 'Enviar por WhatsApp')}
                       </button>
+                      <button onClick={abrirWhatsAppManual} style={S.waManualBtn}>
+                        {t('ou abrir o WhatsApp e enviar manualmente', 'o abrir WhatsApp y enviar manualmente')}
+                      </button>
                     </>
                   )}
                 </div>
+
+                {/* Quanto vender — só para a farmácia, bem no fim */}
+                <TabelaFarmacia rec={rec} lang={idioma} />
 
                 <button onClick={novoAtendimento} style={S.secondaryBtn}>
                   ↺ {t('Iniciar novo atendimento', 'Iniciar nueva atención')}
@@ -1167,6 +1192,7 @@ const S: Record<string, React.CSSProperties> = {
     boxShadow: '0 4px 12px rgba(37,211,102,.28)',
   },
   waBtnFull: { width: '100%', marginTop: 16 },
+  waManualBtn: { width: '100%', marginTop: 8, background: 'none', border: 'none', color: '#667085', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, cursor: 'pointer', textDecoration: 'underline', padding: '6px 0' },
   receberCard: { marginTop: 24, padding: 20, background: '#fff', border: '1px solid #ECEDEE', borderRadius: 20, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
   linkBtn: { background: 'none', border: 'none', color: '#16A34A', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 },
   disclaimer: { fontSize: 12, color: '#98A2B3', lineHeight: 1.6, marginTop: 30, textAlign: 'center', maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' },
