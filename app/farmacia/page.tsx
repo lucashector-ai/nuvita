@@ -226,15 +226,39 @@ export default function FarmaciaPage() {
     // Nome e WhatsApp são pedidos só depois, se a pessoa quiser receber o protocolo.
 
     setGerando(true);
+
+    // REGRA: só entra no protocolo o que está EM ESTOQUE. Busca o estoque atual
+    // agora — não confia no cache do login, que pode estar velho se a farmácia
+    // editou o estoque no admin depois que o tablet abriu.
+    let estoqueAtual = estoque;
+    try {
+      const codigo = sessionStorage.getItem(CODE_KEY);
+      if (codigo) {
+        const res = await fetch('/api/farmacia/estoque', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get', codigo }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (data?.found && Array.isArray(data.peptideos)) {
+          estoqueAtual = data.peptideos;
+          setEstoque(data.peptideos);
+          try { sessionStorage.setItem(ESTOQUE_KEY, JSON.stringify(data.peptideos)); } catch { /* ignore */ }
+        }
+      }
+    } catch {
+      /* sem rede: usa o estoque em cache */
+    }
+
     // A IA faz o diagnóstico; se indisponível/rate-limit, usa o determinístico.
     let resultado: Recomendacao | null;
     if (modo === 'unico') {
       resultado = await diagnosticarUmPeptideoIA(respostas!, peptideoUnico, idioma);
       if (!resultado) resultado = protocoloUmPeptideo(respostas!, peptideoUnico);
     } else {
-      resultado = await diagnosticarComIA(respostas!, estoque, idioma);
+      resultado = await diagnosticarComIA(respostas!, estoqueAtual, idioma);
       if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) {
-        resultado = recomendarPeptideos(respostas!, estoque);
+        resultado = recomendarPeptideos(respostas!, estoqueAtual);
       }
     }
     setRec(resultado);
