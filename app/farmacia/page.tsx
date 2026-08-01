@@ -417,16 +417,24 @@ export default function FarmaciaPage() {
               {passo === 2 && (
                 <StepCard n={2} titulo={t('Conte um pouco sobre você', 'Cuéntanos un poco sobre ti')} sub={t('Usamos peso, altura e idade para calcular a dose certa.', 'Usamos peso, altura y edad para calcular la dosis correcta.')}>
                   <div style={S.grid3}>
-                    <Campo label={t('Peso', 'Peso')} unidade="kg"><input className="inp" placeholder="75" inputMode="numeric" value={peso} onChange={(e) => setPeso(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
-                    <Campo label={t('Altura', 'Altura')} unidade="cm"><input className="inp" placeholder="175" inputMode="numeric" value={altura} onChange={(e) => setAltura(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
-                    <Campo label={t('Idade', 'Edad')} unidade={t('anos', 'años')}><input className="inp" placeholder="34" inputMode="numeric" value={idade} onChange={(e) => setIdade(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
+                    <Campo label={t('Peso', 'Peso')} unidade="kg" icon="pulse" cor="#16A34A"><input className="inp" placeholder="75" inputMode="numeric" value={peso} onChange={(e) => setPeso(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
+                    <Campo label={t('Altura', 'Altura')} unidade="cm" icon="bolt" cor="#2563EB"><input className="inp" placeholder="175" inputMode="numeric" value={altura} onChange={(e) => setAltura(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
+                    <Campo label={t('Idade', 'Edad')} unidade={t('anos', 'años')} icon="sparkle" cor="#D97706"><input className="inp" placeholder="34" inputMode="numeric" value={idade} onChange={(e) => setIdade(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
                   </div>
                   {imc && <div style={S.imcBox}><b style={{ color: '#0E1113' }}>IMC {imc.valor}</b> <span style={{ color: '#667085' }}>· {imc.classe}</span></div>}
-                  <div style={S.subLabel}>{t('Sexo', 'Sexo')} <span style={S.opcional}>{t('opcional', 'opcional')}</span></div>
-                  <div style={S.grid3}>
-                    {[{ k: 'masculino', l: t('Masculino', 'Masculino') }, { k: 'feminino', l: t('Feminino', 'Femenino') }, { k: 'ni', l: t('Prefiro não dizer', 'Prefiero no decir') }].map((o) => (
-                      <button key={o.k} onClick={() => setSexo(sexo === o.k ? '' : o.k as any)} style={{ ...S.pill, ...(sexo === o.k ? S.pillOn : {}) }}>{o.l}</button>
-                    ))}
+                  <div style={S.divisor} />
+                  <SecaoTitulo cor="#EC4899" icon="person">{t('Sexo', 'Sexo')} <span style={{ ...S.opcional, marginLeft: 6 }}>{t('opcional', 'opcional')}</span></SecaoTitulo>
+                  <div style={S.grid2}>
+                    {[{ k: 'masculino', l: t('Masculino', 'Masculino'), cor: '#16A34A' }, { k: 'feminino', l: t('Feminino', 'Femenino'), cor: '#EC4899' }, { k: 'ni', l: t('Prefiro não dizer', 'Prefiero no decir'), cor: '#98A2B3' }].map((o) => {
+                      const on = sexo === o.k;
+                      return (
+                        <button key={o.k} onClick={() => setSexo(on ? '' : o.k as any)} style={{ ...S.condCard, ...(on ? S.condCardOn : {}) }}>
+                          <span style={{ ...S.condIcon, background: alpha(o.cor, 0.1), color: o.cor }}><Icon name="person" size={16} /></span>
+                          <span style={{ fontWeight: 600, fontSize: 14.5, flex: 1 }}>{o.l}</span>
+                          <span style={{ ...S.opRadio, position: 'static', ...(on ? S.opRadioOn : {}) }}>{on ? '✓' : ''}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </StepCard>
               )}
@@ -484,11 +492,11 @@ export default function FarmaciaPage() {
               {passo === 5 && (
                 <StepCard n={5} titulo={t('Tudo certo?', '¿Todo bien?')} sub={t('Confira as respostas antes de gerar o protocolo.', 'Revisa las respuestas antes de generar el protocolo.')}>
                   <div style={S.review}>
-                    <RevRow label={t('Objetivo', 'Objetivo')} valor={modo === 'unico' ? peptideoUnico : objetivos.map((k) => { const o = OBJETIVOS.find((x) => x.key === k)!; return idioma === 'es' ? o.le : o.label; }).join(', ')} onEdit={() => setPasso(1)} t={t} />
-                    <RevRow label={t('Perfil', 'Perfil')} valor={`${peso} kg · ${altura} cm · ${idade} ${t('anos', 'años')}`} onEdit={() => setPasso(2)} t={t} />
-                    <RevRow label={t('Experiência', 'Experiencia')} valor={nivel ? (idioma === 'es' ? NIVEIS.find((x) => x.key === nivel)!.le : NIVEIS.find((x) => x.key === nivel)!.label) : '—'} onEdit={() => setPasso(3)} t={t} />
-                    <RevRow label={t('Rotina', 'Rutina')} valor={[atividade && (idioma === 'es' ? ATIVIDADES.find((x) => x.key === atividade)!.le : ATIVIDADES.find((x) => x.key === atividade)!.label), sono && `${t('sono', 'sueño')} ${idioma === 'es' ? SONOS.find((x) => x.key === sono)!.le.toLowerCase() : SONOS.find((x) => x.key === sono)!.label.toLowerCase()}`].filter(Boolean).join(' · ') || '—'} onEdit={() => setPasso(3)} t={t} />
-                    <RevRow label={t('Saúde', 'Salud')} valor={condicoes.length ? condicoes.map((k) => { const c = CONDICOES.find((x) => x.key === k)!; return idioma === 'es' ? c.le : c.label; }).join(', ') : t('Nenhuma', 'Ninguna')} onEdit={() => setPasso(4)} t={t} last />
+                    <RevRow icon="focus" cor="#EA580C" label={t('Objetivo', 'Objetivo')} valor={modo === 'unico' ? peptideoUnico : objetivos.map((k) => { const o = OBJETIVOS.find((x) => x.key === k)!; return idioma === 'es' ? o.le : o.label; }).join(', ')} onEdit={() => setPasso(1)} t={t} />
+                    <RevRow icon="person" cor="#2563EB" label={t('Perfil', 'Perfil')} valor={`${peso} kg · ${altura} cm · ${idade} ${t('anos', 'años')}`} onEdit={() => setPasso(2)} t={t} />
+                    <RevRow icon="flask" cor="#7C3AED" label={t('Experiência', 'Experiencia')} valor={nivel ? (idioma === 'es' ? NIVEIS.find((x) => x.key === nivel)!.le : NIVEIS.find((x) => x.key === nivel)!.label) : '—'} onEdit={() => setPasso(3)} t={t} />
+                    <RevRow icon="dumbbell" cor="#0EA5E9" label={t('Rotina', 'Rutina')} valor={[atividade && (idioma === 'es' ? ATIVIDADES.find((x) => x.key === atividade)!.le : ATIVIDADES.find((x) => x.key === atividade)!.label), sono && `${t('sono', 'sueño')} ${idioma === 'es' ? SONOS.find((x) => x.key === sono)!.le.toLowerCase() : SONOS.find((x) => x.key === sono)!.label.toLowerCase()}`].filter(Boolean).join(' · ') || '—'} onEdit={() => setPasso(3)} t={t} />
+                    <RevRow icon="check" cor="#16A34A" label={t('Saúde', 'Salud')} valor={condicoes.length ? condicoes.map((k) => { const c = CONDICOES.find((x) => x.key === k)!; return idioma === 'es' ? c.le : c.label; }).join(', ') : t('Nenhuma', 'Ninguna')} onEdit={() => setPasso(4)} t={t} last />
                   </div>
                   <div style={S.hintBox}><span style={{ color: '#7C3AED' }}><Icon name="bulb" size={15} /></span> {t('A Nuvita cruza o perfil com o estoque da farmácia e monta o protocolo em poucos segundos.', 'Nuvita cruza el perfil con el stock de la farmacia y arma el protocolo en pocos segundos.')}</div>
                 </StepCard>
@@ -609,9 +617,10 @@ function OpcaoCard({ on, onClick, cor, icon, label, sub }: { on: boolean; onClic
   );
 }
 
-function RevRow({ label, valor, onEdit, t, last }: { label: string; valor: string; onEdit: () => void; t: (p: string, e: string) => string; last?: boolean }) {
+function RevRow({ icon, cor, label, valor, onEdit, t, last }: { icon?: string; cor?: string; label: string; valor: string; onEdit: () => void; t: (p: string, e: string) => string; last?: boolean }) {
   return (
     <div style={{ ...S.revRow, ...(last ? { borderBottom: 'none' } : {}) }}>
+      {icon && cor && <span style={{ ...S.condIcon, background: alpha(cor, 0.1), color: cor }}><Icon name={icon} size={15} /></span>}
       <span style={S.revLabel}>{label}</span>
       <span style={S.revValor}>{valor || '—'}</span>
       <button onClick={onEdit} style={S.revEdit}>{t('Editar', 'Editar')}</button>
@@ -619,8 +628,16 @@ function RevRow({ label, valor, onEdit, t, last }: { label: string; valor: strin
   );
 }
 
-function Campo({ label, unidade, children }: { label: string; unidade?: string; children: React.ReactNode }) {
-  return <div><div style={S.campoLabel}>{label}{unidade && <span style={{ color: '#98A2B3', fontWeight: 400 }}> · {unidade}</span>}</div>{children}</div>;
+function Campo({ label, unidade, icon, cor, children }: { label: string; unidade?: string; icon?: string; cor?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={S.campoLabel}>
+        {icon && cor && <span style={{ ...S.campoIcon, background: alpha(cor, 0.1), color: cor }}><Icon name={icon} size={13} /></span>}
+        {label}{unidade && <span style={{ color: '#98A2B3', fontWeight: 400 }}> · {unidade}</span>}
+      </div>
+      {children}
+    </div>
+  );
 }
 
 function Spec({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
@@ -835,7 +852,7 @@ const S: Record<string, React.CSSProperties> = {
   objGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 },
   objCard: { border: '1.5px solid #ECEDEE', borderRadius: 18, background: '#fff', cursor: 'pointer', padding: 10, overflow: 'hidden', fontFamily: 'inherit', textAlign: 'left', transition: 'border-color .15s, box-shadow .15s' },
   objCardOn: { borderColor: '#16A34A', background: '#F5FBF7', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
-  objImgWrap: { position: 'relative', height: 168, borderRadius: 12, overflow: 'hidden', background: '#F6F7F6' },
+  objImgWrap: { position: 'relative', aspectRatio: '1 / 1', borderRadius: 13, overflow: 'hidden', background: '#F6F7F6' },
   objImg: { width: '100%', height: '100%', objectFit: 'cover' },
   radio: { position: 'absolute', top: 10, right: 10, width: 26, height: 26, borderRadius: '50%', border: '2px solid #D0D5DD', background: 'rgba(255,255,255,.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 },
   radioOn: { background: '#16A34A', borderColor: '#16A34A' },
@@ -854,7 +871,10 @@ const S: Record<string, React.CSSProperties> = {
   // Inputs / campos
   grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 },
   grid4: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 },
-  campoLabel: { fontSize: 13, fontWeight: 700, color: '#344054', marginBottom: 7 },
+  campoLabel: { fontSize: 13, fontWeight: 700, color: '#344054', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 7 },
+  campoIcon: { width: 24, height: 24, borderRadius: 7, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  divisor: { height: 1, background: '#EEF0EF', margin: '20px 0' },
+  grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
   inp: { width: '100%', padding: '14px 16px', fontSize: 16, borderRadius: 14, border: '1px solid #E4E4E4', background: '#fff', fontFamily: 'inherit', color: '#0E1113' },
   imcBox: { marginTop: 12, fontSize: 14, background: '#F6FBF7', border: '1px solid #E1EEE4', borderRadius: 10, padding: '10px 14px' },
   subLabel: { fontSize: 14, fontWeight: 700, color: '#0E1113', marginTop: 20, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 },
@@ -891,8 +911,8 @@ const S: Record<string, React.CSSProperties> = {
   // Footer (fixo)
   footer: { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40, background: 'rgba(255,255,255,.94)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderTop: '1px solid #EDEDED' },
   footerIn: { maxWidth: CARD_MAX, margin: '0 auto', padding: '14px 24px', display: 'flex', gap: 12, alignItems: 'center' },
-  voltarBtn: { padding: '15px 22px', borderRadius: 15, background: '#fff', border: '1px solid #E4E4E4', color: '#344054', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0 },
-  continuarBtn: { flex: 1, padding: '15px 22px', borderRadius: 15, background: '#16A34A', border: 'none', color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 16px rgba(22,163,74,.28)' },
+  voltarBtn: { padding: '15px 20px', borderRadius: 14, background: '#fff', border: '1px solid #EAEBEA', color: '#344054', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0 },
+  continuarBtn: { flex: 1, padding: '15px 22px', borderRadius: 14, background: '#16A34A', border: 'none', color: '#fff', fontFamily: 'inherit', fontSize: 15.5, fontWeight: 700, cursor: 'pointer' },
 
   erro: { marginTop: 14, fontSize: 14, color: '#B91C1C', background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 12, padding: '12px 14px' },
 
