@@ -171,7 +171,7 @@ export default function FarmaciaPage() {
   const etapaValida = (n: number): boolean => {
     if (n === 1) return modo === 'unico' ? !!peptideoUnico : objetivos.length > 0;
     if (n === 2) return !!peso && Number(peso) >= 30 && Number(peso) <= 300 && !!altura && Number(altura) >= 120 && Number(altura) <= 230 && !!idade && Number(idade) >= 16 && Number(idade) <= 100;
-    if (n === 3) return !!nivel;
+    if (n === 3) return !!nivel && !!atividade && !!sono;
     if (n === 4) return !(condicoes.includes('outros') && !condicaoOutros.trim());
     return true;
   };
@@ -187,9 +187,14 @@ export default function FarmaciaPage() {
   const irHome = () => { setTela('home'); setPasso(1); setRec(null); };
   const iniciar = (tl: Tela) => { novoAtendimento(false); setTela(tl); setPasso(1); };
 
-  const gerar = async () => {
-    setErro(''); setEnviado(false);
-    setGerando(true);
+  // Chave dos dados que definem o protocolo (para reaproveitar o prefetch).
+  const chaveAtual = () => JSON.stringify({ modo, peptideoUnico, objetivos, peso, altura, idade, sexo, nivel, atividade, sono, condicoes, condicaoOutros, idioma });
+
+  // Gera o protocolo (busca estoque fresco + IA com fallback). NÃO mexe no estado
+  // de UI — devolve a recomendação. É o que roda no prefetch e no gerar().
+  const gerarInterno = async (): Promise<Recomendacao | null> => {
+    const r = respostas;
+    if (!r) return null;
     let estoqueAtual = estoque;
     try {
       const codigo = sessionStorage.getItem(CODE_KEY);
@@ -199,16 +204,43 @@ export default function FarmaciaPage() {
         if (data?.found && Array.isArray(data.peptideos)) { estoqueAtual = data.peptideos; setEstoque(data.peptideos); try { sessionStorage.setItem(ESTOQUE_KEY, JSON.stringify(data.peptideos)); } catch { /* */ } }
       }
     } catch { /* cache */ }
-    let resultado: Recomendacao | null;
     if (modo === 'unico') {
-      resultado = await diagnosticarUmPeptideoIA(respostas!, peptideoUnico, idioma);
-      if (!resultado) resultado = protocoloUmPeptideo(respostas!, peptideoUnico);
-    } else {
-      resultado = await diagnosticarComIA(respostas!, estoqueAtual, idioma);
-      if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) resultado = recomendarPeptideos(respostas!, estoqueAtual);
+      let res = await diagnosticarUmPeptideoIA(r, peptideoUnico, idioma);
+      if (!res) res = protocoloUmPeptideo(r, peptideoUnico);
+      return res;
     }
+    let res = await diagnosticarComIA(r, estoqueAtual, idioma);
+    if (!res || (res.itens.length === 0 && !res.bloqueado)) res = recomendarPeptideos(r, estoqueAtual);
+    return res;
+  };
+
+  // Prefetch: começa a gerar já na etapa de revisão (etapa 5), enquanto o
+  // atendente confere. Ao clicar "Gerar", o resultado já está pronto (ou quase).
+  const prefetch = useRef<{ chave: string; promise: Promise<Recomendacao | null> } | null>(null);
+  const dispararPrefetch = () => {
+    if (!respostas) return;
+    const chave = chaveAtual();
+    if (prefetch.current?.chave === chave) return; // já em andamento p/ os mesmos dados
+    prefetch.current = { chave, promise: gerarInterno().catch(() => null) };
+  };
+  useEffect(() => {
+    if ((tela === 'diagnostico' || tela === 'unico') && passo === PASSOS && !rec && respostas) dispararPrefetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passo, tela]);
+
+  const gerar = async () => {
+    setErro(''); setEnviado(false);
+    setGerando(true);
+    const chave = chaveAtual();
+    let promise: Promise<Recomendacao | null>;
+    if (prefetch.current?.chave === chave) promise = prefetch.current.promise; // usa o que já foi disparado
+    else { promise = gerarInterno().catch(() => null); prefetch.current = { chave, promise }; }
+    let resultado = await promise;
+    // Se o prefetch falhou por algum motivo, gera na hora (nunca deixa vazio).
+    if (!resultado) resultado = await gerarInterno();
     setRec(resultado);
     setGerando(false);
+    prefetch.current = null;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
