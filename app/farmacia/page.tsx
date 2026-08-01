@@ -73,10 +73,10 @@ const ATIVIDADES: { key: AtividadeFarmacia; label: string; le: string; sub: stri
   { key: 'muito_ativo', label: 'Muito ativo', le: 'Muy activo', sub: 'Treina 6–7x/sem', se: 'Entrena 6–7x/sem', icon: 'bolt', cor: '#EA580C' },
 ];
 
-const SONOS: { key: SonoFarmacia; label: string; le: string; icon: string; cor: string }[] = [
-  { key: 'ruim', label: 'Ruim', le: 'Malo', icon: 'drop', cor: '#EC4899' },
-  { key: 'regular', label: 'Regular', le: 'Regular', icon: 'pulse', cor: '#16A34A' },
-  { key: 'bom', label: 'Bom', le: 'Bueno', icon: 'moon', cor: '#4F46E5' },
+const SONOS: { key: SonoFarmacia; label: string; le: string; sub: string; se: string; icon: string; cor: string }[] = [
+  { key: 'ruim', label: 'Ruim', le: 'Malo', sub: 'Custa dormir', se: 'Cuesta dormir', icon: 'drop', cor: '#EC4899' },
+  { key: 'regular', label: 'Regular', le: 'Regular', sub: 'Dá pra melhorar', se: 'Se puede mejorar', icon: 'pulse', cor: '#16A34A' },
+  { key: 'bom', label: 'Bom', le: 'Bueno', sub: 'Acordo disposto', se: 'Despierto descansado', icon: 'moon', cor: '#4F46E5' },
 ];
 
 // Cor + ícone dos cabeçalhos de seção da etapa 3
@@ -421,7 +421,7 @@ export default function FarmaciaPage() {
                     <Campo label={t('Altura', 'Altura')} unidade="cm" icon="bolt" cor="#2563EB"><input className="inp" placeholder="175" inputMode="numeric" value={altura} onChange={(e) => setAltura(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
                     <Campo label={t('Idade', 'Edad')} unidade={t('anos', 'años')} icon="sparkle" cor="#D97706"><input className="inp" placeholder="34" inputMode="numeric" value={idade} onChange={(e) => setIdade(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
                   </div>
-                  {imc && <div style={S.imcBox}><b style={{ color: '#0E1113' }}>IMC {imc.valor}</b> <span style={{ color: '#667085' }}>· {imc.classe}</span></div>}
+                  {imc && <BarraIMC valor={imc.valor} classe={imc.classe} t={t} />}
                   <div style={S.divisor} />
                   <SecaoTitulo cor="#EC4899" icon="person">{t('Sexo', 'Sexo')} <span style={{ ...S.opcional, marginLeft: 6 }}>{t('opcional', 'opcional')}</span></SecaoTitulo>
                   <div style={S.grid2}>
@@ -461,7 +461,7 @@ export default function FarmaciaPage() {
                   <div style={S.grid3}>
                     {SONOS.map((o) => (
                       <OpcaoCard key={o.key} on={sono === o.key} onClick={() => setSono(sono === o.key ? '' : o.key)} cor={o.cor} icon={o.icon}
-                        label={idioma === 'es' ? o.le : o.label} />
+                        label={idioma === 'es' ? o.le : o.label} sub={idioma === 'es' ? o.se : o.sub} />
                     ))}
                   </div>
                 </StepCard>
@@ -595,6 +595,32 @@ function StepCard({ n, titulo, sub, children }: { n: number; titulo: string; sub
       <h1 style={S.stepTitle}>{titulo}</h1>
       <p style={S.stepSub}>{sub}</p>
       <div style={{ marginTop: 26 }}>{children}</div>
+    </div>
+  );
+}
+
+function BarraIMC({ valor, classe, t }: { valor: number; classe: string; t: (p: string, e: string) => string }) {
+  // Marcador: 18.5→18%, 25→42%, 30→66% (mesmos cortes do gradiente)
+  let pct: number;
+  if (valor <= 18.5) pct = Math.max(0, (valor - 15) / 3.5) * 18;
+  else if (valor <= 25) pct = 18 + ((valor - 18.5) / 6.5) * 24;
+  else if (valor <= 30) pct = 42 + ((valor - 25) / 5) * 24;
+  else pct = 66 + Math.min(1, (valor - 30) / 10) * 34;
+  pct = Math.max(2, Math.min(98, pct));
+  return (
+    <div style={S.imcCard}>
+      <div style={S.imcTop}>
+        <span style={S.imcLabel}>{t('Índice de massa corporal', 'Índice de masa corporal')}</span>
+        <span style={S.imcClasse}>{classe}</span>
+      </div>
+      <div style={S.imcValor}>{String(valor).replace('.', ',')}</div>
+      <div style={S.imcBarWrap}>
+        <div style={S.imcBar} />
+        <div style={{ ...S.imcDot, left: `${pct}%` }} />
+      </div>
+      <div style={S.imcLabels}>
+        <span>{t('abaixo', 'bajo')}</span><span>{t('normal', 'normal')}</span><span>{t('sobrepeso', 'sobrepeso')}</span><span>{t('obesidade', 'obesidad')}</span>
+      </div>
     </div>
   );
 }
@@ -879,6 +905,15 @@ const S: Record<string, React.CSSProperties> = {
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 },
   inp: { width: '100%', padding: '14px 16px', fontSize: 16, borderRadius: 14, border: '1px solid #E4E4E4', background: '#fff', fontFamily: 'inherit', color: '#0E1113' },
   imcBox: { marginTop: 12, fontSize: 14, background: '#F6FBF7', border: '1px solid #E1EEE4', borderRadius: 10, padding: '10px 14px' },
+  imcCard: { marginTop: 16, background: '#fff', border: '1px solid #ECEDEE', borderRadius: 18, padding: '18px 20px 20px' },
+  imcTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#667085' },
+  imcLabel: { fontWeight: 500 },
+  imcClasse: { fontWeight: 600, color: '#5B7A64', textTransform: 'capitalize' },
+  imcValor: { fontSize: 30, fontWeight: 800, color: '#0B7A3B', marginTop: 4, letterSpacing: '-.02em' },
+  imcBarWrap: { position: 'relative', height: 14, display: 'flex', alignItems: 'center', marginTop: 14 },
+  imcBar: { width: '100%', height: 8, borderRadius: 100, background: 'linear-gradient(90deg, #BFDBFE 0 18%, #86EFAC 18% 42%, #FDE68A 42% 66%, #FCA5A5 66% 100%)' },
+  imcDot: { position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)', width: 14, height: 14, borderRadius: '50%', background: '#fff', border: '2.5px solid #0B7A3B', boxShadow: '0 1px 3px rgba(0,0,0,.15)' },
+  imcLabels: { display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#98A2B3', marginTop: 8 },
   subLabel: { fontSize: 14, fontWeight: 700, color: '#0E1113', marginTop: 20, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 },
   secaoTit: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#0E1113', marginBottom: 14 },
   secaoIcon: { width: 30, height: 30, borderRadius: 9, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
