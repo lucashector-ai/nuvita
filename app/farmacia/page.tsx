@@ -1,9 +1,8 @@
 // ════════════════════════════════════════════════
 //  NUVITA — app/farmacia/page.tsx
-//  Balcão de farmácia: o atendente faz o diagnóstico
-//  no tablet, gera o protocolo e envia por WhatsApp.
-//  Tudo em uma página só, otimizada para toque.
-//  Fluxo clínico: diagnóstico primeiro, contato no final.
+//  Balcão de farmácia (novo design): landing → wizard de 5 etapas →
+//  protocolo. Full page, com rodapé "Continuar" fixo nas etapas.
+//  Toda a lógica (IA, estoque, WhatsApp, PT/ES) é reaproveitada.
 // ════════════════════════════════════════════════
 
 'use client';
@@ -16,6 +15,7 @@ import Icon from '@/components/farmacia/Icon';
 import TabelaFarmacia from '@/components/farmacia/TabelaFarmacia';
 import CalculadoraPeptideo from '@/components/farmacia/CalculadoraPeptideo';
 import { tf, IDIOMA_KEY, type Lang } from '@/lib/farmaciaI18n';
+import { HERO_IMG, OBJ_IMG, pepImg } from '@/lib/farmaciaAssets';
 import {
   recomendarPeptideos,
   diagnosticarComIA,
@@ -32,32 +32,30 @@ import {
   type Recomendacao,
 } from '@/lib/recomendarPeptideos';
 
-type Modo = 'completo' | 'unico' | 'catalogo' | 'calculadora';
+type Tela = 'home' | 'diagnostico' | 'unico' | 'catalogo' | 'calculadora';
 type Pais = 'BR' | 'PY';
 
-// País do WhatsApp (formato do número).
-const PAISES: Record<Pais, { ddi: string; label: string; flag: string; max: number; ph: string }> = {
-  BR: { ddi: '55', label: 'Brasil', flag: '🇧🇷', max: 11, ph: '(11) 99999-9999' },
-  PY: { ddi: '595', label: 'Paraguai', flag: '🇵🇾', max: 10, ph: '0981 234 567' },
+const PAISES: Record<Pais, { ddi: string; flag: string; max: number; ph: string }> = {
+  BR: { ddi: '55', flag: '🇧🇷', max: 11, ph: '(11) 99999-9999' },
+  PY: { ddi: '595', flag: '🇵🇾', max: 10, ph: '0981 234 567' },
 };
 
-// ─── Opções das perguntas ─────────────────────────────────
-// le = label (español); se = sub (español)
-const OBJETIVOS: { key: ObjectiveKey; label: string; le: string; icon: string }[] = [
-  { key: 'gordura', label: 'Emagrecer', le: 'Adelgazar', icon: 'flame' },
-  { key: 'massa', label: 'Ganhar massa', le: 'Ganar masa', icon: 'dumbbell' },
-  { key: 'recuperacao', label: 'Recuperação / lesões', le: 'Recuperación / lesiones', icon: 'refresh' },
-  { key: 'sono', label: 'Dormir melhor', le: 'Dormir mejor', icon: 'moon' },
-  { key: 'pele', label: 'Pele / anti-idade', le: 'Piel / antiedad', icon: 'sparkle' },
-  { key: 'longevidade', label: 'Longevidade / energia', le: 'Longevidad / energía', icon: 'bolt' },
-  { key: 'cognitivo', label: 'Foco / cognição', le: 'Enfoque / cognición', icon: 'focus' },
-  { key: 'hormonal', label: 'Libido / hormonal', le: 'Libido / hormonal', icon: 'flask' },
+// le = label (es); de = desc (es)
+const OBJETIVOS: { key: ObjectiveKey; label: string; le: string; icon: string; desc: string; de: string }[] = [
+  { key: 'gordura', label: 'Emagrecer', le: 'Adelgazar', icon: 'flame', desc: 'Perder gordura e controlar o apetite', de: 'Perder grasa y controlar el apetito' },
+  { key: 'massa', label: 'Ganhar massa', le: 'Ganar masa', icon: 'dumbbell', desc: 'Mais massa muscular e força', de: 'Más masa muscular y fuerza' },
+  { key: 'pele', label: 'Pele / anti-idade', le: 'Piel / antiedad', icon: 'sparkle', desc: 'Colágeno, viço e rejuvenescimento', de: 'Colágeno, frescura y rejuvenecimiento' },
+  { key: 'cognitivo', label: 'Foco / cognição', le: 'Enfoque / cognición', icon: 'focus', desc: 'Foco, memória e clareza mental', de: 'Enfoque, memoria y claridad mental' },
+  { key: 'longevidade', label: 'Longevidade / energia', le: 'Longevidad / energía', icon: 'bolt', desc: 'Energia, disposição e vitalidade', de: 'Energía, disposición y vitalidad' },
+  { key: 'sono', label: 'Dormir melhor', le: 'Dormir mejor', icon: 'moon', desc: 'Dormir melhor e mais profundo', de: 'Dormir mejor y más profundo' },
+  { key: 'recuperacao', label: 'Recuperação / lesões', le: 'Recuperación / lesiones', icon: 'refresh', desc: 'Recuperar de lesões e treinos', de: 'Recuperarse de lesiones y entrenos' },
+  { key: 'hormonal', label: 'Libido / hormonal', le: 'Libido / hormonal', icon: 'flask', desc: 'Libido e equilíbrio hormonal', de: 'Libido y equilibrio hormonal' },
 ];
 
-const NIVEIS: { key: NivelFarmacia; label: string; le: string; sub: string; se: string }[] = [
-  { key: 'iniciante', label: 'Nunca usou', le: 'Nunca usó', sub: 'Primeira vez', se: 'Primera vez' },
-  { key: 'intermediario', label: 'Já usou', le: 'Ya usó', sub: 'Alguma experiência', se: 'Algo de experiencia' },
-  { key: 'avancado', label: 'Usa sempre', le: 'Usa siempre', sub: 'Experiente', se: 'Experto' },
+const NIVEIS: { key: NivelFarmacia; label: string; le: string; sub: string; se: string; icon: string }[] = [
+  { key: 'iniciante', label: 'Nunca usou', le: 'Nunca usó', sub: 'Primeira vez', se: 'Primera vez', icon: 'sparkle' },
+  { key: 'intermediario', label: 'Já usou', le: 'Ya usó', sub: 'Alguma experiência', se: 'Algo de experiencia', icon: 'refresh' },
+  { key: 'avancado', label: 'Usa sempre', le: 'Usa siempre', sub: 'Experiente', se: 'Experto', icon: 'bolt' },
 ];
 
 const ATIVIDADES: { key: AtividadeFarmacia; label: string; le: string; sub: string; se: string }[] = [
@@ -83,19 +81,21 @@ const CONDICOES: { key: CondicaoSaude; label: string; le: string; icon: string }
   { key: 'outros', label: 'Outros', le: 'Otros', icon: 'pencil' },
 ];
 
-const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string }> = {
-  essencial: { bg: '#DCFCE7', tx: '#15803D', label: 'Essencial' },
-  recomendado: { bg: '#FEF3C7', tx: '#B45309', label: 'Recomendado' },
-  opcional: { bg: '#F1F1F1', tx: '#6B7280', label: 'Opcional' },
+const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string; le: string }> = {
+  essencial: { bg: '#DCFCE7', tx: '#15803D', label: 'Essencial', le: 'Esencial' },
+  recomendado: { bg: '#FEF3C7', tx: '#B45309', label: 'Recomendado', le: 'Recomendado' },
+  opcional: { bg: '#F1F1F1', tx: '#6B7280', label: 'Opcional', le: 'Opcional' },
 };
 
+const PASSOS = 5;
+
 export default function FarmaciaPage() {
-  const [modo, setModo] = useState<Modo>('completo');
+  const [tela, setTela] = useState<Tela>('home');
+  const [passo, setPasso] = useState(1);
   const [peptideoUnico, setPeptideoUnico] = useState('');
   const [catalogoSel, setCatalogoSel] = useState<Peptide | null>(null);
   const [buscaCatalogo, setBuscaCatalogo] = useState('');
   const [estoque, setEstoque] = useState<string[] | null>(null);
-  // Diagnóstico
   const [objetivos, setObjetivos] = useState<ObjectiveKey[]>([]);
   const [peso, setPeso] = useState('');
   const [altura, setAltura] = useState('');
@@ -106,13 +106,10 @@ export default function FarmaciaPage() {
   const [sono, setSono] = useState<SonoFarmacia | ''>('');
   const [condicoes, setCondicoes] = useState<CondicaoSaude[]>([]);
   const [condicaoOutros, setCondicaoOutros] = useState('');
-  // Contato (por último)
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [pais, setPais] = useState<'BR' | 'PY'>('BR');
-
+  const [pais, setPais] = useState<Pais>('BR');
   const [idioma, setIdioma] = useState<Lang>('pt');
-
   const [rec, setRec] = useState<Recomendacao | null>(null);
   const [erro, setErro] = useState('');
   const [enviado, setEnviado] = useState(false);
@@ -120,54 +117,30 @@ export default function FarmaciaPage() {
   const [enviando, setEnviando] = useState(false);
   const [enviarErro, setEnviarErro] = useState('');
 
+  const modo = tela === 'unico' ? 'unico' : 'completo';
   const imc = useMemo(() => calcularIMC(Number(peso), Number(altura)), [peso, altura]);
+  const t = (pt: string, es: string) => tf(idioma, pt, es);
 
-  // Carrega o estoque da farmácia (salvo pelo PinGate ao entrar).
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(ESTOQUE_KEY);
-      if (raw) {
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr)) setEstoque(arr);
-      }
+      if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) setEstoque(arr); }
       const idi = sessionStorage.getItem(IDIOMA_KEY);
       if (idi === 'es' || idi === 'pt') setIdioma(idi);
-    } catch {
-      /* ignore */
-    }
-
-    // Recarrega o estoque do servidor (o do login pode estar desatualizado se a
-    // farmácia foi editada no admin). Mantém o balcão sempre com o estoque atual.
+    } catch { /* ignore */ }
     try {
       const codigo = sessionStorage.getItem(CODE_KEY);
       if (codigo) {
-        fetch('/api/farmacia/estoque', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'get', codigo }),
-        })
+        fetch('/api/farmacia/estoque', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get', codigo }) })
           .then((r) => r.json())
-          .then((data) => {
-            if (data?.found && Array.isArray(data.peptideos)) {
-              setEstoque(data.peptideos);
-              try { sessionStorage.setItem(ESTOQUE_KEY, JSON.stringify(data.peptideos)); } catch { /* ignore */ }
-            }
-          })
-          .catch(() => { /* mantém o estoque do cache */ });
+          .then((data) => { if (data?.found && Array.isArray(data.peptideos)) { setEstoque(data.peptideos); try { sessionStorage.setItem(ESTOQUE_KEY, JSON.stringify(data.peptideos)); } catch { /* */ } } })
+          .catch(() => { /* cache */ });
       }
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }, []);
 
-  const trocarIdioma = (l: Lang) => {
-    setIdioma(l);
-    try { sessionStorage.setItem(IDIOMA_KEY, l); } catch { /* ignore */ }
-  };
-  // Atalho de tradução: t('português', 'español')
-  const t = (pt: string, es: string) => tf(idioma, pt, es);
+  const trocarIdioma = (l: Lang) => { setIdioma(l); try { sessionStorage.setItem(IDIOMA_KEY, l); } catch { /* */ } };
 
-  // Peptídeos que a farmácia tem (para o modo "um peptídeo").
   const peptidesDisponiveis = useMemo(
     () => (estoque && estoque.length ? ALL_PEPTIDES.filter((p) => estoque.includes(p.n)) : ALL_PEPTIDES),
     [estoque],
@@ -175,159 +148,102 @@ export default function FarmaciaPage() {
 
   const respostas = useMemo<RespostasFarmacia | null>(() => {
     const objetivoOk = modo === 'unico' ? !!peptideoUnico : objetivos.length > 0;
-    // Nome/WhatsApp NÃO são exigidos para diagnosticar — só na hora de enviar.
     if (!objetivoOk || !nivel) return null;
     return {
-      nome: nome.trim() || 'Paciente',
-      telefone: telefone.trim(),
-      sexo: sexo || undefined,
-      objetivos,
-      nivel: nivel as NivelFarmacia,
-      condicoes: condicoes.length ? condicoes : ['nenhuma'],
-      condicaoOutros: condicaoOutros.trim() || undefined,
-      peso: peso ? Number(peso) : undefined,
-      altura: altura ? Number(altura) : undefined,
-      idade: idade ? Number(idade) : undefined,
-      atividade: atividade || undefined,
-      sono: sono || undefined,
+      nome: nome.trim() || 'Paciente', telefone: telefone.trim(), sexo: sexo || undefined,
+      objetivos, nivel: nivel as NivelFarmacia, condicoes: condicoes.length ? condicoes : ['nenhuma'],
+      condicaoOutros: condicaoOutros.trim() || undefined, peso: peso ? Number(peso) : undefined,
+      altura: altura ? Number(altura) : undefined, idade: idade ? Number(idade) : undefined,
+      atividade: atividade || undefined, sono: sono || undefined,
     };
   }, [modo, peptideoUnico, nome, telefone, sexo, objetivos, nivel, condicoes, condicaoOutros, peso, altura, idade, atividade, sono]);
 
-  // ─── Toggles ─────────────────────────────────────────────
-  const toggleObjetivo = (k: ObjectiveKey) => {
-    setObjetivos((prev) => {
-      if (prev.includes(k)) return prev.filter((o) => o !== k);
-      if (prev.length >= 3) return prev;
-      return [...prev, k];
-    });
+  const toggleObjetivo = (k: ObjectiveKey) => setObjetivos((p) => p.includes(k) ? p.filter((o) => o !== k) : p.length >= 3 ? p : [...p, k]);
+  const toggleCondicao = (k: CondicaoSaude) => setCondicoes((prev) => {
+    if (k === 'nenhuma') return prev.includes('nenhuma') ? [] : ['nenhuma'];
+    const semN = prev.filter((c) => c !== 'nenhuma');
+    const jaTem = semN.includes(k);
+    if (k === 'outros' && jaTem) setCondicaoOutros('');
+    return jaTem ? semN.filter((c) => c !== k) : [...semN, k];
+  });
+
+  // Validação por etapa (para liberar o "Continuar")
+  const etapaValida = (n: number): boolean => {
+    if (n === 1) return modo === 'unico' ? !!peptideoUnico : objetivos.length > 0;
+    if (n === 2) return !!peso && Number(peso) >= 30 && Number(peso) <= 300 && !!altura && Number(altura) >= 120 && Number(altura) <= 230 && !!idade && Number(idade) >= 16 && Number(idade) <= 100;
+    if (n === 3) return !!nivel;
+    if (n === 4) return !(condicoes.includes('outros') && !condicaoOutros.trim());
+    return true;
   };
 
-  const toggleCondicao = (k: CondicaoSaude) => {
-    setCondicoes((prev) => {
-      if (k === 'nenhuma') return prev.includes('nenhuma') ? [] : ['nenhuma'];
-      const semNenhuma = prev.filter((c) => c !== 'nenhuma');
-      const jaTem = semNenhuma.includes(k);
-      if (k === 'outros' && jaTem) setCondicaoOutros('');
-      return jaTem ? semNenhuma.filter((c) => c !== k) : [...semNenhuma, k];
-    });
-  };
-
-  // ─── Gerar protocolo (IA faz o diagnóstico; fallback determinístico) ───
-  const gerar = async () => {
+  const avancar = () => {
     setErro('');
-    setEnviado(false);
-    if (modo === 'unico' && !peptideoUnico) return setErro(t('Selecione o peptídeo que a pessoa usa.', 'Seleccione el péptido que la persona usa.'));
-    if (modo === 'completo' && !objetivos.length) return setErro(t('Selecione ao menos um objetivo.', 'Seleccione al menos un objetivo.'));
-    if (!peso || Number(peso) < 30 || Number(peso) > 300) return setErro(t('Informe um peso válido (kg).', 'Ingrese un peso válido (kg).'));
-    if (!altura || Number(altura) < 120 || Number(altura) > 230) return setErro(t('Informe uma altura válida (cm).', 'Ingrese una altura válida (cm).'));
-    if (!idade || Number(idade) < 16 || Number(idade) > 100) return setErro(t('Informe uma idade válida.', 'Ingrese una edad válida.'));
-    if (!nivel) return setErro(t('Selecione a experiência com peptídeos.', 'Seleccione la experiencia con péptidos.'));
-    if (condicoes.includes('outros') && !condicaoOutros.trim()) return setErro(t('Descreva a outra condição de saúde.', 'Describa la otra condición de salud.'));
-    // Nome e WhatsApp são pedidos só depois, se a pessoa quiser receber o protocolo.
+    if (!etapaValida(passo)) return setErro(t('Preencha esta etapa para continuar.', 'Complete esta etapa para continuar.'));
+    if (passo < PASSOS) { setPasso(passo + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else gerar();
+  };
+  const voltar = () => { setErro(''); if (passo > 1) setPasso(passo - 1); else irHome(); };
 
+  const irHome = () => { setTela('home'); setPasso(1); setRec(null); };
+  const iniciar = (tl: Tela) => { novoAtendimento(false); setTela(tl); setPasso(1); };
+
+  const gerar = async () => {
+    setErro(''); setEnviado(false);
     setGerando(true);
-
-    // REGRA: só entra no protocolo o que está EM ESTOQUE. Busca o estoque atual
-    // agora — não confia no cache do login, que pode estar velho se a farmácia
-    // editou o estoque no admin depois que o tablet abriu.
     let estoqueAtual = estoque;
     try {
       const codigo = sessionStorage.getItem(CODE_KEY);
       if (codigo) {
-        const res = await fetch('/api/farmacia/estoque', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'get', codigo }),
-        });
+        const res = await fetch('/api/farmacia/estoque', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get', codigo }) });
         const data = await res.json().catch(() => ({}));
-        if (data?.found && Array.isArray(data.peptideos)) {
-          estoqueAtual = data.peptideos;
-          setEstoque(data.peptideos);
-          try { sessionStorage.setItem(ESTOQUE_KEY, JSON.stringify(data.peptideos)); } catch { /* ignore */ }
-        }
+        if (data?.found && Array.isArray(data.peptideos)) { estoqueAtual = data.peptideos; setEstoque(data.peptideos); try { sessionStorage.setItem(ESTOQUE_KEY, JSON.stringify(data.peptideos)); } catch { /* */ } }
       }
-    } catch {
-      /* sem rede: usa o estoque em cache */
-    }
-
-    // A IA faz o diagnóstico; se indisponível/rate-limit, usa o determinístico.
+    } catch { /* cache */ }
     let resultado: Recomendacao | null;
     if (modo === 'unico') {
       resultado = await diagnosticarUmPeptideoIA(respostas!, peptideoUnico, idioma);
       if (!resultado) resultado = protocoloUmPeptideo(respostas!, peptideoUnico);
     } else {
       resultado = await diagnosticarComIA(respostas!, estoqueAtual, idioma);
-      if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) {
-        resultado = recomendarPeptideos(respostas!, estoqueAtual);
-      }
+      if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) resultado = recomendarPeptideos(respostas!, estoqueAtual);
     }
     setRec(resultado);
     setGerando(false);
-
-    setTimeout(() => {
-      document.getElementById('resultado')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Envia o protocolo direto pro WhatsApp da pessoa (só se ela quiser receber).
-  // Nome + WhatsApp são coletados agora, com consentimento.
   const enviarProtocolo = async () => {
     if (!respostas || !rec) return;
     setEnviarErro('');
-    if (!nome.trim()) return setEnviarErro('Preencha o nome da pessoa.');
+    if (!nome.trim()) return setEnviarErro(t('Preencha o nome da pessoa.', 'Complete el nombre de la persona.'));
     const telFull = telefoneE164();
-    if (telFull.length < 12) return setEnviarErro('Informe um WhatsApp válido com DDD.');
-
+    if (telFull.length < 12) return setEnviarErro(t('Informe um WhatsApp válido com DDD.', 'Ingrese un WhatsApp válido con código.'));
     setEnviando(true);
     const rComContato = { ...respostas, nome: nome.trim(), telefone: telFull };
     const msg = montarMensagemWhatsApp(rComContato, rec);
-
-    // Salva o lead agora (a pessoa consentiu em receber).
     try {
       await fetch('/api/farmacia/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nome: rComContato.nome,
-          telefone: rComContato.telefone,
-          sexo: rComContato.sexo,
-          objetivos: rComContato.objetivos,
-          nivel: rComContato.nivel,
-          condicoes: rComContato.condicoes,
-          condicaoOutros: rComContato.condicaoOutros,
-          peso: rComContato.peso,
-          altura: rComContato.altura,
-          idade: rComContato.idade,
-          atividade: rComContato.atividade,
-          sono: rComContato.sono,
-          peptideos: rec.itens.map((i) => i.peptide.n),
+          nome: rComContato.nome, telefone: rComContato.telefone, sexo: rComContato.sexo, objetivos: rComContato.objetivos,
+          nivel: rComContato.nivel, condicoes: rComContato.condicoes, condicaoOutros: rComContato.condicaoOutros,
+          peso: rComContato.peso, altura: rComContato.altura, idade: rComContato.idade, atividade: rComContato.atividade,
+          sono: rComContato.sono, peptideos: rec.itens.map((i) => i.peptide.n),
         }),
       });
-    } catch {
-      /* silencioso */
-    }
-
-    // Envia pelo relay da Nexxus (sem abrir o WhatsApp).
+    } catch { /* silencioso */ }
     try {
       const res = await fetch('/api/farmacia/enviar-whatsapp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ telefone: rComContato.telefone, mensagem: msg, nome: rComContato.nome }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok && data?.ok) {
-        setEnviado(true);
-      } else {
-        setEnviarErro(data?.error || 'Não foi possível enviar automaticamente.');
-      }
-    } catch {
-      setEnviarErro('Erro de conexão ao enviar.');
-    } finally {
-      setEnviando(false);
-    }
+      if (res.ok && data?.ok) setEnviado(true);
+      else setEnviarErro(data?.error || t('Não foi possível enviar automaticamente.', 'No se pudo enviar automáticamente.'));
+    } catch { setEnviarErro(t('Erro de conexão ao enviar.', 'Error de conexión al enviar.')); }
+    finally { setEnviando(false); }
   };
 
-  // Alternativa manual: abre o WhatsApp (para aparelhos que têm o app).
   const abrirWhatsAppManual = () => {
     if (!rec) return;
     const tel = telefoneE164();
@@ -336,908 +252,600 @@ export default function FarmaciaPage() {
     window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   };
 
-  const novoAtendimento = () => {
-    setPeptideoUnico('');
-    setObjetivos([]);
-    setPeso('');
-    setAltura('');
-    setIdade('');
-    setSexo('');
-    setNivel('');
-    setAtividade('');
-    setSono('');
-    setCondicoes([]);
-    setCondicaoOutros('');
-    setNome('');
-    setTelefone('');
-    setRec(null);
-    setErro('');
-    setEnviado(false);
-    setGerando(false);
-    setEnviando(false);
-    setEnviarErro('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const novoAtendimento = (voltarHome = true) => {
+    setPeptideoUnico(''); setObjetivos([]); setPeso(''); setAltura(''); setIdade(''); setSexo('');
+    setNivel(''); setAtividade(''); setSono(''); setCondicoes([]); setCondicaoOutros('');
+    setNome(''); setTelefone(''); setRec(null); setErro(''); setEnviado(false); setGerando(false);
+    setEnviando(false); setEnviarErro(''); setPasso(1);
+    if (voltarHome) { setTela('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   };
 
   const onTelefone = (v: string) => {
     const d = v.replace(/\D/g, '').slice(0, PAISES[pais].max);
     let out = d;
-    if (pais === 'BR') {
-      if (d.length > 2) out = `(${d.slice(0, 2)}) ${d.slice(2)}`;
-      if (d.length > 7) out = `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-    } else {
-      // Paraguai: 0981 234 567
-      if (d.length > 4) out = `${d.slice(0, 4)} ${d.slice(4)}`;
-      if (d.length > 7) out = `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7)}`;
-    }
+    if (pais === 'BR') { if (d.length > 2) out = `(${d.slice(0, 2)}) ${d.slice(2)}`; if (d.length > 7) out = `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`; }
+    else { if (d.length > 4) out = `${d.slice(0, 4)} ${d.slice(4)}`; if (d.length > 7) out = `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7)}`; }
     setTelefone(out);
   };
+  const trocarPais = (p: Pais) => { setPais(p); setTelefone(''); setEnviarErro(''); };
+  const telefoneE164 = () => { let d = telefone.replace(/\D/g, ''); if (pais === 'PY') { d = d.replace(/^0+/, ''); return '595' + d; } if (!d.startsWith('55')) d = '55' + d; return d; };
 
-  const trocarPais = (p: Pais) => {
-    setPais(p);
-    setTelefone('');
-    setEnviarErro('');
-  };
-
-  // Número final em E.164 (só dígitos, com DDI) conforme o país escolhido.
-  const telefoneE164 = () => {
-    let d = telefone.replace(/\D/g, '');
-    if (pais === 'PY') {
-      d = d.replace(/^0+/, ''); // Paraguai: remove o 0 inicial
-      return '595' + d;
-    }
-    if (!d.startsWith('55')) d = '55' + d;
-    return d;
-  };
-
-  // Ao terminar de digitar o WhatsApp, pede à Nexxus para silenciar a Emili
-  // ANTES do "oi" de abertura da janela (best-effort; não trava nada). Guardado
-  // por número para não repetir a chamada a cada blur.
   const ultimoMutado = useRef('');
   const prepararWhatsApp = () => {
     const tel = telefoneE164();
     if (tel.length < 12 || ultimoMutado.current === tel) return;
     ultimoMutado.current = tel;
-    fetch('/api/farmacia/preparar-whatsapp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telefone: tel }),
-    }).catch(() => {});
+    fetch('/api/farmacia/preparar-whatsapp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ telefone: tel }) }).catch(() => {});
   };
 
-  const soNumero = (v: string, max: number) => v.replace(/\D/g, '').slice(0, max);
-
-  // Sair: volta para a tela de senha (bloqueia o balcão de novo).
   const sair = () => {
-    try {
-      sessionStorage.removeItem(OK_KEY);
-      sessionStorage.removeItem(ESTOQUE_KEY);
-      sessionStorage.removeItem(NOME_KEY);
-      sessionStorage.removeItem(CODE_KEY);
-    } catch {
-      /* ignore */
-    }
+    try { sessionStorage.removeItem(OK_KEY); sessionStorage.removeItem(ESTOQUE_KEY); sessionStorage.removeItem(NOME_KEY); sessionStorage.removeItem(CODE_KEY); } catch { /* */ }
     window.location.reload();
   };
-
-  // Recarregar: atualiza a página (pega a versão nova do site) sem deslogar.
   const recarregar = () => window.location.reload();
+  const soNumero = (v: string, max: number) => v.replace(/\D/g, '').slice(0, max);
+
+  const emWizard = (tela === 'diagnostico' || tela === 'unico') && !rec;
+  const pct = Math.round((passo / PASSOS) * 100);
 
   return (
-   <PinGate>
-    <div style={S.page} className="grad">
-      {/* Cabeçalho: logo à esquerda, controles à direita */}
-      <header style={S.header}>
-        <div style={S.headerIn}>
-          <div style={S.brand}>
-            <NuvitaLogo width={104} height={22} />
-            <span style={S.brandTag}>Balcão</span>
+    <PinGate>
+      <div style={S.page}>
+        {/* ─── Header ─── */}
+        <header style={S.header}>
+          <div style={S.headerIn}>
+            <button onClick={irHome} style={S.brandBtn} aria-label="Início">
+              <NuvitaLogo width={104} height={22} />
+              <span style={S.brandTag}>Balcão</span>
+            </button>
+            <div style={S.headerRight}>
+              <div style={S.langWrap} role="group" aria-label="Idioma">
+                <button onClick={() => trocarIdioma('pt')} style={{ ...S.langBtn, ...(idioma === 'pt' ? S.langBtnOn : {}) }}>PT</button>
+                <button onClick={() => trocarIdioma('es')} style={{ ...S.langBtn, ...(idioma === 'es' ? S.langBtnOn : {}) }}>ES</button>
+              </div>
+              <button onClick={recarregar} style={S.iconBtn} title={t('Atualizar', 'Actualizar')}><Icon name="refresh" size={18} /></button>
+              <button onClick={sair} style={S.sairBtn}>⤶ {t('Sair', 'Salir')}</button>
+            </div>
           </div>
-          <div style={S.headerRight}>
-            <div style={S.langWrap} role="group" aria-label="Idioma">
-              <button onClick={() => trocarIdioma('pt')}
-                style={{ ...S.langBtn, ...(idioma === 'pt' ? S.langBtnOn : {}) }}>PT</button>
-              <button onClick={() => trocarIdioma('es')}
-                style={{ ...S.langBtn, ...(idioma === 'es' ? S.langBtnOn : {}) }}>ES</button>
-            </div>
-            <button onClick={recarregar} style={S.iconBtn} title={t('Atualizar a página', 'Actualizar la página')} aria-label={t('Atualizar', 'Actualizar')}>
-              <Icon name="refresh" size={18} />
-            </button>
-            <button onClick={sair} style={S.sairBtn} title={t('Voltar para a tela de senha', 'Volver a la pantalla de contraseña')}>
-              {t('Sair', 'Salir')}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main style={S.main}>
-        {/* ─── FORMULÁRIO ─── */}
-        <div style={{ opacity: rec ? 0.4 : 1, pointerEvents: rec ? 'none' : 'auto', transition: 'opacity .25s' }}>
-          <div style={S.hero}>
-            <h1 style={S.h1}>
-              {modo === 'unico'
-                ? t('Protocolo de um peptídeo', 'Protocolo de un péptido')
-                : modo === 'catalogo'
-                  ? t('Catálogo de peptídeos', 'Catálogo de péptidos')
-                  : modo === 'calculadora'
-                    ? t('Calculadora de peptídeo', 'Calculadora de péptido')
-                    : t('Diagnóstico de peptídeos', 'Diagnóstico de péptidos')}
-            </h1>
-            <p style={S.lead}>
-              {modo === 'unico'
-                ? t('A pessoa já usa um peptídeo? Monte o protocolo dele.', '¿La persona ya usa un péptido? Arme su protocolo.')
-                : modo === 'catalogo'
-                  ? t('Toque em um produto para ver o que é, o que faz e como usar.', 'Toque un producto para ver qué es, qué hace y cómo usar.')
-                  : modo === 'calculadora'
-                    ? t('Quantas unidades puxar na seringa para a dose certa.', 'Cuántas unidades jalar en la jeringa para la dosis correcta.')
-                    : t('Responda com a pessoa. Rápido e sob medida.', 'Responda con la persona. Rápido y a medida.')}
-            </p>
-          </div>
-
-          {/* Seletor de modo */}
-          <div style={S.modoWrap}>
-            <button
-              onClick={() => setModo('completo')}
-              style={{ ...S.modoTab, ...(modo === 'completo' ? S.modoTabAtivo : {}) }}
-            >
-              <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="search" size={19} /></span>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Diagnóstico completo', 'Diagnóstico completo')}</div>
-                <div style={S.modoSub}>{t('Encontrar os peptídeos ideais', 'Encontrar los péptidos ideales')}</div>
+          {emWizard && (
+            <div style={S.progressWrap}>
+              <div style={S.progressTop}>
+                <span style={{ color: '#667085', fontWeight: 600 }}>{t('Seu progresso', 'Tu progreso')}</span>
+                <span style={{ color: '#16A34A', fontWeight: 800 }}>{pct}%</span>
+                <span style={{ color: '#98A2B3', fontWeight: 600 }}>{t('Etapa', 'Etapa')} {passo} {t('de', 'de')} {PASSOS}</span>
               </div>
-            </button>
-            <button
-              onClick={() => setModo('unico')}
-              style={{ ...S.modoTab, ...(modo === 'unico' ? S.modoTabAtivo : {}) }}
-            >
-              <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="pill" size={19} /></span>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Um peptídeo só', 'Un solo péptido')}</div>
-                <div style={S.modoSub}>{t('Já sabe qual? Faça o protocolo dele', '¿Ya sabe cuál? Arme su protocolo')}</div>
-              </div>
-            </button>
-            <button
-              onClick={() => setModo('catalogo')}
-              style={{ ...S.modoTab, ...(modo === 'catalogo' ? S.modoTabAtivo : {}) }}
-            >
-              <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="clipboard" size={19} /></span>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Catálogo', 'Catálogo')}</div>
-                <div style={S.modoSub}>{t('Ver o que cada produto faz', 'Ver qué hace cada producto')}</div>
-              </div>
-            </button>
-            <button
-              onClick={() => setModo('calculadora')}
-              style={{ ...S.modoTab, ...(modo === 'calculadora' ? S.modoTabAtivo : {}) }}
-            >
-              <span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name="flask" size={19} /></span>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Calculadora', 'Calculadora')}</div>
-                <div style={S.modoSub}>{t('Dose na seringa (UI)', 'Dosis en la jeringa (UI)')}</div>
-              </div>
-            </button>
-          </div>
-
-          {/* ─── CALCULADORA ─── */}
-          {modo === 'calculadora' && (
-            <div style={S.section}>
-              <CalculadoraPeptideo lang={idioma} />
+              <div style={S.progressBar}><div style={{ ...S.progressFill, width: `${pct}%` }} /></div>
             </div>
           )}
+        </header>
 
-          {/* ─── CATÁLOGO ─── */}
-          {modo === 'catalogo' && (
-            <div style={S.section}>
-              <input
-                className="inp"
-                placeholder={t('Buscar produto…', 'Buscar producto…')}
-                value={buscaCatalogo}
-                onChange={(e) => setBuscaCatalogo(e.target.value)}
-                style={{ ...S.inpBig, marginBottom: 14 }}
-              />
-              <div style={S.catGrid}>
-                {peptidesDisponiveis
-                  .filter((p) => {
-                    const q = buscaCatalogo.trim().toLowerCase();
-                    return !q || p.n.toLowerCase().includes(q) || p.m.toLowerCase().includes(q);
-                  })
-                  .map((p) => (
-                    <button key={p.n} onClick={() => setCatalogoSel(p)} style={S.catItem}>
-                      <span style={S.pepIconSm}><Icon name="pill" size={18} /></span>
-                      <span style={{ flex: 1 }}>
-                        <span style={{ fontWeight: 600, fontSize: 14.5, display: 'block' }}>{p.n}</span>
-                        <span style={{ fontSize: 12, color: '#98A2B3', lineHeight: 1.35 }}>{p.m}</span>
-                      </span>
-                      <span style={{ color: '#16A34A', fontSize: 13, fontWeight: 600 }}>{t('Ver', 'Ver')}</span>
-                    </button>
-                  ))}
-              </div>
-            </div>
-          )}
+        {/* ─── Conteúdo ─── */}
+        <main style={S.main}>
+          {tela === 'home' && <Home t={t} onStart={iniciar} />}
 
-          {/* ─── DIAGNÓSTICO / PROTOCOLO ─── */}
-          {(modo === 'completo' || modo === 'unico') && (
-          <>
-          {/* 1 · Objetivo (completo) ou Peptídeo (único) */}
-          {modo === 'completo' ? (
-            <Section n="1" titulo={t('Qual o objetivo?', '¿Cuál es el objetivo?')} hint={t('até 3', 'hasta 3')}>
-              <div style={S.gridAuto}>
-                {OBJETIVOS.map((o) => (
-                  <Chip key={o.key} ativo={objetivos.includes(o.key)} onClick={() => toggleObjetivo(o.key)} icon={o.icon}>
-                    {idioma === 'es' ? o.le : o.label}
-                  </Chip>
-                ))}
-              </div>
-            </Section>
-          ) : (
-            <Section n="1" titulo={t('Qual peptídeo a pessoa usa?', '¿Qué péptido usa la persona?')} hint={t('escolha 1', 'elija 1')}>
-              <div style={S.gridAuto}>
-                {peptidesDisponiveis.map((p) => (
-                  <Chip key={p.n} ativo={peptideoUnico === p.n} onClick={() => setPeptideoUnico(p.n)}>
-                    {p.n}
-                  </Chip>
-                ))}
-              </div>
-            </Section>
-          )}
-
-          {/* 2 · Dados físicos */}
-          <Section n="2" titulo={t('Dados físicos', 'Datos físicos')}>
-            <div style={S.grid3}>
-              <Campo label={t('Peso', 'Peso')} unidade="kg">
-                <input className="inp" placeholder="75" inputMode="numeric" value={peso}
-                  onChange={(e) => setPeso(soNumero(e.target.value, 3))} style={S.inpBig} />
-              </Campo>
-              <Campo label={t('Altura', 'Altura')} unidade="cm">
-                <input className="inp" placeholder="175" inputMode="numeric" value={altura}
-                  onChange={(e) => setAltura(soNumero(e.target.value, 3))} style={S.inpBig} />
-              </Campo>
-              <Campo label={t('Idade', 'Edad')} unidade={t('anos', 'años')}>
-                <input className="inp" placeholder="34" inputMode="numeric" value={idade}
-                  onChange={(e) => setIdade(soNumero(e.target.value, 3))} style={S.inpBig} />
-              </Campo>
-            </div>
-            {imc && (
-              <div style={S.imcBox}>
-                <span style={{ fontWeight: 600, color: '#0E1113' }}>IMC {imc.valor}</span>
-                <span style={{ color: '#667085' }}> · {imc.classe}</span>
-              </div>
-            )}
-          </Section>
-
-          {/* 3 · Sexo */}
-          <Section n="3" titulo={t('Sexo', 'Sexo')} opcional>
-            <div style={S.grid3}>
-              {[
-                { k: 'masculino', l: t('Masculino', 'Masculino') },
-                { k: 'feminino', l: t('Feminino', 'Femenino') },
-                { k: 'ni', l: t('Prefiro não dizer', 'Prefiero no decir') },
-              ].map((o) => (
-                <Chip key={o.k} ativo={sexo === o.k} onClick={() => setSexo(o.k as any)}>
-                  {o.l}
-                </Chip>
-              ))}
-            </div>
-          </Section>
-
-          {/* 4 · Experiência */}
-          <Section n="4" titulo={t('Já usou peptídeos?', '¿Ya usó péptidos?')}>
-            <div style={S.grid3}>
-              {NIVEIS.map((o) => (
-                <Chip key={o.key} ativo={nivel === o.key} onClick={() => setNivel(o.key)} coluna label={idioma === 'es' ? o.le : o.label} sub={idioma === 'es' ? o.se : o.sub} />
-              ))}
-            </div>
-          </Section>
-
-          {/* 5 · Atividade física */}
-          <Section n="5" titulo={t('Atividade física', 'Actividad física')}>
-            <div style={S.gridAuto}>
-              {ATIVIDADES.map((o) => (
-                <Chip key={o.key} ativo={atividade === o.key} onClick={() => setAtividade(o.key)} coluna label={idioma === 'es' ? o.le : o.label} sub={idioma === 'es' ? o.se : o.sub} />
-              ))}
-            </div>
-          </Section>
-
-          {/* 6 · Sono */}
-          <Section n="6" titulo={t('Como está o sono?', '¿Cómo está el sueño?')}>
-            <div style={S.grid3}>
-              {SONOS.map((o) => (
-                <Chip key={o.key} ativo={sono === o.key} onClick={() => setSono(o.key)}>
-                  {idioma === 'es' ? o.le : o.label}
-                </Chip>
-              ))}
-            </div>
-          </Section>
-
-          {/* 7 · Condições de saúde */}
-          <Section n="7" titulo={t('Condição de saúde?', '¿Condición de salud?')} hint={t('segurança', 'seguridad')}>
-            <div style={S.gridAuto}>
-              {CONDICOES.map((o) => (
-                <Chip key={o.key} ativo={condicoes.includes(o.key)} onClick={() => toggleCondicao(o.key)} icon={o.icon}>
-                  {idioma === 'es' ? o.le : o.label}
-                </Chip>
-              ))}
-            </div>
-            {condicoes.includes('outros') && (
-              <input
-                className="inp"
-                placeholder={t('Qual condição? (ex.: problema renal, alergia…)', '¿Qué condición? (ej.: problema renal, alergia…)')}
-                value={condicaoOutros}
-                onChange={(e) => setCondicaoOutros(e.target.value.slice(0, 120))}
-                style={{ ...S.inpBig, marginTop: 12 }}
-                autoFocus
-              />
-            )}
-          </Section>
-
-          {erro && <div style={S.erro}>⚠️ {erro}</div>}
-
-          {!rec && (
-            <button onClick={gerar} disabled={gerando}
-              style={{ ...S.cta, opacity: gerando ? 0.7 : 1, cursor: gerando ? 'wait' : 'pointer' }}>
-              {gerando
-                ? t('Analisando o perfil…', 'Analizando el perfil…')
-                : modo === 'unico' ? t('Gerar protocolo', 'Generar protocolo') : t('Gerar diagnóstico', 'Generar diagnóstico')}
-            </button>
-          )}
-          </>
-          )}
-        </div>
-
-        {/* ─── RESULTADO ─── */}
-        {rec && (
-          <div id="resultado" style={{ marginTop: 44, animation: 'fu .4s ease' }}>
-            <div style={S.divider} />
-
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-              <h2 style={S.h2}>{nome.trim() ? `${t('Protocolo de', 'Protocolo de')} ${nome.split(' ')[0]}` : t('Protocolo', 'Protocolo')}</h2>
-              <span className="pill" style={rec.fonte === 'ia' ? S.pillIa : undefined}>
-                <span className="pdot" /> {rec.fonte === 'ia' ? t('Diagnóstico IA', 'Diagnóstico IA') : t('Gerado', 'Generado')}
-              </span>
-            </div>
-            <div style={S.perfilLinha}>
-              {idade && <span>{idade} {t('anos', 'años')}</span>}
-              {imc && <span>· IMC {imc.valor} ({imc.classe})</span>}
-              {atividade && <span>· {idioma === 'es' ? ATIVIDADES.find((a) => a.key === atividade)?.le : ATIVIDADES.find((a) => a.key === atividade)?.label}</span>}
-            </div>
-
-            {rec.avisos.map((a, i) => (
-              <div key={i} className="disc" style={{ marginTop: 12 }}>{a}</div>
-            ))}
-
-            {rec.bloqueado || rec.itens.length === 0 ? (
-              <div style={{ ...S.card, marginTop: 16, textAlign: 'center', padding: '2.5rem 1.5rem' }}>
-                <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 12 }}><Icon name="pulse" size={40} /></div>
-                <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6, maxWidth: 420, margin: '0 auto' }}>
-                  Neste caso não é seguro montar um protocolo aqui. Oriente a pessoa a procurar acompanhamento
-                  médico antes de qualquer uso.
-                </p>
-              </div>
-            ) : (
-              <>
-                {rec.resumo && (
-                  <div style={S.iaResumo}>
-                    <div style={S.iaResumoTitulo}>{t('Resumo para explicar ao paciente', 'Resumen para explicar al paciente')}</div>
-                    <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>{rec.resumo}</p>
+          {emWizard && (
+            <div style={S.wrapCol}>
+              {passo === 1 && modo === 'completo' && (
+                <StepCard n={1} titulo={t('Qual o objetivo?', '¿Cuál es el objetivo?')} sub={t('Escolha até 3 — quanto mais preciso, melhor o protocolo.', 'Elige hasta 3 — cuanto más preciso, mejor el protocolo.')}>
+                  <div style={S.objGrid}>
+                    {OBJETIVOS.map((o) => {
+                      const on = objetivos.includes(o.key);
+                      return (
+                        <button key={o.key} onClick={() => toggleObjetivo(o.key)} style={{ ...S.objCard, ...(on ? S.objCardOn : {}) }}>
+                          <div style={S.objImgWrap}>
+                            <img src={OBJ_IMG[o.key]} alt="" style={S.objImg} />
+                            <span style={{ ...S.radio, ...(on ? S.radioOn : {}) }}>{on ? '✓' : ''}</span>
+                          </div>
+                          <div style={S.objBody}>
+                            <div style={S.objTitle}><span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name={o.icon} size={16} /></span>{idioma === 'es' ? o.le : o.label}</div>
+                            <div style={S.objDesc}>{idioma === 'es' ? o.de : o.desc}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-
-                <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
-                  {rec.itens.map((it) => {
-                    const pr = PRIORIDADE_STYLE[it.prioridade];
-                    const ehIa = rec.fonte === 'ia';
-                    return (
-                      <div key={it.peptide.n} style={S.card}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                          <span style={S.pepIcon}><Icon name="pill" size={24} /></span>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 600, fontSize: 17, letterSpacing: '-.02em' }}>{it.peptide.n}</div>
-                            <div style={{ fontSize: 13, color: '#667085', lineHeight: 1.4 }}>{it.peptide.m}</div>
-                          </div>
-                          <span style={{ ...S.badge, background: pr.bg, color: pr.tx }}>{pr.label}</span>
-                        </div>
-
-                        {it.motivo && (
-                          <div style={ehIa ? S.whyIa : S.why}>
-                            <span style={S.blocoTituloRow}>
-                              <Icon name="bulb" size={13} />
-                              {ehIa ? t('Por que para esta pessoa', 'Por qué para esta persona') : t('Por que recomendado', 'Por qué recomendado')}
-                            </span>
-                            {it.motivo}
-                          </div>
-                        )}
-
-                        {it.comoUsar && (
-                          <div style={S.comoUsar}>
-                            <span style={S.blocoTituloRow}>
-                              <Icon name="clipboard" size={13} />
-                              {t('Como usar', 'Cómo usar')}
-                            </span>
-                            {it.comoUsar}
-                          </div>
-                        )}
-
-                        {it.alternativa && (
-                          <div style={S.alternativa}>
-                            <span style={S.blocoTituloRow}>
-                              <Icon name="refresh" size={13} />
-                              {t('Comparação / alternativa', 'Comparación / alternativa')}
-                            </span>
-                            {it.alternativa}
-                          </div>
-                        )}
-
-                        <div style={S.specGrid}>
-                          <Spec label={t('Dose', 'Dosis')} valor={it.dose} destaque />
-                          <Spec label={t('Frequência', 'Frecuencia')} valor={it.peptide.freq} />
-                          <Spec label={t('Quando', 'Cuándo')} valor={it.peptide.timing} />
-                          <Spec label={t('Via', 'Vía')} valor={it.peptide.route} />
-                          <Spec label={t('Ciclo', 'Ciclo')} valor={it.peptide.cycle} />
-                          <Spec label={t('Descanso', 'Descanso')} valor={it.peptide.rest} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {rec.removidosPorSeguranca.length > 0 && (
-                  <div style={{ ...S.hint, marginTop: 14 }}>
-                    {t('Removido(s) por segurança', 'Removido(s) por seguridad')}: {rec.removidosPorSeguranca.join(', ')}.
-                  </div>
-                )}
-
-                {(rec.orientacaoAlimentar || rec.orientacaoTreino || rec.observacoes || rec.avisoMedico) && (
-                  <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
-                    {rec.orientacaoAlimentar && <Orientacao icon="fork" titulo={t('Alimentação', 'Alimentación')} texto={rec.orientacaoAlimentar} />}
-                    {rec.orientacaoTreino && <Orientacao icon="dumbbell" titulo={t('Treino', 'Entrenamiento')} texto={rec.orientacaoTreino} />}
-                    {rec.observacoes && <Orientacao icon="eye" titulo={t('O que observar', 'Qué observar')} texto={rec.observacoes} />}
-                    {rec.avisoMedico && <div className="disc" style={{ marginTop: 2 }}>{rec.avisoMedico}</div>}
-                  </div>
-                )}
-
-                {/* Receber o protocolo — só se a pessoa tiver interesse */}
-                <div style={S.receberCard}>
-                  {enviado ? (
-                    <div style={{ textAlign: 'center', padding: '6px 0' }}>
-                      <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-                        <Icon name="check" size={30} />
-                      </div>
-                      <div style={{ fontWeight: 600, fontSize: 16 }}>{t('Protocolo enviado no WhatsApp!', '¡Protocolo enviado por WhatsApp!')}</div>
-                      <div style={{ fontSize: 13, color: '#667085', marginTop: 3 }}>
-                        {t('Enviamos o PDF para', 'Enviamos el PDF a')} +{telefoneE164()}.
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div style={{ fontWeight: 600, fontSize: 16 }}>{t('Quer receber o protocolo?', '¿Quiere recibir el protocolo?')}</div>
-                      <div style={{ fontSize: 13, color: '#667085', marginTop: 3, marginBottom: 14 }}>
-                        {t('Se a pessoa tiver interesse, preencha os dados que enviamos o protocolo em PDF direto no WhatsApp dela.',
-                           'Si la persona tiene interés, complete los datos y enviamos el protocolo en PDF directo a su WhatsApp.')}
-                      </div>
-                      <Campo label={t('Nome da pessoa', 'Nombre de la persona')}>
-                        <input className="inp" placeholder={t('Nome completo', 'Nombre completo')} value={nome}
-                          onChange={(e) => { setEnviarErro(''); setNome(e.target.value); }} style={S.inpBig} />
-                      </Campo>
-                      <div style={{ marginTop: 12 }}>
-                        <Campo label="WhatsApp">
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <select value={pais} onChange={(e) => trocarPais(e.target.value as Pais)}
-                              style={S.paisSelect} aria-label="País do número">
-                              {(Object.keys(PAISES) as Pais[]).map((p) => (
-                                <option key={p} value={p}>{PAISES[p].flag} +{PAISES[p].ddi}</option>
-                              ))}
-                            </select>
-                            <input className="inp" placeholder={PAISES[pais].ph} value={telefone} inputMode="numeric"
-                              onChange={(e) => { setEnviarErro(''); onTelefone(e.target.value); }}
-                              onBlur={prepararWhatsApp}
-                              style={{ ...S.inpBig, flex: 1 }} />
-                          </div>
-                        </Campo>
-                      </div>
-                      {enviarErro && (
-                        <div style={{ ...S.hint, color: '#B45309', marginTop: 10 }}>
-                          {enviarErro} <button onClick={abrirWhatsAppManual} style={S.linkBtn}>{t('Abrir no WhatsApp', 'Abrir en WhatsApp')}</button>
-                        </div>
-                      )}
-                      <button onClick={enviarProtocolo} disabled={enviando}
-                        style={{ ...S.waBtn, ...S.waBtnFull, opacity: enviando ? 0.7 : 1 }}>
-                        {enviando ? t('Enviando…', 'Enviando…') : t('Enviar no WhatsApp', 'Enviar por WhatsApp')}
-                      </button>
-                      <button onClick={abrirWhatsAppManual} style={S.waManualBtn}>
-                        {t('ou abrir o WhatsApp e enviar manualmente', 'o abrir WhatsApp y enviar manualmente')}
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                {/* Quanto vender — só para a farmácia, bem no fim */}
-                <TabelaFarmacia rec={rec} lang={idioma} />
-
-                <button onClick={novoAtendimento} style={S.secondaryBtn}>
-                  ↺ {t('Iniciar novo atendimento', 'Iniciar nueva atención')}
-                </button>
-              </>
-            )}
-
-            <p style={S.disclaimer}>
-              {t(
-                'A Nuvita oferece orientação educacional. Cada organismo reage de forma diferente — o uso deve considerar avaliação profissional quando indicado.',
-                'Nuvita ofrece orientación educativa. Cada organismo reacciona de forma diferente — el uso debe considerar evaluación profesional cuando corresponda.',
+                </StepCard>
               )}
-            </p>
-          </div>
+
+              {passo === 1 && modo === 'unico' && (
+                <StepCard n={1} titulo={t('Qual peptídeo a pessoa usa?', '¿Qué péptido usa la persona?')} sub={t('Escolha 1 para montar o protocolo dele.', 'Elige 1 para armar su protocolo.')}>
+                  <div style={S.pepGrid}>
+                    {peptidesDisponiveis.map((p) => {
+                      const on = peptideoUnico === p.n;
+                      const img = pepImg(p.n);
+                      return (
+                        <button key={p.n} onClick={() => setPeptideoUnico(p.n)} style={{ ...S.pepChip, ...(on ? S.pepChipOn : {}) }}>
+                          <span style={S.pepThumb}>{img ? <img src={img} alt="" style={S.pepThumbImg} /> : <Icon name="pill" size={18} />}</span>
+                          <span style={{ fontWeight: 600, fontSize: 14, flex: 1, textAlign: 'left' }}>{p.n}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </StepCard>
+              )}
+
+              {passo === 2 && (
+                <StepCard n={2} titulo={t('Conte um pouco sobre você', 'Cuéntanos un poco sobre ti')} sub={t('Usamos peso, altura e idade para calcular a dose certa.', 'Usamos peso, altura y edad para calcular la dosis correcta.')}>
+                  <div style={S.grid3}>
+                    <Campo label={t('Peso', 'Peso')} unidade="kg"><input className="inp" placeholder="75" inputMode="numeric" value={peso} onChange={(e) => setPeso(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
+                    <Campo label={t('Altura', 'Altura')} unidade="cm"><input className="inp" placeholder="175" inputMode="numeric" value={altura} onChange={(e) => setAltura(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
+                    <Campo label={t('Idade', 'Edad')} unidade={t('anos', 'años')}><input className="inp" placeholder="34" inputMode="numeric" value={idade} onChange={(e) => setIdade(soNumero(e.target.value, 3))} style={S.inp} /></Campo>
+                  </div>
+                  {imc && <div style={S.imcBox}><b style={{ color: '#0E1113' }}>IMC {imc.valor}</b> <span style={{ color: '#667085' }}>· {imc.classe}</span></div>}
+                  <div style={S.subLabel}>{t('Sexo', 'Sexo')} <span style={S.opcional}>{t('opcional', 'opcional')}</span></div>
+                  <div style={S.grid3}>
+                    {[{ k: 'masculino', l: t('Masculino', 'Masculino') }, { k: 'feminino', l: t('Feminino', 'Femenino') }, { k: 'ni', l: t('Prefiro não dizer', 'Prefiero no decir') }].map((o) => (
+                      <button key={o.k} onClick={() => setSexo(sexo === o.k ? '' : o.k as any)} style={{ ...S.pill, ...(sexo === o.k ? S.pillOn : {}) }}>{o.l}</button>
+                    ))}
+                  </div>
+                </StepCard>
+              )}
+
+              {passo === 3 && (
+                <StepCard n={3} titulo={t('Como é a sua rotina hoje?', '¿Cómo es tu rutina hoy?')} sub={t('Experiência, treino e sono mudam bastante a recomendação.', 'Experiencia, entreno y sueño cambian bastante la recomendación.')}>
+                  <div style={S.subLabel}>{t('Já usou peptídeos antes?', '¿Ya usaste péptidos antes?')}</div>
+                  <div style={S.grid3}>
+                    {NIVEIS.map((o) => (
+                      <button key={o.key} onClick={() => setNivel(o.key)} style={{ ...S.iconCard, ...(nivel === o.key ? S.iconCardOn : {}) }}>
+                        <span style={{ ...S.iconSq, ...(nivel === o.key ? S.iconSqOn : {}) }}><Icon name={o.icon} size={18} /></span>
+                        <div style={{ fontWeight: 600, fontSize: 15 }}>{idioma === 'es' ? o.le : o.label}</div>
+                        <div style={S.cardSub}>{idioma === 'es' ? o.se : o.sub}</div>
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ ...S.subLabel, marginTop: 18 }}>{t('Como é a atividade física?', '¿Cómo es la actividad física?')}</div>
+                  <div style={S.grid4}>
+                    {ATIVIDADES.map((o) => (
+                      <button key={o.key} onClick={() => setAtividade(atividade === o.key ? '' : o.key)} style={{ ...S.pillCol, ...(atividade === o.key ? S.pillOn : {}) }}>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{idioma === 'es' ? o.le : o.label}</div>
+                        <div style={S.cardSub}>{idioma === 'es' ? o.se : o.sub}</div>
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ ...S.subLabel, marginTop: 18 }}>{t('E o sono, como anda?', '¿Y el sueño, cómo va?')}</div>
+                  <div style={S.grid3}>
+                    {SONOS.map((o) => (
+                      <button key={o.key} onClick={() => setSono(sono === o.key ? '' : o.key)} style={{ ...S.pill, ...(sono === o.key ? S.pillOn : {}) }}>{idioma === 'es' ? o.le : o.label}</button>
+                    ))}
+                  </div>
+                </StepCard>
+              )}
+
+              {passo === 4 && (
+                <StepCard n={4} titulo={t('Alguma condição de saúde?', '¿Alguna condición de salud?')} sub={t('Só para checar segurança antes de sugerir qualquer coisa.', 'Solo para verificar seguridad antes de sugerir algo.')}>
+                  <div style={S.grid3}>
+                    {CONDICOES.map((o) => {
+                      const on = condicoes.includes(o.key);
+                      return (
+                        <button key={o.key} onClick={() => toggleCondicao(o.key)} style={{ ...S.condCard, ...(on ? S.condCardOn : {}) }}>
+                          <span style={{ ...S.iconSq, ...(on ? S.iconSqOn : {}) }}><Icon name={o.icon} size={16} /></span>
+                          <span style={{ fontWeight: 600, fontSize: 14.5 }}>{idioma === 'es' ? o.le : o.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {condicoes.includes('outros') && (
+                    <input className="inp" placeholder={t('Qual condição? (ex.: problema renal, alergia…)', '¿Qué condición? (ej.: problema renal, alergia…)')} value={condicaoOutros} onChange={(e) => setCondicaoOutros(e.target.value.slice(0, 120))} style={{ ...S.inp, marginTop: 14 }} autoFocus />
+                  )}
+                  <div style={S.confid}>
+                    <span style={S.confidIcon}><Icon name="check" size={16} /></span>
+                    <div><b style={{ color: '#0B4A26' }}>{t('Suas respostas são confidenciais', 'Tus respuestas son confidenciales')}</b><div style={{ fontSize: 13, color: '#5B7A64', marginTop: 2 }}>{t('Usamos essas informações só para checar segurança e sugerir o protocolo certo. Nada é compartilhado.', 'Usamos esta información solo para verificar seguridad y sugerir el protocolo correcto. Nada se comparte.')}</div></div>
+                  </div>
+                </StepCard>
+              )}
+
+              {passo === 5 && (
+                <StepCard n={5} titulo={t('Tudo certo?', '¿Todo bien?')} sub={t('Confira as respostas antes de gerar o protocolo.', 'Revisa las respuestas antes de generar el protocolo.')}>
+                  <div style={S.review}>
+                    <RevRow label={t('Objetivo', 'Objetivo')} valor={modo === 'unico' ? peptideoUnico : objetivos.map((k) => { const o = OBJETIVOS.find((x) => x.key === k)!; return idioma === 'es' ? o.le : o.label; }).join(', ')} onEdit={() => setPasso(1)} t={t} />
+                    <RevRow label={t('Perfil', 'Perfil')} valor={`${peso} kg · ${altura} cm · ${idade} ${t('anos', 'años')}`} onEdit={() => setPasso(2)} t={t} />
+                    <RevRow label={t('Experiência', 'Experiencia')} valor={nivel ? (idioma === 'es' ? NIVEIS.find((x) => x.key === nivel)!.le : NIVEIS.find((x) => x.key === nivel)!.label) : '—'} onEdit={() => setPasso(3)} t={t} />
+                    <RevRow label={t('Rotina', 'Rutina')} valor={[atividade && (idioma === 'es' ? ATIVIDADES.find((x) => x.key === atividade)!.le : ATIVIDADES.find((x) => x.key === atividade)!.label), sono && `${t('sono', 'sueño')} ${idioma === 'es' ? SONOS.find((x) => x.key === sono)!.le.toLowerCase() : SONOS.find((x) => x.key === sono)!.label.toLowerCase()}`].filter(Boolean).join(' · ') || '—'} onEdit={() => setPasso(3)} t={t} />
+                    <RevRow label={t('Saúde', 'Salud')} valor={condicoes.length ? condicoes.map((k) => { const c = CONDICOES.find((x) => x.key === k)!; return idioma === 'es' ? c.le : c.label; }).join(', ') : t('Nenhuma', 'Ninguna')} onEdit={() => setPasso(4)} t={t} last />
+                  </div>
+                  <div style={S.hintBox}><span style={{ color: '#7C3AED' }}><Icon name="bulb" size={15} /></span> {t('A Nuvita cruza o perfil com o estoque da farmácia e monta o protocolo em poucos segundos.', 'Nuvita cruza el perfil con el stock de la farmacia y arma el protocolo en pocos segundos.')}</div>
+                </StepCard>
+              )}
+
+              {erro && <div style={S.erro}>⚠️ {erro}</div>}
+            </div>
+          )}
+
+          {rec && <Resultado
+            rec={rec} idioma={idioma} t={t} imc={imc} idade={idade} atividade={atividade}
+            nome={nome} setNome={setNome} telefone={telefone} onTelefone={onTelefone} prepararWhatsApp={prepararWhatsApp}
+            pais={pais} trocarPais={trocarPais} telefoneE164={telefoneE164}
+            enviado={enviado} enviando={enviando} enviarErro={enviarErro} setEnviarErro={setEnviarErro}
+            enviarProtocolo={enviarProtocolo} abrirWhatsAppManual={abrirWhatsAppManual} novoAtendimento={() => novoAtendimento(true)}
+          />}
+
+          {tela === 'catalogo' && !rec && <Catalogo t={t} idioma={idioma} lista={peptidesDisponiveis} busca={buscaCatalogo} setBusca={setBuscaCatalogo} onSel={setCatalogoSel} />}
+          {tela === 'calculadora' && !rec && (
+            <div style={S.wrapWide}>
+              <div style={S.pageHead}><h1 style={S.h1}>{t('Calculadora de peptídeo', 'Calculadora de péptido')}</h1><p style={S.lead}>{t('Quantas unidades puxar na seringa para a dose certa.', 'Cuántas unidades jalar en la jeringa para la dosis correcta.')}</p></div>
+              <div style={S.card}><CalculadoraPeptideo lang={idioma} /></div>
+            </div>
+          )}
+        </main>
+
+        {/* ─── Rodapé fixo do wizard (Voltar / Continuar) ─── */}
+        {emWizard && (
+          <footer style={S.footer}>
+            <div style={S.footerIn}>
+              <button onClick={voltar} style={S.voltarBtn}>‹ {t('Voltar', 'Volver')}</button>
+              <button onClick={avancar} disabled={gerando} style={{ ...S.continuarBtn, opacity: gerando ? 0.7 : 1 }}>
+                {gerando ? t('Gerando…', 'Generando…') : passo < PASSOS ? `${t('Continuar', 'Continuar')} →` : `${t('Gerar diagnóstico', 'Generar diagnóstico')} →`}
+              </button>
+            </div>
+          </footer>
         )}
-      </main>
+      </div>
 
       {/* Modal do catálogo */}
-      {catalogoSel && (
-        <div style={S.overlay} onClick={() => setCatalogoSel(null)}>
-          <div style={S.modalCard} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <span style={S.pepIcon}><Icon name="pill" size={24} /></span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 18, letterSpacing: '-.02em' }}>{catalogoSel.n}</div>
-                <div style={{ fontSize: 13, color: '#667085', lineHeight: 1.4 }}>{catalogoSel.m}</div>
-              </div>
-              <button onClick={() => setCatalogoSel(null)} style={S.modalClose} aria-label={t('Fechar', 'Cerrar')}>✕</button>
-            </div>
-
-            {catalogoSel.why && (
-              <div style={S.why}>
-                <span style={S.blocoTituloRow}><Icon name="bulb" size={13} /> {t('O que faz', 'Qué hace')}</span>
-                {catalogoSel.why}
-              </div>
-            )}
-            <div style={S.comoUsar}>
-              <span style={S.blocoTituloRow}><Icon name="clipboard" size={13} /> {t('Como usar', 'Cómo usar')}</span>
-              {catalogoSel.how}
-            </div>
-            <div style={S.specGrid}>
-              <Spec label={t('Dose (ref. 75kg)', 'Dosis (ref. 75kg)')} valor={catalogoSel.doseStr(75)} destaque />
-              <Spec label={t('Frequência', 'Frecuencia')} valor={catalogoSel.freq} />
-              <Spec label={t('Quando', 'Cuándo')} valor={catalogoSel.timing} />
-              <Spec label={t('Via', 'Vía')} valor={catalogoSel.route} />
-              <Spec label={t('Ciclo', 'Ciclo')} valor={catalogoSel.cycle} />
-              <Spec label={t('Descanso', 'Descanso')} valor={catalogoSel.rest} />
-            </div>
-            <p style={{ ...S.disclaimer, marginTop: 18 }}>
-              {t('Orientação educacional. Cada organismo reage de forma diferente — considere avaliação profissional.',
-                 'Orientación educativa. Cada organismo reacciona de forma diferente — considere evaluación profesional.')}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-   </PinGate>
+      {catalogoSel && <ModalCatalogo p={catalogoSel} t={t} onClose={() => setCatalogoSel(null)} />}
+    </PinGate>
   );
 }
 
-// ─── Subcomponentes ────────────────────────────────────────
-function Campo({ label, unidade, children }: { label: string; unidade?: string; children: React.ReactNode }) {
+// ════════════════════════════════════════════════
+//  Telas / subcomponentes
+// ════════════════════════════════════════════════
+function Home({ t, onStart }: { t: (p: string, e: string) => string; onStart: (tl: Tela) => void }) {
+  const feats = [t('Recomendação personalizada', 'Recomendación personalizada'), t('Protocolos combinados', 'Protocolos combinados'), t('Cálculo de doses', 'Cálculo de dosis'), t('Catálogo completo', 'Catálogo completo')];
+  const tools: { tl: Tela; icon: string; title: string; sub: string }[] = [
+    { tl: 'diagnostico', icon: 'search', title: t('Diagnóstico completo', 'Diagnóstico completo'), sub: t('Encontrar os peptídeos ideais', 'Encontrar los péptidos ideales') },
+    { tl: 'unico', icon: 'pill', title: t('Um peptídeo só', 'Un solo péptido'), sub: t('Já sabe qual? Faça o protocolo dele', '¿Ya sabe cuál? Arma su protocolo') },
+    { tl: 'catalogo', icon: 'clipboard', title: t('Catálogo', 'Catálogo'), sub: t('Ver o que cada produto faz', 'Ver qué hace cada producto') },
+    { tl: 'calculadora', icon: 'flask', title: t('Calculadora', 'Calculadora'), sub: t('Dose na seringa (UI)', 'Dosis en la jeringa (UI)') },
+  ];
   return (
-    <div>
-      <label style={S.label}>
-        {label}
-        {unidade && <span style={{ color: '#98A2B3', fontWeight: 400 }}> · {unidade}</span>}
-      </label>
-      {children}
+    <div style={S.wrapWide}>
+      <div style={S.hero}>
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <div style={S.heroPill}><span style={S.dot} /> {t('DIAGNÓSTICO NUVITA', 'DIAGNÓSTICO NUVITA')}</div>
+          <h1 style={S.heroTitle}>{t('Descubra o protocolo', 'Descubre el protocolo')} <span style={{ color: '#16A34A' }}>{t('ideal para você', 'ideal para ti')}</span></h1>
+          <p style={S.heroLead}>{t('Responda algumas perguntas com o atendente e receba uma recomendação de peptídeos feita para o seu objetivo e o seu perfil.', 'Responde algunas preguntas con el atendedor y recibe una recomendación de péptidos hecha para tu objetivo y tu perfil.')}</p>
+          <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>
+            {feats.map((f) => <div key={f} style={S.feat}><span style={S.featCheck}>✓</span>{f}</div>)}
+          </div>
+          <div style={S.tempo}><span style={S.tempoIcon}><Icon name="refresh" size={16} /></span><div><div style={{ fontSize: 12, color: '#667085' }}>{t('Tempo médio', 'Tiempo medio')}</div><div style={{ fontWeight: 700 }}>2 {t('minutos', 'minutos')}</div></div></div>
+        </div>
+        <div style={S.heroImgWrap}><img src={HERO_IMG} alt="" style={S.heroImg} /></div>
+      </div>
+
+      <div style={S.comoRow}><h2 style={S.h2}>{t('Como quer começar?', '¿Cómo quieres empezar?')}</h2><span style={{ fontSize: 13, color: '#98A2B3' }}>{t('4 ferramentas do balcão', '4 herramientas del mostrador')}</span></div>
+      <div style={S.toolGrid}>
+        {tools.map((tl) => (
+          <button key={tl.tl} onClick={() => onStart(tl.tl)} style={S.toolCard}>
+            <span style={S.toolIcon}><Icon name={tl.icon} size={20} /></span>
+            <div style={{ flex: 1, textAlign: 'left' }}><div style={{ fontWeight: 700, fontSize: 16 }}>{tl.title}</div><div style={{ fontSize: 13.5, color: '#98A2B3', marginTop: 2 }}>{tl.sub}</div></div>
+            <span style={{ color: '#C0C4CC', fontSize: 20 }}>›</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StepCard({ n, titulo, sub, children }: { n: number; titulo: string; sub: string; children: React.ReactNode }) {
+  return (
+    <div style={S.card}>
+      <div style={S.etapaBadge}>ETAPA {n}</div>
+      <h1 style={S.stepTitle}>{titulo}</h1>
+      <p style={S.stepSub}>{sub}</p>
+      <div style={{ marginTop: 22 }}>{children}</div>
+    </div>
+  );
+}
+
+function RevRow({ label, valor, onEdit, t, last }: { label: string; valor: string; onEdit: () => void; t: (p: string, e: string) => string; last?: boolean }) {
+  return (
+    <div style={{ ...S.revRow, ...(last ? { borderBottom: 'none' } : {}) }}>
+      <span style={S.revLabel}>{label}</span>
+      <span style={S.revValor}>{valor || '—'}</span>
+      <button onClick={onEdit} style={S.revEdit}>{t('Editar', 'Editar')}</button>
+    </div>
+  );
+}
+
+function Campo({ label, unidade, children }: { label: string; unidade?: string; children: React.ReactNode }) {
+  return <div><div style={S.campoLabel}>{label}{unidade && <span style={{ color: '#98A2B3', fontWeight: 400 }}> · {unidade}</span>}</div>{children}</div>;
+}
+
+function Spec({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
+  return <div style={{ ...S.spec, ...(destaque ? S.specOn : {}) }}><div style={S.specLabel}>{label}</div><div style={{ ...S.specValor, ...(destaque ? { color: '#0B7A3B' } : {}) }}>{valor}</div></div>;
+}
+
+function Resultado(props: any) {
+  const { rec, idioma, t, imc, idade, atividade, nome, setNome, telefone, onTelefone, prepararWhatsApp, pais, trocarPais, telefoneE164, enviado, enviando, enviarErro, setEnviarErro, enviarProtocolo, abrirWhatsAppManual, novoAtendimento } = props;
+  const perfil = [idade && `${idade} ${t('anos', 'años')}`, imc && `IMC ${imc.valor} (${imc.classe})`, atividade && (idioma === 'es' ? ATIVIDADES.find((a) => a.key === atividade)?.le : ATIVIDADES.find((a) => a.key === atividade)?.label)].filter(Boolean).join(' · ');
+  return (
+    <div style={S.wrapWide}>
+      <div style={{ ...S.card, marginBottom: 16 }}>
+        <div style={S.iaBadge}><span style={{ ...S.dot, background: '#7C3AED' }} /> {t('DIAGNÓSTICO IA', 'DIAGNÓSTICO IA')}<span style={{ color: '#98A2B3', fontWeight: 500, marginLeft: 8, textTransform: 'none', letterSpacing: 0 }}>{perfil}</span></div>
+        <h1 style={{ ...S.stepTitle, marginTop: 12 }}>{t('Protocolo sugerido', 'Protocolo sugerido')}</h1>
+        {rec.resumo && <p style={{ ...S.stepSub, marginTop: 8 }}>{rec.resumo}</p>}
+      </div>
+
+      {rec.avisos?.map((a: string, i: number) => <div key={i} style={S.avisoBox}>{a}</div>)}
+
+      {rec.bloqueado || rec.itens.length === 0 ? (
+        <div style={{ ...S.card, textAlign: 'center', padding: '40px 24px' }}>
+          <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 12 }}><Icon name="pulse" size={40} /></div>
+          <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6, maxWidth: 420, margin: '0 auto' }}>{t('Neste caso não é seguro montar um protocolo aqui. Oriente a pessoa a procurar acompanhamento médico antes de qualquer uso.', 'En este caso no es seguro armar un protocolo aquí. Oriente a la persona a buscar acompañamiento médico antes de cualquier uso.')}</p>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gap: 14 }}>
+            {rec.itens.map((it: any) => {
+              const pr = PRIORIDADE_STYLE[it.prioridade];
+              const ehIa = rec.fonte === 'ia';
+              const img = pepImg(it.peptide.n);
+              return (
+                <div key={it.peptide.n} style={S.card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+                    <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={26} />}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: '-.02em' }}>{it.peptide.n}</div>
+                      <div style={{ fontSize: 13.5, color: '#667085', lineHeight: 1.4 }}>{it.peptide.m}</div>
+                    </div>
+                    <span style={{ ...S.badge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
+                  </div>
+                  {it.motivo && <div style={ehIa ? S.whyIa : S.why}><span style={S.blocoTit}><Icon name="bulb" size={13} />{ehIa ? t('Por que para esta pessoa', 'Por qué para esta persona') : t('Por que recomendado', 'Por qué recomendado')}</span>{it.motivo}</div>}
+                  {it.comoUsar && <div style={S.comoUsar}><span style={S.blocoTit}><Icon name="clipboard" size={13} />{t('Como usar', 'Cómo usar')}</span>{it.comoUsar}</div>}
+                  {it.alternativa && <div style={S.altBox}><span style={S.blocoTit}><Icon name="refresh" size={13} />{t('Comparação / alternativa', 'Comparación / alternativa')}</span>{it.alternativa}</div>}
+                  <div style={S.specGrid}>
+                    <Spec label={t('Dose', 'Dosis')} valor={it.dose} destaque />
+                    <Spec label={t('Frequência', 'Frecuencia')} valor={it.peptide.freq} />
+                    <Spec label={t('Quando', 'Cuándo')} valor={it.peptide.timing} />
+                    <Spec label={t('Via', 'Vía')} valor={it.peptide.route} />
+                    <Spec label={t('Ciclo', 'Ciclo')} valor={it.peptide.cycle} />
+                    <Spec label={t('Descanso', 'Descanso')} valor={it.peptide.rest} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {(rec.orientacaoAlimentar || rec.orientacaoTreino || rec.observacoes || rec.avisoMedico) && (
+            <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
+              {rec.orientacaoAlimentar && <Orientacao icon="fork" titulo={t('Alimentação', 'Alimentación')} texto={rec.orientacaoAlimentar} />}
+              {rec.orientacaoTreino && <Orientacao icon="dumbbell" titulo={t('Treino', 'Entrenamiento')} texto={rec.orientacaoTreino} />}
+              {rec.observacoes && <Orientacao icon="eye" titulo={t('O que observar', 'Qué observar')} texto={rec.observacoes} />}
+              {rec.avisoMedico && <div style={S.disc}>{rec.avisoMedico}</div>}
+            </div>
+          )}
+
+          {/* Contato / envio */}
+          <div style={S.receberCard}>
+            {enviado ? (
+              <div style={{ textAlign: 'center', padding: '6px 0' }}>
+                <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 8 }}><Icon name="check" size={30} /></div>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Protocolo enviado no WhatsApp!', '¡Protocolo enviado por WhatsApp!')}</div>
+                <div style={{ fontSize: 13, color: '#667085', marginTop: 3 }}>{t('Enviamos o PDF para', 'Enviamos el PDF a')} +{telefoneE164()}.</div>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Quer receber o protocolo?', '¿Quiere recibir el protocolo?')}</div>
+                <div style={{ fontSize: 13, color: '#667085', marginTop: 3, marginBottom: 14 }}>{t('Se a pessoa tiver interesse, preencha os dados que enviamos o protocolo em PDF direto no WhatsApp dela.', 'Si la persona tiene interés, complete los datos y enviamos el protocolo en PDF a su WhatsApp.')}</div>
+                <Campo label={t('Nome da pessoa', 'Nombre de la persona')}><input className="inp" placeholder={t('Nome completo', 'Nombre completo')} value={nome} onChange={(e) => { setEnviarErro(''); setNome(e.target.value); }} style={S.inp} /></Campo>
+                <div style={{ marginTop: 12 }}>
+                  <Campo label="WhatsApp">
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <select value={pais} onChange={(e) => trocarPais(e.target.value as Pais)} style={S.paisSelect}>{(Object.keys(PAISES) as Pais[]).map((p) => <option key={p} value={p}>{PAISES[p].flag} +{PAISES[p].ddi}</option>)}</select>
+                      <input className="inp" placeholder={PAISES[pais as Pais].ph} value={telefone} inputMode="numeric" onChange={(e) => { setEnviarErro(''); onTelefone(e.target.value); }} onBlur={prepararWhatsApp} style={{ ...S.inp, flex: 1 }} />
+                    </div>
+                  </Campo>
+                </div>
+                {enviarErro && <div style={{ ...S.hint, color: '#B45309', marginTop: 10 }}>{enviarErro} <button onClick={abrirWhatsAppManual} style={S.linkBtn}>{t('Abrir no WhatsApp', 'Abrir en WhatsApp')}</button></div>}
+                <button onClick={enviarProtocolo} disabled={enviando} style={{ ...S.waBtn, opacity: enviando ? 0.7 : 1 }}>{enviando ? t('Enviando…', 'Enviando…') : t('Enviar no WhatsApp', 'Enviar por WhatsApp')}</button>
+                <button onClick={abrirWhatsAppManual} style={S.waManualBtn}>{t('ou abrir o WhatsApp e enviar manualmente', 'o abrir WhatsApp y enviar manualmente')}</button>
+              </>
+            )}
+          </div>
+
+          <TabelaFarmacia rec={rec} lang={idioma} />
+        </>
+      )}
+
+      <button onClick={novoAtendimento} style={S.secondaryBtn}>↺ {t('Iniciar novo atendimento', 'Iniciar nueva atención')}</button>
     </div>
   );
 }
 
 function Orientacao({ icon, titulo, texto }: { icon: string; titulo: string; texto: string }) {
+  return <div style={S.orient}><div style={S.orientTit}><span style={{ color: '#16A34A' }}><Icon name={icon} size={15} /></span>{titulo}</div><div style={{ fontSize: 14, color: '#374151', lineHeight: 1.55, marginTop: 4 }}>{texto}</div></div>;
+}
+
+function Catalogo({ t, idioma, lista, busca, setBusca, onSel }: any) {
+  const q = busca.trim().toLowerCase();
+  const filtrada = lista.filter((p: Peptide) => !q || p.n.toLowerCase().includes(q) || p.m.toLowerCase().includes(q));
   return (
-    <div style={{ background: '#fff', border: '1px solid #ECEDEE', borderRadius: 16, padding: '14px 16px', display: 'flex', gap: 12 }}>
-      <span style={{ color: '#16A34A', display: 'inline-flex', marginTop: 1 }}><Icon name={icon} size={20} /></span>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{titulo}</div>
-        <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.55 }}>{texto}</div>
+    <div style={S.wrapWide}>
+      <div style={S.pageHead}><h1 style={S.h1}>{t('Catálogo de peptídeos', 'Catálogo de péptidos')}</h1><p style={S.lead}>{t('Toque em um produto para ver o que é, o que faz e como usar.', 'Toca un producto para ver qué es, qué hace y cómo usar.')}</p></div>
+      <input className="inp" placeholder={t('Buscar produto…', 'Buscar producto…')} value={busca} onChange={(e) => setBusca(e.target.value)} style={{ ...S.inp, marginBottom: 16 }} />
+      <div style={S.catGrid}>
+        {filtrada.map((p: Peptide) => {
+          const img = pepImg(p.n);
+          return (
+            <button key={p.n} onClick={() => onSel(p)} style={S.catItem}>
+              <span style={S.pepThumb}>{img ? <img src={img} alt="" style={S.pepThumbImg} /> : <Icon name="pill" size={18} />}</span>
+              <span style={{ flex: 1, textAlign: 'left' }}><span style={{ fontWeight: 600, fontSize: 14.5, display: 'block' }}>{p.n}</span><span style={{ fontSize: 12, color: '#98A2B3', lineHeight: 1.35 }}>{p.m}</span></span>
+              <span style={{ color: '#16A34A', fontSize: 13, fontWeight: 600 }}>{t('Ver', 'Ver')}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function Section({ n, titulo, hint, opcional, children }: {
-  n: string; titulo: string; hint?: string; opcional?: boolean; children: React.ReactNode;
-}) {
+function ModalCatalogo({ p, t, onClose }: { p: Peptide; t: (a: string, b: string) => string; onClose: () => void }) {
+  const img = pepImg(p.n);
   return (
-    <div style={S.section}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <span style={S.stepNum}>{n}</span>
-        <h3 style={S.sectionTitle}>{titulo}</h3>
-        {opcional && <span style={S.tagOpt}>opcional</span>}
-        {hint && <span style={S.hintTag}>{hint}</span>}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Chip({ ativo, onClick, coluna, icon, label, sub, children }: {
-  ativo: boolean; onClick: () => void; coluna?: boolean;
-  icon?: string; label?: string; sub?: string; children?: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        position: 'relative',
-        display: 'flex',
-        flexDirection: coluna ? 'column' : 'row',
-        alignItems: coluna ? 'flex-start' : 'center',
-        justifyContent: coluna ? 'center' : 'flex-start',
-        textAlign: 'left',
-        gap: coluna ? 3 : 0,
-        padding: '13px 15px',
-        borderRadius: 14,
-        border: ativo ? '1.5px solid #16A34A' : '1.5px solid #ECEDEE',
-        background: ativo ? '#F0FDF4' : '#fff',
-        color: '#0E1113',
-        fontFamily: 'inherit',
-        fontSize: 15,
-        fontWeight: 500,
-        cursor: 'pointer',
-        transition: 'border-color .13s, background .13s, box-shadow .13s',
-        minHeight: coluna ? 62 : 52,
-        boxShadow: ativo ? '0 0 0 3px rgba(22,163,74,.09)' : 'none',
-      }}
-    >
-      {coluna ? (
-        <>
-          <strong style={{ fontSize: 15, fontWeight: 600 }}>{label}</strong>
-          <span style={{ fontSize: 12, color: '#98A2B3' }}>{sub}</span>
-        </>
-      ) : (
-        <>
-          {icon && (
-            <span style={{ color: '#16A34A', marginRight: 9, display: 'inline-flex' }}>
-              <Icon name={icon} size={18} />
-            </span>
-          )}
-          {children}
-        </>
-      )}
-    </button>
-  );
-}
-
-function Spec({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
-  return (
-    <div style={{ background: destaque ? '#F0FDF4' : '#FAFAFA', borderRadius: 11, padding: '10px 12px' }}>
-      <div style={{ fontSize: 10.5, color: '#98A2B3', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3 }}>
-        {label}
-      </div>
-      <div style={{ fontSize: 14, fontWeight: destaque ? 600 : 500, color: destaque ? '#15803D' : '#0E1113' }}>
-        {valor}
+    <div style={S.overlay} onClick={onClose}>
+      <div style={S.modalCard} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={24} />}</span>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 18 }}>{p.n}</div><div style={{ fontSize: 13, color: '#667085', lineHeight: 1.4 }}>{p.m}</div></div>
+          <button onClick={onClose} style={S.modalClose}>✕</button>
+        </div>
+        {p.why && <div style={S.why}><span style={S.blocoTit}><Icon name="bulb" size={13} /> {t('O que faz', 'Qué hace')}</span>{p.why}</div>}
+        <div style={S.comoUsar}><span style={S.blocoTit}><Icon name="clipboard" size={13} /> {t('Como usar', 'Cómo usar')}</span>{p.how}</div>
+        <div style={S.specGrid}>
+          <Spec label={t('Dose (ref. 75kg)', 'Dosis (ref. 75kg)')} valor={p.doseStr(75)} destaque />
+          <Spec label={t('Frequência', 'Frecuencia')} valor={p.freq} />
+          <Spec label={t('Quando', 'Cuándo')} valor={p.timing} />
+          <Spec label={t('Via', 'Vía')} valor={p.route} />
+          <Spec label={t('Ciclo', 'Ciclo')} valor={p.cycle} />
+          <Spec label={t('Descanso', 'Descanso')} valor={p.rest} />
+        </div>
+        <p style={S.disc}>{t('Orientação educacional. Cada organismo reage de forma diferente — considere avaliação profissional.', 'Orientación educativa. Cada organismo reacciona de forma diferente — considere evaluación profesional.')}</p>
       </div>
     </div>
   );
 }
 
-// ─── Estilos ───────────────────────────────────────────────
+// ════════════════════════════════════════════════
+//  Estilos
+// ════════════════════════════════════════════════
+const CARD_MAX = 760;
 const S: Record<string, React.CSSProperties> = {
-  page: { minHeight: '100vh', background: '#FBFBFA' },
-  header: {
-    background: 'rgba(255,255,255,.82)',
-    backdropFilter: 'saturate(180%) blur(12px)',
-    WebkitBackdropFilter: 'saturate(180%) blur(12px)',
-    borderBottom: '1px solid #EFEFEF',
-    position: 'sticky',
-    top: 0,
-    zIndex: 50,
-  },
-  headerIn: {
-    maxWidth: 680,
-    margin: '0 auto',
-    padding: '15px 20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  brand: { display: 'flex', alignItems: 'center', gap: 10 },
-  brandTag: {
-    fontSize: 10.5,
-    color: '#98A2B3',
-    letterSpacing: '.12em',
-    textTransform: 'uppercase',
-    fontWeight: 600,
-    borderLeft: '1px solid #E4E4E4',
-    paddingLeft: 10,
-  },
-  resetBtn: {
-    position: 'absolute',
-    right: 20,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    background: '#fff',
-    border: '1px solid #E7E7E7',
-    color: '#475467',
-    padding: '7px 14px',
-    borderRadius: 100,
-    fontFamily: 'inherit',
-    fontSize: 13,
-    fontWeight: 500,
-    cursor: 'pointer',
-  },
-  headerRight: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-  },
+  page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAFAF8', fontFamily: 'inherit', color: '#0E1113' },
+  header: { position: 'sticky', top: 0, zIndex: 50, background: 'rgba(255,255,255,.9)', backdropFilter: 'saturate(180%) blur(12px)', WebkitBackdropFilter: 'saturate(180%) blur(12px)', borderBottom: '1px solid #EFEFEF' },
+  headerIn: { maxWidth: 1180, margin: '0 auto', padding: '13px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  brandBtn: { display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer', padding: 0 },
+  brandTag: { fontSize: 10.5, color: '#98A2B3', letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 600, borderLeft: '1px solid #E4E4E4', paddingLeft: 10 },
+  headerRight: { display: 'flex', alignItems: 'center', gap: 8 },
   langWrap: { display: 'flex', border: '1px solid #E7E7E7', borderRadius: 999, overflow: 'hidden', background: '#fff' },
-  langBtn: { padding: '7px 12px', fontSize: 12.5, fontWeight: 600, border: 'none', background: 'transparent', color: '#98A2B3', cursor: 'pointer', fontFamily: 'inherit' },
+  langBtn: { padding: '7px 12px', fontSize: 12.5, fontWeight: 700, border: 'none', background: 'transparent', color: '#98A2B3', cursor: 'pointer', fontFamily: 'inherit' },
   langBtnOn: { background: '#16A34A', color: '#fff' },
-  iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: '50%',
-    background: '#fff',
-    border: '1px solid #E7E7E7',
-    color: '#16A34A',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-  },
-  sairBtn: {
-    background: '#fff',
-    border: '1px solid #E7E7E7',
-    color: '#475467',
-    padding: '8px 16px',
-    borderRadius: 100,
-    fontFamily: 'inherit',
-    fontSize: 13,
-    fontWeight: 500,
-    cursor: 'pointer',
-  },
-  main: { maxWidth: 680, margin: '0 auto', padding: '32px 20px 90px' },
-  hero: { textAlign: 'center', marginBottom: 20 },
-  modoWrap: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 4 },
-  modoTab: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 11,
-    padding: '14px 16px',
-    borderRadius: 16,
-    border: '1.5px solid #ECEDEE',
-    background: '#fff',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-    color: '#0E1113',
-    transition: 'border-color .13s, background .13s, box-shadow .13s',
-  },
-  modoTabAtivo: { border: '1.5px solid #16A34A', background: '#F0FDF4', boxShadow: '0 0 0 3px rgba(22,163,74,.09)' },
-  modoSub: { fontSize: 11.5, color: '#98A2B3', marginTop: 1 },
-  h1: { fontSize: 30, fontWeight: 600, letterSpacing: '-.045em', lineHeight: 1.1, color: '#0E1113' },
-  lead: { fontSize: 15, color: '#667085', marginTop: 8 },
-  h2: { fontSize: 25, fontWeight: 600, letterSpacing: '-.035em', color: '#0E1113' },
-  section: {
-    background: '#fff',
-    border: '1px solid #ECEDEE',
-    borderRadius: 22,
-    padding: '22px',
-    marginTop: 14,
-    boxShadow: '0 1px 2px rgba(16,24,40,.03)',
-  },
-  sectionTitle: { fontSize: 16.5, fontWeight: 600, letterSpacing: '-.02em', color: '#0E1113' },
-  stepNum: {
-    width: 25,
-    height: 25,
-    borderRadius: 8,
-    background: '#F0FDF4',
-    color: '#16A34A',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 13,
-    fontWeight: 700,
-    flexShrink: 0,
-  },
-  label: { display: 'block', fontSize: 13, fontWeight: 500, color: '#475467', marginBottom: 7 },
-  inpBig: { padding: '14px 16px', fontSize: 16, borderRadius: 12, borderColor: '#E7E7E7' },
-  paisSelect: { padding: '14px 10px', fontSize: 15, borderRadius: 12, border: '1px solid #E7E7E7', background: '#fff', fontFamily: 'inherit', color: '#0E1113', cursor: 'pointer' },
-  hint: { fontSize: 12, color: '#98A2B3', marginTop: 10 },
-  hintTag: { fontSize: 12, color: '#98A2B3', marginLeft: 'auto' },
-  imcBox: {
-    marginTop: 14,
-    padding: '11px 15px',
-    background: '#F0FDF4',
-    border: '1px solid #DCFCE7',
-    borderRadius: 12,
-    fontSize: 14,
-    display: 'inline-block',
-  },
-  tagOpt: { fontSize: 11, color: '#98A2B3', background: '#F5F5F5', padding: '3px 9px', borderRadius: 100, fontWeight: 500 },
-  grid3: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 },
-  gridAuto: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))', gap: 10 },
-  cta: {
-    width: '100%',
-    marginTop: 28,
-    padding: '17px',
-    fontSize: 16,
-    fontWeight: 600,
-    borderRadius: 15,
-    border: 'none',
-    background: '#16A34A',
-    color: '#fff',
-    fontFamily: 'inherit',
-    cursor: 'pointer',
-    boxShadow: '0 6px 16px rgba(22,163,74,.22)',
-    transition: 'transform .12s, box-shadow .12s',
-  },
-  secondaryBtn: {
-    width: '100%',
-    marginTop: 14,
-    padding: 15,
-    borderRadius: 14,
-    border: '1px solid #E7E7E7',
-    background: '#fff',
-    color: '#475467',
-    fontFamily: 'inherit',
-    fontSize: 15,
-    fontWeight: 500,
-    cursor: 'pointer',
-  },
-  erro: {
-    marginTop: 18,
-    padding: '13px 16px',
-    background: '#FEF2F2',
-    border: '1px solid #FECACA',
-    borderRadius: 12,
-    color: '#B91C1C',
-    fontSize: 14,
-  },
-  divider: { height: 1, background: '#ECEDEE', margin: '0 0 26px' },
-  perfilLinha: { display: 'flex', gap: 6, flexWrap: 'wrap', fontSize: 13, color: '#667085', marginTop: 7 },
-  pillIa: { background: '#F3F0FF', color: '#6D28D9' },
-  card: { background: '#fff', border: '1px solid #ECEDEE', borderRadius: 20, padding: 20, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
-  pepIcon: { color: '#16A34A', width: 46, height: 46, borderRadius: 13, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  pepIconSm: { color: '#16A34A', width: 38, height: 38, borderRadius: 11, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  catGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 },
-  catItem: { display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', borderRadius: 14, border: '1.5px solid #ECEDEE', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', color: '#0E1113', textAlign: 'left' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(16,24,40,.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 100 },
-  modalCard: { background: '#fff', borderRadius: 22, padding: 22, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(16,24,40,.25)' },
-  modalClose: { background: '#F5F5F5', border: 'none', width: 32, height: 32, borderRadius: '50%', fontSize: 15, color: '#667085', cursor: 'pointer', flexShrink: 0 },
-  badge: { fontSize: 11, fontWeight: 600, padding: '5px 11px', borderRadius: 100, whiteSpace: 'nowrap' },
-  blocoTitulo: { display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 5, opacity: 0.9 },
-  blocoTituloRow: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 5, opacity: 0.9 },
-  why: { fontSize: 13.5, color: '#374151', background: '#FAFAFA', borderRadius: 12, padding: '12px 14px', marginBottom: 10, lineHeight: 1.5 },
-  whyIa: { fontSize: 13.5, color: '#5B21B6', background: '#F7F5FF', border: '1px solid #EDE9FE', borderRadius: 12, padding: '12px 14px', marginBottom: 10, lineHeight: 1.5 },
-  comoUsar: { fontSize: 13.5, color: '#075985', background: '#F0F9FF', border: '1px solid #E0F2FE', borderRadius: 12, padding: '12px 14px', marginBottom: 12, lineHeight: 1.5 },
-  alternativa: { fontSize: 13.5, color: '#92400E', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12, padding: '12px 14px', marginBottom: 14, lineHeight: 1.5 },
-  iaResumo: { background: '#F7F5FF', border: '1px solid #EDE9FE', borderRadius: 18, padding: '18px 20px', marginTop: 16 },
-  iaResumoTitulo: { fontSize: 12, fontWeight: 700, color: '#8B5CF6', letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 7 },
-  iaBtn: { width: '100%', marginTop: 18, padding: 16, borderRadius: 15, border: '1.5px solid #DDD6FE', background: '#F7F5FF', color: '#6D28D9', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, transition: 'all .14s' },
-  specGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(125px, 1fr))', gap: 8 },
-  waBox: {
-    marginTop: 24,
-    padding: 20,
-    background: '#fff',
-    border: '1px solid #ECEDEE',
-    borderRadius: 20,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    flexWrap: 'wrap',
-  },
-  waBtn: {
-    border: 'none',
-    color: '#fff',
-    padding: '15px 24px',
-    borderRadius: 13,
-    fontFamily: 'inherit',
-    fontSize: 15,
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'all .14s',
-    whiteSpace: 'nowrap',
-    background: '#25D366',
-    boxShadow: '0 4px 12px rgba(37,211,102,.28)',
-  },
-  waBtnFull: { width: '100%', marginTop: 16 },
+  iconBtn: { width: 38, height: 38, borderRadius: '50%', background: '#fff', border: '1px solid #E7E7E7', color: '#16A34A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  sairBtn: { padding: '9px 16px', borderRadius: 999, background: '#fff', border: '1px solid #E7E7E7', color: '#344054', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' },
+  progressWrap: { borderTop: '1px solid #F0F0F0', background: 'rgba(255,255,255,.7)' },
+  progressTop: { maxWidth: 1180, margin: '0 auto', padding: '10px 24px 0', display: 'flex', justifyContent: 'space-between', fontSize: 13 },
+  progressBar: { maxWidth: 1180, margin: '6px auto 10px', padding: '0 24px', height: 6 },
+  progressFill: { height: 6, background: '#16A34A', borderRadius: 999, transition: 'width .3s ease' },
+
+  main: { flex: 1, width: '100%' },
+  wrapCol: { maxWidth: CARD_MAX, margin: '0 auto', padding: '26px 20px 40px' },
+  wrapWide: { maxWidth: 1000, margin: '0 auto', padding: '26px 24px 48px' },
+  pageHead: { marginBottom: 18 },
+  h1: { fontSize: 30, fontWeight: 800, letterSpacing: '-.02em' },
+  h2: { fontSize: 20, fontWeight: 800, letterSpacing: '-.01em' },
+  lead: { fontSize: 15, color: '#667085', marginTop: 6 },
+
+  card: { background: '#fff', border: '1px solid #ECECEC', borderRadius: 24, padding: 30, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
+  etapaBadge: { display: 'inline-block', background: '#E8F5EC', color: '#15803D', fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', padding: '6px 12px', borderRadius: 999 },
+  stepTitle: { fontSize: 30, fontWeight: 800, letterSpacing: '-.02em', marginTop: 14 },
+  stepSub: { fontSize: 15, color: '#667085', marginTop: 6, lineHeight: 1.5 },
+
+  // Hero
+  hero: { display: 'flex', gap: 30, alignItems: 'center', flexWrap: 'wrap', background: '#fff', border: '1px solid #ECECEC', borderRadius: 28, padding: 34 },
+  heroPill: { display: 'inline-flex', alignItems: 'center', gap: 7, background: '#F0FAF3', color: '#15803D', fontSize: 11.5, fontWeight: 700, letterSpacing: '.1em', padding: '7px 13px', borderRadius: 999 },
+  dot: { width: 7, height: 7, borderRadius: '50%', background: '#16A34A', display: 'inline-block' },
+  heroTitle: { fontSize: 40, fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.08, marginTop: 16 },
+  heroLead: { fontSize: 15.5, color: '#667085', lineHeight: 1.6, marginTop: 14, maxWidth: 460 },
+  feat: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, color: '#344054' },
+  featCheck: { width: 22, height: 22, borderRadius: '50%', background: '#DCFCE7', color: '#16A34A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 },
+  tempo: { display: 'inline-flex', alignItems: 'center', gap: 10, border: '1px solid #ECECEC', borderRadius: 14, padding: '12px 16px', marginTop: 22 },
+  tempoIcon: { width: 34, height: 34, borderRadius: 10, background: '#F0FAF3', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  heroImgWrap: { flex: 1, minWidth: 280, display: 'flex', justifyContent: 'center' },
+  heroImg: { width: '100%', maxWidth: 420, objectFit: 'contain' },
+
+  comoRow: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 34, marginBottom: 14, gap: 12, flexWrap: 'wrap' },
+  toolGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14 },
+  toolCard: { display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1px solid #ECECEC', borderRadius: 18, padding: '20px 22px', cursor: 'pointer', fontFamily: 'inherit', transition: 'border-color .15s, box-shadow .15s' },
+  toolIcon: { width: 44, height: 44, borderRadius: 12, background: '#F0FAF3', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+
+  // Objetivo cards
+  objGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 14 },
+  objCard: { border: '1.5px solid #ECECEC', borderRadius: 18, background: '#fff', cursor: 'pointer', padding: 0, overflow: 'hidden', fontFamily: 'inherit', textAlign: 'left', transition: 'border-color .15s, box-shadow .15s' },
+  objCardOn: { borderColor: '#16A34A', boxShadow: '0 0 0 3px rgba(22,163,74,.12)' },
+  objImgWrap: { position: 'relative', height: 150, background: '#F6F7F6' },
+  objImg: { width: '100%', height: '100%', objectFit: 'cover' },
+  radio: { position: 'absolute', top: 12, right: 12, width: 26, height: 26, borderRadius: '50%', border: '2px solid #D0D5DD', background: 'rgba(255,255,255,.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 },
+  radioOn: { background: '#16A34A', borderColor: '#16A34A' },
+  objBody: { padding: '14px 16px 16px' },
+  objTitle: { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 16 },
+  objDesc: { fontSize: 13, color: '#98A2B3', marginTop: 4, lineHeight: 1.4 },
+
+  // Peptídeo (unico) chips
+  pepGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 },
+  pepChip: { display: 'flex', alignItems: 'center', gap: 10, border: '1.5px solid #ECECEC', borderRadius: 14, background: '#fff', padding: '10px 12px', cursor: 'pointer', fontFamily: 'inherit' },
+  pepChipOn: { borderColor: '#16A34A', background: '#F0FAF3', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
+  pepThumb: { width: 40, height: 40, borderRadius: 10, background: '#F0FAF3', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
+  pepThumbImg: { width: '100%', height: '100%', objectFit: 'cover' },
+
+  // Inputs / campos
+  grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 },
+  grid4: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 },
+  campoLabel: { fontSize: 13, fontWeight: 700, color: '#344054', marginBottom: 7 },
+  inp: { width: '100%', padding: '14px 16px', fontSize: 16, borderRadius: 14, border: '1px solid #E4E4E4', background: '#fff', fontFamily: 'inherit', color: '#0E1113' },
+  imcBox: { marginTop: 12, fontSize: 14, background: '#F6FBF7', border: '1px solid #E1EEE4', borderRadius: 10, padding: '10px 14px' },
+  subLabel: { fontSize: 14, fontWeight: 700, color: '#0E1113', marginTop: 20, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 },
+  opcional: { fontSize: 11, fontWeight: 600, color: '#98A2B3', background: '#F2F4F7', padding: '2px 8px', borderRadius: 999 },
+  pill: { padding: '13px 14px', borderRadius: 12, border: '1px solid #E7E7E7', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 500, color: '#0E1113', textAlign: 'center' },
+  pillCol: { padding: '12px 14px', borderRadius: 12, border: '1px solid #E7E7E7', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center' },
+  pillOn: { borderColor: '#16A34A', background: '#F0FAF3', boxShadow: '0 0 0 3px rgba(22,163,74,.1)', color: '#0B4A26' },
+  cardSub: { fontSize: 12.5, color: '#98A2B3', marginTop: 3 },
+  iconCard: { padding: '16px 14px', borderRadius: 14, border: '1.5px solid #ECECEC', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
+  iconCardOn: { borderColor: '#16A34A', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
+  iconSq: { width: 38, height: 38, borderRadius: 11, background: '#F2F4F7', color: '#667085', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  iconSqOn: { background: '#DCFCE7', color: '#16A34A' },
+  condCard: { display: 'flex', alignItems: 'center', gap: 12, padding: '16px 16px', borderRadius: 14, border: '1.5px solid #ECECEC', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
+  condCardOn: { borderColor: '#16A34A', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
+  confid: { display: 'flex', gap: 12, alignItems: 'flex-start', background: '#F0FAF3', border: '1px solid #DCEBE1', borderRadius: 14, padding: 16, marginTop: 18 },
+  confidIcon: { width: 34, height: 34, borderRadius: 10, background: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+
+  // Revisão
+  review: { border: '1px solid #ECECEC', borderRadius: 16, overflow: 'hidden' },
+  revRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', borderBottom: '1px solid #F0F0F0' },
+  revLabel: { fontSize: 13.5, color: '#98A2B3', width: 100, flexShrink: 0 },
+  revValor: { fontSize: 15, fontWeight: 700, flex: 1 },
+  revEdit: { background: 'none', border: 'none', color: '#16A34A', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
+  hintBox: { display: 'flex', alignItems: 'center', gap: 10, background: '#F7F5FF', border: '1px solid #ECE7FB', borderRadius: 14, padding: '14px 16px', marginTop: 16, fontSize: 13.5, color: '#4B3F6B' },
+
+  // Footer (fixo)
+  footer: { position: 'sticky', bottom: 0, zIndex: 40, background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderTop: '1px solid #EDEDED' },
+  footerIn: { maxWidth: CARD_MAX, margin: '0 auto', padding: '14px 20px', display: 'flex', gap: 12, alignItems: 'center' },
+  voltarBtn: { padding: '15px 22px', borderRadius: 15, background: '#fff', border: '1px solid #E4E4E4', color: '#344054', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0 },
+  continuarBtn: { flex: 1, padding: '15px 22px', borderRadius: 15, background: '#16A34A', border: 'none', color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 16px rgba(22,163,74,.28)' },
+
+  erro: { marginTop: 14, fontSize: 14, color: '#B91C1C', background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 12, padding: '12px 14px' },
+
+  // Resultado
+  iaBadge: { display: 'inline-flex', alignItems: 'center', gap: 7, background: '#F5F3FF', color: '#6D28D9', fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', padding: '6px 12px', borderRadius: 999, textTransform: 'uppercase' },
+  avisoBox: { fontSize: 13.5, color: '#92400E', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12, padding: '12px 14px', marginBottom: 12, lineHeight: 1.5 },
+  pepIcon: { width: 56, height: 56, borderRadius: 14, background: '#F0FAF3', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
+  pepIconImg: { width: '100%', height: '100%', objectFit: 'cover' },
+  badge: { fontSize: 12, fontWeight: 700, padding: '5px 12px', borderRadius: 999, whiteSpace: 'nowrap' },
+  blocoTit: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 6 },
+  why: { fontSize: 14, color: '#374151', lineHeight: 1.55, background: '#F9FAFB', borderRadius: 12, padding: '12px 14px', marginBottom: 10 },
+  whyIa: { fontSize: 14, color: '#4B3F6B', lineHeight: 1.55, background: '#F7F5FF', border: '1px solid #ECE7FB', borderRadius: 12, padding: '12px 14px', marginBottom: 10 },
+  comoUsar: { fontSize: 14, color: '#1E3A5F', lineHeight: 1.55, background: '#EFF6FF', border: '1px solid #DBEAFE', borderRadius: 12, padding: '12px 14px', marginBottom: 10 },
+  altBox: { fontSize: 14, color: '#78350F', lineHeight: 1.55, background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12, padding: '12px 14px', marginBottom: 10 },
+  specGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, marginTop: 4 },
+  spec: { background: '#F7F9F8', border: '1px solid #EEF0EF', borderRadius: 12, padding: '10px 12px' },
+  specOn: { background: '#EAF7EE', border: '1px solid #CFE9D7' },
+  specLabel: { fontSize: 10.5, color: '#98A2B3', fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase' },
+  specValor: { fontSize: 15, fontWeight: 700, marginTop: 3 },
+  orient: { background: '#fff', border: '1px solid #ECECEC', borderRadius: 14, padding: '14px 16px' },
+  orientTit: { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 14 },
+  disc: { fontSize: 12.5, color: '#98A2B3', lineHeight: 1.5, padding: '4px 2px' },
+
+  receberCard: { background: '#fff', border: '1px solid #ECECEC', borderRadius: 18, padding: 22, marginTop: 18 },
+  paisSelect: { padding: '14px 10px', fontSize: 15, borderRadius: 14, border: '1px solid #E4E4E4', background: '#fff', fontFamily: 'inherit', color: '#0E1113', cursor: 'pointer' },
+  waBtn: { width: '100%', marginTop: 16, padding: '15px', borderRadius: 14, background: '#16A34A', border: 'none', color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700, cursor: 'pointer' },
   waManualBtn: { width: '100%', marginTop: 8, background: 'none', border: 'none', color: '#667085', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, cursor: 'pointer', textDecoration: 'underline', padding: '6px 0' },
-  receberCard: { marginTop: 24, padding: 20, background: '#fff', border: '1px solid #ECEDEE', borderRadius: 20, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
   linkBtn: { background: 'none', border: 'none', color: '#16A34A', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 },
-  disclaimer: { fontSize: 12, color: '#98A2B3', lineHeight: 1.6, marginTop: 30, textAlign: 'center', maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' },
+  hint: { fontSize: 12.5, color: '#98A2B3' },
+  secondaryBtn: { width: '100%', marginTop: 18, padding: '14px', borderRadius: 14, background: '#fff', border: '1px solid #E4E4E4', color: '#344054', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' },
+
+  // Catálogo
+  catGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 10 },
+  catItem: { display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1px solid #ECECEC', borderRadius: 14, padding: '12px 14px', cursor: 'pointer', fontFamily: 'inherit' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(16,24,40,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 100 },
+  modalCard: { background: '#fff', borderRadius: 24, padding: 26, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' },
+  modalClose: { width: 34, height: 34, borderRadius: '50%', border: '1px solid #ECECEC', background: '#fff', cursor: 'pointer', fontSize: 15, color: '#667085' },
 };
