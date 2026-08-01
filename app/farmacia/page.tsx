@@ -40,45 +40,60 @@ const PAISES: Record<Pais, { ddi: string; flag: string; max: number; ph: string 
   PY: { ddi: '595', flag: '🇵🇾', max: 10, ph: '0981 234 567' },
 };
 
-// le = label (es); de = desc (es)
-const OBJETIVOS: { key: ObjectiveKey; label: string; le: string; icon: string; desc: string; de: string }[] = [
-  { key: 'gordura', label: 'Emagrecer', le: 'Adelgazar', icon: 'flame', desc: 'Perder gordura e controlar o apetite', de: 'Perder grasa y controlar el apetito' },
-  { key: 'massa', label: 'Ganhar massa', le: 'Ganar masa', icon: 'dumbbell', desc: 'Mais massa muscular e força', de: 'Más masa muscular y fuerza' },
-  { key: 'pele', label: 'Pele / anti-idade', le: 'Piel / antiedad', icon: 'sparkle', desc: 'Colágeno, viço e rejuvenescimento', de: 'Colágeno, frescura y rejuvenecimiento' },
-  { key: 'cognitivo', label: 'Foco / cognição', le: 'Enfoque / cognición', icon: 'focus', desc: 'Foco, memória e clareza mental', de: 'Enfoque, memoria y claridad mental' },
-  { key: 'longevidade', label: 'Longevidade / energia', le: 'Longevidad / energía', icon: 'bolt', desc: 'Energia, disposição e vitalidade', de: 'Energía, disposición y vitalidad' },
-  { key: 'sono', label: 'Dormir melhor', le: 'Dormir mejor', icon: 'moon', desc: 'Dormir melhor e mais profundo', de: 'Dormir mejor y más profundo' },
-  { key: 'recuperacao', label: 'Recuperação / lesões', le: 'Recuperación / lesiones', icon: 'refresh', desc: 'Recuperar de lesões e treinos', de: 'Recuperarse de lesiones y entrenos' },
-  { key: 'hormonal', label: 'Libido / hormonal', le: 'Libido / hormonal', icon: 'flask', desc: 'Libido e equilíbrio hormonal', de: 'Libido y equilibrio hormonal' },
+// le = label (es); de = desc (es); cor = cor da categoria (ícone)
+const OBJETIVOS: { key: ObjectiveKey; label: string; le: string; icon: string; desc: string; de: string; cor: string }[] = [
+  { key: 'gordura', label: 'Emagrecer', le: 'Adelgazar', icon: 'flame', cor: '#EA580C', desc: 'Perder gordura e controlar o apetite', de: 'Perder grasa y controlar el apetito' },
+  { key: 'massa', label: 'Ganhar massa', le: 'Ganar masa', icon: 'dumbbell', cor: '#2563EB', desc: 'Mais massa muscular e força', de: 'Más masa muscular y fuerza' },
+  { key: 'pele', label: 'Pele / anti-idade', le: 'Piel / antiedad', icon: 'sparkle', cor: '#EC4899', desc: 'Colágeno, viço e rejuvenescimento', de: 'Colágeno, frescura y rejuvenecimiento' },
+  { key: 'cognitivo', label: 'Foco / cognição', le: 'Enfoque / cognición', icon: 'focus', cor: '#7C3AED', desc: 'Memória, concentração e clareza', de: 'Memoria, concentración y claridad' },
+  { key: 'longevidade', label: 'Longevidade / energia', le: 'Longevidad / energía', icon: 'bolt', cor: '#16A34A', desc: 'Mais disposição e vitalidade', de: 'Más disposición y vitalidad' },
+  { key: 'sono', label: 'Dormir melhor', le: 'Dormir mejor', icon: 'moon', cor: '#4F46E5', desc: 'Sono profundo e recuperação', de: 'Sueño profundo y recuperación' },
+  { key: 'recuperacao', label: 'Recuperação / lesões', le: 'Recuperación / lesiones', icon: 'refresh', cor: '#0EA5E9', desc: 'Acelerar o reparo e reduzir a dor', de: 'Acelerar la reparación y reducir el dolor' },
+  { key: 'hormonal', label: 'Libido / hormonal', le: 'Libido / hormonal', icon: 'flask', cor: '#E11D48', desc: 'Libido e equilíbrio hormonal', de: 'Libido y equilibrio hormonal' },
 ];
 
-const NIVEIS: { key: NivelFarmacia; label: string; le: string; sub: string; se: string; icon: string }[] = [
-  { key: 'iniciante', label: 'Nunca usou', le: 'Nunca usó', sub: 'Primeira vez', se: 'Primera vez', icon: 'sparkle' },
-  { key: 'intermediario', label: 'Já usou', le: 'Ya usó', sub: 'Alguma experiência', se: 'Algo de experiencia', icon: 'refresh' },
-  { key: 'avancado', label: 'Usa sempre', le: 'Usa siempre', sub: 'Experiente', se: 'Experto', icon: 'bolt' },
+// Cor por ferramenta da home
+const TOOL_COR: Record<string, string> = { diagnostico: '#16A34A', unico: '#7C3AED', catalogo: '#2563EB', calculadora: '#D97706' };
+// Converte hex + alpha → rgba
+const alpha = (hex: string, a: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+};
+
+const NIVEIS: { key: NivelFarmacia; label: string; le: string; sub: string; se: string; icon: string; cor: string }[] = [
+  { key: 'iniciante', label: 'Nunca usou', le: 'Nunca usó', sub: 'Primeira vez', se: 'Primera vez', icon: 'sparkle', cor: '#16A34A' },
+  { key: 'intermediario', label: 'Já usou', le: 'Ya usó', sub: 'Alguma experiência', se: 'Algo de experiencia', icon: 'refresh', cor: '#2563EB' },
+  { key: 'avancado', label: 'Usa sempre', le: 'Usa siempre', sub: 'Experiente', se: 'Experto', icon: 'bolt', cor: '#7C3AED' },
 ];
 
-const ATIVIDADES: { key: AtividadeFarmacia; label: string; le: string; sub: string; se: string }[] = [
-  { key: 'sedentario', label: 'Sedentário', le: 'Sedentario', sub: 'Pouco exercício', se: 'Poco ejercicio' },
-  { key: 'moderado', label: 'Moderado', le: 'Moderado', sub: 'Treina 1–3x/sem', se: 'Entrena 1–3x/sem' },
-  { key: 'ativo', label: 'Ativo', le: 'Activo', sub: 'Treina 4–5x/sem', se: 'Entrena 4–5x/sem' },
-  { key: 'muito_ativo', label: 'Muito ativo', le: 'Muy activo', sub: 'Treina 6–7x/sem', se: 'Entrena 6–7x/sem' },
+const ATIVIDADES: { key: AtividadeFarmacia; label: string; le: string; sub: string; se: string; icon: string; cor: string }[] = [
+  { key: 'sedentario', label: 'Sedentário', le: 'Sedentario', sub: 'Pouco exercício', se: 'Poco ejercicio', icon: 'moon', cor: '#D97706' },
+  { key: 'moderado', label: 'Moderado', le: 'Moderado', sub: 'Treina 1–3x/sem', se: 'Entrena 1–3x/sem', icon: 'dumbbell', cor: '#16A34A' },
+  { key: 'ativo', label: 'Ativo', le: 'Activo', sub: 'Treina 4–5x/sem', se: 'Entrena 4–5x/sem', icon: 'pulse', cor: '#2563EB' },
+  { key: 'muito_ativo', label: 'Muito ativo', le: 'Muy activo', sub: 'Treina 6–7x/sem', se: 'Entrena 6–7x/sem', icon: 'bolt', cor: '#EA580C' },
 ];
 
-const SONOS: { key: SonoFarmacia; label: string; le: string }[] = [
-  { key: 'ruim', label: 'Ruim', le: 'Malo' },
-  { key: 'regular', label: 'Regular', le: 'Regular' },
-  { key: 'bom', label: 'Bom', le: 'Bueno' },
+const SONOS: { key: SonoFarmacia; label: string; le: string; icon: string; cor: string }[] = [
+  { key: 'ruim', label: 'Ruim', le: 'Malo', icon: 'drop', cor: '#EC4899' },
+  { key: 'regular', label: 'Regular', le: 'Regular', icon: 'pulse', cor: '#16A34A' },
+  { key: 'bom', label: 'Bom', le: 'Bueno', icon: 'moon', cor: '#4F46E5' },
 ];
 
-const CONDICOES: { key: CondicaoSaude; label: string; le: string; icon: string }[] = [
-  { key: 'nenhuma', label: 'Nenhuma', le: 'Ninguna', icon: 'check' },
-  { key: 'diabetes', label: 'Diabetes', le: 'Diabetes', icon: 'drop' },
-  { key: 'hipertensao', label: 'Pressão alta', le: 'Presión alta', icon: 'heart' },
-  { key: 'tireoide', label: 'Tireoide', le: 'Tiroides', icon: 'pulse' },
-  { key: 'cancer', label: 'Histórico de câncer', le: 'Antecedente de cáncer', icon: 'ribbon' },
-  { key: 'gestacao', label: 'Gestante / amamentando', le: 'Embarazo / lactancia', icon: 'person' },
-  { key: 'outros', label: 'Outros', le: 'Otros', icon: 'pencil' },
+// Cor + ícone dos cabeçalhos de seção da etapa 3
+const SECAO_ROTINA = {
+  nivel: { cor: '#7C3AED', icon: 'flask' },
+  atividade: { cor: '#2563EB', icon: 'dumbbell' },
+  sono: { cor: '#4F46E5', icon: 'moon' },
+};
+
+const CONDICOES: { key: CondicaoSaude; label: string; le: string; icon: string; cor: string }[] = [
+  { key: 'nenhuma', label: 'Nenhuma', le: 'Ninguna', icon: 'check', cor: '#16A34A' },
+  { key: 'diabetes', label: 'Diabetes', le: 'Diabetes', icon: 'drop', cor: '#2563EB' },
+  { key: 'hipertensao', label: 'Pressão alta', le: 'Presión alta', icon: 'heart', cor: '#E11D48' },
+  { key: 'tireoide', label: 'Tireoide', le: 'Tiroides', icon: 'pulse', cor: '#0EA5E9' },
+  { key: 'cancer', label: 'Histórico de câncer', le: 'Antecedente de cáncer', icon: 'ribbon', cor: '#7C3AED' },
+  { key: 'gestacao', label: 'Gestante / amamentando', le: 'Embarazo / lactancia', icon: 'person', cor: '#D97706' },
+  { key: 'outros', label: 'Outros', le: 'Otros', icon: 'pencil', cor: '#98A2B3' },
 ];
 
 const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string; le: string }> = {
@@ -369,7 +384,10 @@ export default function FarmaciaPage() {
                             <span style={{ ...S.radio, ...(on ? S.radioOn : {}) }}>{on ? '✓' : ''}</span>
                           </div>
                           <div style={S.objBody}>
-                            <div style={S.objTitle}><span style={{ color: '#16A34A', display: 'inline-flex' }}><Icon name={o.icon} size={16} /></span>{idioma === 'es' ? o.le : o.label}</div>
+                            <div style={S.objTitle}>
+                              <span style={{ ...S.objIcon, background: alpha(o.cor, 0.1), color: o.cor }}><Icon name={o.icon} size={14} /></span>
+                              {idioma === 'es' ? o.le : o.label}
+                            </div>
                             <div style={S.objDesc}>{idioma === 'es' ? o.de : o.desc}</div>
                           </div>
                         </button>
@@ -415,29 +433,25 @@ export default function FarmaciaPage() {
 
               {passo === 3 && (
                 <StepCard n={3} titulo={t('Como é a sua rotina hoje?', '¿Cómo es tu rutina hoy?')} sub={t('Experiência, treino e sono mudam bastante a recomendação.', 'Experiencia, entreno y sueño cambian bastante la recomendación.')}>
-                  <div style={S.subLabel}>{t('Já usou peptídeos antes?', '¿Ya usaste péptidos antes?')}</div>
+                  <SecaoTitulo cor={SECAO_ROTINA.nivel.cor} icon={SECAO_ROTINA.nivel.icon}>{t('Já usou peptídeos antes?', '¿Ya usaste péptidos antes?')}</SecaoTitulo>
                   <div style={S.grid3}>
                     {NIVEIS.map((o) => (
-                      <button key={o.key} onClick={() => setNivel(o.key)} style={{ ...S.iconCard, ...(nivel === o.key ? S.iconCardOn : {}) }}>
-                        <span style={{ ...S.iconSq, ...(nivel === o.key ? S.iconSqOn : {}) }}><Icon name={o.icon} size={18} /></span>
-                        <div style={{ fontWeight: 600, fontSize: 15 }}>{idioma === 'es' ? o.le : o.label}</div>
-                        <div style={S.cardSub}>{idioma === 'es' ? o.se : o.sub}</div>
-                      </button>
+                      <OpcaoCard key={o.key} on={nivel === o.key} onClick={() => setNivel(o.key)} cor={o.cor} icon={o.icon}
+                        label={idioma === 'es' ? o.le : o.label} sub={idioma === 'es' ? o.se : o.sub} />
                     ))}
                   </div>
-                  <div style={{ ...S.subLabel, marginTop: 18 }}>{t('Como é a atividade física?', '¿Cómo es la actividad física?')}</div>
+                  <SecaoTitulo cor={SECAO_ROTINA.atividade.cor} icon={SECAO_ROTINA.atividade.icon} mt>{t('Como é a atividade física?', '¿Cómo es la actividad física?')}</SecaoTitulo>
                   <div style={S.grid4}>
                     {ATIVIDADES.map((o) => (
-                      <button key={o.key} onClick={() => setAtividade(atividade === o.key ? '' : o.key)} style={{ ...S.pillCol, ...(atividade === o.key ? S.pillOn : {}) }}>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>{idioma === 'es' ? o.le : o.label}</div>
-                        <div style={S.cardSub}>{idioma === 'es' ? o.se : o.sub}</div>
-                      </button>
+                      <OpcaoCard key={o.key} on={atividade === o.key} onClick={() => setAtividade(atividade === o.key ? '' : o.key)} cor={o.cor} icon={o.icon}
+                        label={idioma === 'es' ? o.le : o.label} sub={idioma === 'es' ? o.se : o.sub} />
                     ))}
                   </div>
-                  <div style={{ ...S.subLabel, marginTop: 18 }}>{t('E o sono, como anda?', '¿Y el sueño, cómo va?')}</div>
+                  <SecaoTitulo cor={SECAO_ROTINA.sono.cor} icon={SECAO_ROTINA.sono.icon} mt>{t('E o sono, como anda?', '¿Y el sueño, cómo va?')}</SecaoTitulo>
                   <div style={S.grid3}>
                     {SONOS.map((o) => (
-                      <button key={o.key} onClick={() => setSono(sono === o.key ? '' : o.key)} style={{ ...S.pill, ...(sono === o.key ? S.pillOn : {}) }}>{idioma === 'es' ? o.le : o.label}</button>
+                      <OpcaoCard key={o.key} on={sono === o.key} onClick={() => setSono(sono === o.key ? '' : o.key)} cor={o.cor} icon={o.icon}
+                        label={idioma === 'es' ? o.le : o.label} />
                     ))}
                   </div>
                 </StepCard>
@@ -450,8 +464,9 @@ export default function FarmaciaPage() {
                       const on = condicoes.includes(o.key);
                       return (
                         <button key={o.key} onClick={() => toggleCondicao(o.key)} style={{ ...S.condCard, ...(on ? S.condCardOn : {}) }}>
-                          <span style={{ ...S.iconSq, ...(on ? S.iconSqOn : {}) }}><Icon name={o.icon} size={16} /></span>
-                          <span style={{ fontWeight: 600, fontSize: 14.5 }}>{idioma === 'es' ? o.le : o.label}</span>
+                          <span style={{ ...S.condIcon, background: alpha(o.cor, 0.1), color: o.cor }}><Icon name={o.icon} size={16} /></span>
+                          <span style={{ fontWeight: 600, fontSize: 14.5, flex: 1 }}>{idioma === 'es' ? o.le : o.label}</span>
+                          <span style={{ ...S.opRadio, position: 'static', ...(on ? S.opRadioOn : {}) }}>{on ? '✓' : ''}</span>
                         </button>
                       );
                     })}
@@ -491,9 +506,10 @@ export default function FarmaciaPage() {
             enviarProtocolo={enviarProtocolo} abrirWhatsAppManual={abrirWhatsAppManual} novoAtendimento={() => novoAtendimento(true)}
           />}
 
-          {tela === 'catalogo' && !rec && <Catalogo t={t} idioma={idioma} lista={peptidesDisponiveis} busca={buscaCatalogo} setBusca={setBuscaCatalogo} onSel={setCatalogoSel} />}
+          {tela === 'catalogo' && !rec && <Catalogo t={t} idioma={idioma} lista={peptidesDisponiveis} busca={buscaCatalogo} setBusca={setBuscaCatalogo} onSel={setCatalogoSel} onBack={irHome} />}
           {tela === 'calculadora' && !rec && (
             <div style={S.wrapWide}>
+              <button onClick={irHome} style={S.voltarTopo}>‹ {t('Voltar', 'Volver')}</button>
               <div style={S.pageHead}><h1 style={S.h1}>{t('Calculadora de peptídeo', 'Calculadora de péptido')}</h1><p style={S.lead}>{t('Quantas unidades puxar na seringa para a dose certa.', 'Cuántas unidades jalar en la jeringa para la dosis correcta.')}</p></div>
               <div style={S.card}><CalculadoraPeptideo lang={idioma} /></div>
             </div>
@@ -547,13 +563,16 @@ function Home({ t, onStart }: { t: (p: string, e: string) => string; onStart: (t
 
       <div style={S.comoRow}><h2 style={S.h2}>{t('Como quer começar?', '¿Cómo quieres empezar?')}</h2><span style={{ fontSize: 13, color: '#98A2B3' }}>{t('4 ferramentas do balcão', '4 herramientas del mostrador')}</span></div>
       <div style={S.toolGrid}>
-        {tools.map((tl) => (
-          <button key={tl.tl} onClick={() => onStart(tl.tl)} style={S.toolCard}>
-            <span style={S.toolIcon}><Icon name={tl.icon} size={20} /></span>
-            <div style={{ flex: 1, textAlign: 'left' }}><div style={{ fontWeight: 700, fontSize: 16 }}>{tl.title}</div><div style={{ fontSize: 13.5, color: '#98A2B3', marginTop: 2 }}>{tl.sub}</div></div>
-            <span style={{ color: '#C0C4CC', fontSize: 20 }}>›</span>
-          </button>
-        ))}
+        {tools.map((tl) => {
+          const cor = TOOL_COR[tl.tl] || '#16A34A';
+          return (
+            <button key={tl.tl} onClick={() => onStart(tl.tl)} style={S.toolCard}>
+              <span style={{ ...S.toolIcon, background: alpha(cor, 0.1), color: cor }}><Icon name={tl.icon} size={20} /></span>
+              <div style={{ flex: 1, textAlign: 'left' }}><div style={{ fontWeight: 700, fontSize: 16 }}>{tl.title}</div><div style={{ fontSize: 13.5, color: '#98A2B3', marginTop: 2 }}>{tl.sub}</div></div>
+              <span style={{ color: '#C0C4CC', fontSize: 20 }}>›</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -567,6 +586,26 @@ function StepCard({ n, titulo, sub, children }: { n: number; titulo: string; sub
       <p style={S.stepSub}>{sub}</p>
       <div style={{ marginTop: 22 }}>{children}</div>
     </div>
+  );
+}
+
+function SecaoTitulo({ cor, icon, mt, children }: { cor: string; icon: string; mt?: boolean; children: React.ReactNode }) {
+  return (
+    <div style={{ ...S.secaoTit, ...(mt ? { marginTop: 22 } : {}) }}>
+      <span style={{ ...S.secaoIcon, background: alpha(cor, 0.1), color: cor }}><Icon name={icon} size={14} /></span>
+      {children}
+    </div>
+  );
+}
+
+function OpcaoCard({ on, onClick, cor, icon, label, sub }: { on: boolean; onClick: () => void; cor: string; icon: string; label: string; sub?: string }) {
+  return (
+    <button onClick={onClick} style={{ ...S.opCard, ...(on ? S.opCardOn : {}) }}>
+      <span style={{ ...S.opIcon, background: alpha(cor, 0.1), color: cor }}><Icon name={icon} size={16} /></span>
+      <span style={{ ...S.opRadio, ...(on ? S.opRadioOn : {}) }}>{on ? '✓' : ''}</span>
+      <div style={{ fontWeight: 600, fontSize: 15, marginTop: 12 }}>{label}</div>
+      {sub && <div style={S.cardSub}>{sub}</div>}
+    </button>
   );
 }
 
@@ -689,11 +728,12 @@ function Orientacao({ icon, titulo, texto }: { icon: string; titulo: string; tex
   return <div style={S.orient}><div style={S.orientTit}><span style={{ color: '#16A34A' }}><Icon name={icon} size={15} /></span>{titulo}</div><div style={{ fontSize: 14, color: '#374151', lineHeight: 1.55, marginTop: 4 }}>{texto}</div></div>;
 }
 
-function Catalogo({ t, idioma, lista, busca, setBusca, onSel }: any) {
+function Catalogo({ t, idioma, lista, busca, setBusca, onSel, onBack }: any) {
   const q = busca.trim().toLowerCase();
   const filtrada = lista.filter((p: Peptide) => !q || p.n.toLowerCase().includes(q) || p.m.toLowerCase().includes(q));
   return (
     <div style={S.wrapWide}>
+      <button onClick={onBack} style={S.voltarTopo}>‹ {t('Voltar', 'Volver')}</button>
       <div style={S.pageHead}><h1 style={S.h1}>{t('Catálogo de peptídeos', 'Catálogo de péptidos')}</h1><p style={S.lead}>{t('Toque em um produto para ver o que é, o que faz e como usar.', 'Toca un producto para ver qué es, qué hace y cómo usar.')}</p></div>
       <input className="inp" placeholder={t('Buscar produto…', 'Buscar producto…')} value={busca} onChange={(e) => setBusca(e.target.value)} style={{ ...S.inp, marginBottom: 16 }} />
       <div style={S.catGrid}>
@@ -741,11 +781,11 @@ function ModalCatalogo({ p, t, onClose }: { p: Peptide; t: (a: string, b: string
 // ════════════════════════════════════════════════
 //  Estilos
 // ════════════════════════════════════════════════
-const CARD_MAX = 760;
+const CARD_MAX = 820; // largura única de toda a estrutura do balcão (card ~772)
 const S: Record<string, React.CSSProperties> = {
   page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAFAF8', fontFamily: 'inherit', color: '#0E1113' },
   header: { position: 'sticky', top: 0, zIndex: 50, background: 'rgba(255,255,255,.9)', backdropFilter: 'saturate(180%) blur(12px)', WebkitBackdropFilter: 'saturate(180%) blur(12px)', borderBottom: '1px solid #EFEFEF' },
-  headerIn: { maxWidth: 1180, margin: '0 auto', padding: '13px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  headerIn: { maxWidth: CARD_MAX, margin: '0 auto', padding: '13px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   brandBtn: { display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer', padding: 0 },
   brandTag: { fontSize: 10.5, color: '#98A2B3', letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 600, borderLeft: '1px solid #E4E4E4', paddingLeft: 10 },
   headerRight: { display: 'flex', alignItems: 'center', gap: 8 },
@@ -755,19 +795,20 @@ const S: Record<string, React.CSSProperties> = {
   iconBtn: { width: 38, height: 38, borderRadius: '50%', background: '#fff', border: '1px solid #E7E7E7', color: '#16A34A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   sairBtn: { padding: '9px 16px', borderRadius: 999, background: '#fff', border: '1px solid #E7E7E7', color: '#344054', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' },
   progressWrap: { borderTop: '1px solid #F0F0F0', background: 'rgba(255,255,255,.7)' },
-  progressTop: { maxWidth: 1180, margin: '0 auto', padding: '10px 24px 0', display: 'flex', justifyContent: 'space-between', fontSize: 13 },
-  progressBar: { maxWidth: 1180, margin: '6px auto 10px', padding: '0 24px', height: 6 },
+  progressTop: { maxWidth: CARD_MAX, margin: '0 auto', padding: '10px 24px 0', display: 'flex', justifyContent: 'space-between', fontSize: 13 },
+  progressBar: { maxWidth: CARD_MAX, margin: '6px auto 10px', padding: '0 24px', height: 6 },
   progressFill: { height: 6, background: '#16A34A', borderRadius: 999, transition: 'width .3s ease' },
 
   main: { flex: 1, width: '100%' },
-  wrapCol: { maxWidth: CARD_MAX, margin: '0 auto', padding: '26px 20px 40px' },
-  wrapWide: { maxWidth: 1000, margin: '0 auto', padding: '26px 24px 48px' },
+  wrapCol: { maxWidth: CARD_MAX, margin: '0 auto', padding: '26px 24px 120px' },
+  wrapWide: { maxWidth: CARD_MAX, margin: '0 auto', padding: '26px 24px 48px' },
   pageHead: { marginBottom: 18 },
+  voltarTopo: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '9px 16px', borderRadius: 999, background: '#fff', border: '1px solid #E4E4E4', color: '#344054', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 16 },
   h1: { fontSize: 30, fontWeight: 800, letterSpacing: '-.02em' },
   h2: { fontSize: 20, fontWeight: 800, letterSpacing: '-.01em' },
   lead: { fontSize: 15, color: '#667085', marginTop: 6 },
 
-  card: { background: '#fff', border: '1px solid #ECECEC', borderRadius: 24, padding: 30, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
+  card: { background: '#fff', border: '1px solid #E3F0E8', borderRadius: 26, padding: 32, boxShadow: '0 1px 2px rgba(16,24,40,.03)' },
   etapaBadge: { display: 'inline-block', background: '#E8F5EC', color: '#15803D', fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', padding: '6px 12px', borderRadius: 999 },
   stepTitle: { fontSize: 30, fontWeight: 800, letterSpacing: '-.02em', marginTop: 14 },
   stepSub: { fontSize: 15, color: '#667085', marginTop: 6, lineHeight: 1.5 },
@@ -786,21 +827,22 @@ const S: Record<string, React.CSSProperties> = {
   heroImg: { width: '100%', maxWidth: 420, objectFit: 'contain' },
 
   comoRow: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 34, marginBottom: 14, gap: 12, flexWrap: 'wrap' },
-  toolGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14 },
+  toolGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 },
   toolCard: { display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1px solid #ECECEC', borderRadius: 18, padding: '20px 22px', cursor: 'pointer', fontFamily: 'inherit', transition: 'border-color .15s, box-shadow .15s' },
   toolIcon: { width: 44, height: 44, borderRadius: 12, background: '#F0FAF3', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 
   // Objetivo cards
-  objGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 14 },
-  objCard: { border: '1.5px solid #ECECEC', borderRadius: 18, background: '#fff', cursor: 'pointer', padding: 0, overflow: 'hidden', fontFamily: 'inherit', textAlign: 'left', transition: 'border-color .15s, box-shadow .15s' },
-  objCardOn: { borderColor: '#16A34A', boxShadow: '0 0 0 3px rgba(22,163,74,.12)' },
-  objImgWrap: { position: 'relative', height: 150, background: '#F6F7F6' },
+  objGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 },
+  objCard: { border: '1.5px solid #ECEDEE', borderRadius: 18, background: '#fff', cursor: 'pointer', padding: 10, overflow: 'hidden', fontFamily: 'inherit', textAlign: 'left', transition: 'border-color .15s, box-shadow .15s' },
+  objCardOn: { borderColor: '#16A34A', background: '#F5FBF7', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
+  objImgWrap: { position: 'relative', height: 168, borderRadius: 12, overflow: 'hidden', background: '#F6F7F6' },
   objImg: { width: '100%', height: '100%', objectFit: 'cover' },
-  radio: { position: 'absolute', top: 12, right: 12, width: 26, height: 26, borderRadius: '50%', border: '2px solid #D0D5DD', background: 'rgba(255,255,255,.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 },
+  radio: { position: 'absolute', top: 10, right: 10, width: 26, height: 26, borderRadius: '50%', border: '2px solid #D0D5DD', background: 'rgba(255,255,255,.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 },
   radioOn: { background: '#16A34A', borderColor: '#16A34A' },
-  objBody: { padding: '14px 16px 16px' },
-  objTitle: { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 16 },
-  objDesc: { fontSize: 13, color: '#98A2B3', marginTop: 4, lineHeight: 1.4 },
+  objBody: { padding: '12px 8px 6px' },
+  objTitle: { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 15.5, color: '#0E1113' },
+  objIcon: { width: 26, height: 26, borderRadius: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  objDesc: { fontSize: 12.5, color: '#98A2B3', marginTop: 5, lineHeight: 1.4 },
 
   // Peptídeo (unico) chips
   pepGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 },
@@ -811,11 +853,18 @@ const S: Record<string, React.CSSProperties> = {
 
   // Inputs / campos
   grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 },
-  grid4: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 },
+  grid4: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 },
   campoLabel: { fontSize: 13, fontWeight: 700, color: '#344054', marginBottom: 7 },
   inp: { width: '100%', padding: '14px 16px', fontSize: 16, borderRadius: 14, border: '1px solid #E4E4E4', background: '#fff', fontFamily: 'inherit', color: '#0E1113' },
   imcBox: { marginTop: 12, fontSize: 14, background: '#F6FBF7', border: '1px solid #E1EEE4', borderRadius: 10, padding: '10px 14px' },
   subLabel: { fontSize: 14, fontWeight: 700, color: '#0E1113', marginTop: 20, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 },
+  secaoTit: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#0E1113', marginBottom: 12 },
+  secaoIcon: { width: 30, height: 30, borderRadius: 9, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  opCard: { position: 'relative', padding: '16px 14px 14px', borderRadius: 14, border: '1.5px solid #ECEDEE', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
+  opCardOn: { borderColor: '#16A34A', background: '#F5FBF7', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
+  opIcon: { width: 34, height: 34, borderRadius: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  opRadio: { position: 'absolute', top: 14, right: 14, width: 22, height: 22, borderRadius: '50%', border: '2px solid #D0D5DD', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700 },
+  opRadioOn: { background: '#16A34A', borderColor: '#16A34A' },
   opcional: { fontSize: 11, fontWeight: 600, color: '#98A2B3', background: '#F2F4F7', padding: '2px 8px', borderRadius: 999 },
   pill: { padding: '13px 14px', borderRadius: 12, border: '1px solid #E7E7E7', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 500, color: '#0E1113', textAlign: 'center' },
   pillCol: { padding: '12px 14px', borderRadius: 12, border: '1px solid #E7E7E7', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center' },
@@ -825,8 +874,9 @@ const S: Record<string, React.CSSProperties> = {
   iconCardOn: { borderColor: '#16A34A', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
   iconSq: { width: 38, height: 38, borderRadius: 11, background: '#F2F4F7', color: '#667085', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   iconSqOn: { background: '#DCFCE7', color: '#16A34A' },
-  condCard: { display: 'flex', alignItems: 'center', gap: 12, padding: '16px 16px', borderRadius: 14, border: '1.5px solid #ECECEC', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
-  condCardOn: { borderColor: '#16A34A', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
+  condCard: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, border: '1.5px solid #ECEDEE', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
+  condCardOn: { borderColor: '#16A34A', background: '#F5FBF7', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
+  condIcon: { width: 34, height: 34, borderRadius: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   confid: { display: 'flex', gap: 12, alignItems: 'flex-start', background: '#F0FAF3', border: '1px solid #DCEBE1', borderRadius: 14, padding: 16, marginTop: 18 },
   confidIcon: { width: 34, height: 34, borderRadius: 10, background: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 
@@ -839,8 +889,8 @@ const S: Record<string, React.CSSProperties> = {
   hintBox: { display: 'flex', alignItems: 'center', gap: 10, background: '#F7F5FF', border: '1px solid #ECE7FB', borderRadius: 14, padding: '14px 16px', marginTop: 16, fontSize: 13.5, color: '#4B3F6B' },
 
   // Footer (fixo)
-  footer: { position: 'sticky', bottom: 0, zIndex: 40, background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderTop: '1px solid #EDEDED' },
-  footerIn: { maxWidth: CARD_MAX, margin: '0 auto', padding: '14px 20px', display: 'flex', gap: 12, alignItems: 'center' },
+  footer: { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40, background: 'rgba(255,255,255,.94)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderTop: '1px solid #EDEDED' },
+  footerIn: { maxWidth: CARD_MAX, margin: '0 auto', padding: '14px 24px', display: 'flex', gap: 12, alignItems: 'center' },
   voltarBtn: { padding: '15px 22px', borderRadius: 15, background: '#fff', border: '1px solid #E4E4E4', color: '#344054', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0 },
   continuarBtn: { flex: 1, padding: '15px 22px', borderRadius: 15, background: '#16A34A', border: 'none', color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 16px rgba(22,163,74,.28)' },
 
@@ -875,7 +925,7 @@ const S: Record<string, React.CSSProperties> = {
   secondaryBtn: { width: '100%', marginTop: 18, padding: '14px', borderRadius: 14, background: '#fff', border: '1px solid #E4E4E4', color: '#344054', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' },
 
   // Catálogo
-  catGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 10 },
+  catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
   catItem: { display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1px solid #ECECEC', borderRadius: 14, padding: '12px 14px', cursor: 'pointer', fontFamily: 'inherit' },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(16,24,40,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 100 },
   modalCard: { background: '#fff', borderRadius: 24, padding: 26, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' },
