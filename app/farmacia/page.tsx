@@ -448,14 +448,16 @@ export default function FarmaciaPage() {
                         label={idioma === 'es' ? o.le : o.label} sub={idioma === 'es' ? o.se : o.sub} />
                     ))}
                   </div>
-                  <SecaoTitulo cor={SECAO_ROTINA.atividade.cor} icon={SECAO_ROTINA.atividade.icon} mt>{t('Como é a atividade física?', '¿Cómo es la actividad física?')}</SecaoTitulo>
+                  <div style={S.divisor} />
+                  <SecaoTitulo cor={SECAO_ROTINA.atividade.cor} icon={SECAO_ROTINA.atividade.icon}>{t('Como é a atividade física?', '¿Cómo es la actividad física?')}</SecaoTitulo>
                   <div style={S.grid4}>
                     {ATIVIDADES.map((o) => (
                       <OpcaoCard key={o.key} on={atividade === o.key} onClick={() => setAtividade(atividade === o.key ? '' : o.key)} cor={o.cor} icon={o.icon}
                         label={idioma === 'es' ? o.le : o.label} sub={idioma === 'es' ? o.se : o.sub} />
                     ))}
                   </div>
-                  <SecaoTitulo cor={SECAO_ROTINA.sono.cor} icon={SECAO_ROTINA.sono.icon} mt>{t('E o sono, como anda?', '¿Y el sueño, cómo va?')}</SecaoTitulo>
+                  <div style={S.divisor} />
+                  <SecaoTitulo cor={SECAO_ROTINA.sono.cor} icon={SECAO_ROTINA.sono.icon}>{t('E o sono, como anda?', '¿Y el sueño, cómo va?')}</SecaoTitulo>
                   <div style={S.grid3}>
                     {SONOS.map((o) => (
                       <OpcaoCard key={o.key} on={sono === o.key} onClick={() => setSono(sono === o.key ? '' : o.key)} cor={o.cor} icon={o.icon}
@@ -592,7 +594,7 @@ function StepCard({ n, titulo, sub, children }: { n: number; titulo: string; sub
       <div style={S.etapaBadge}>ETAPA {n}</div>
       <h1 style={S.stepTitle}>{titulo}</h1>
       <p style={S.stepSub}>{sub}</p>
-      <div style={{ marginTop: 22 }}>{children}</div>
+      <div style={{ marginTop: 26 }}>{children}</div>
     </div>
   );
 }
@@ -869,16 +871,16 @@ const S: Record<string, React.CSSProperties> = {
   pepThumbImg: { width: '100%', height: '100%', objectFit: 'cover' },
 
   // Inputs / campos
-  grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 },
-  grid4: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 },
+  grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 },
+  grid4: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 },
   campoLabel: { fontSize: 13, fontWeight: 700, color: '#344054', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 7 },
   campoIcon: { width: 24, height: 24, borderRadius: 7, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  divisor: { height: 1, background: '#EEF0EF', margin: '20px 0' },
-  grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
+  divisor: { height: 1, background: '#EEF0EF', margin: '28px 0' },
+  grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 },
   inp: { width: '100%', padding: '14px 16px', fontSize: 16, borderRadius: 14, border: '1px solid #E4E4E4', background: '#fff', fontFamily: 'inherit', color: '#0E1113' },
   imcBox: { marginTop: 12, fontSize: 14, background: '#F6FBF7', border: '1px solid #E1EEE4', borderRadius: 10, padding: '10px 14px' },
   subLabel: { fontSize: 14, fontWeight: 700, color: '#0E1113', marginTop: 20, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 },
-  secaoTit: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#0E1113', marginBottom: 12 },
+  secaoTit: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#0E1113', marginBottom: 14 },
   secaoIcon: { width: 30, height: 30, borderRadius: 9, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   opCard: { position: 'relative', padding: '16px 14px 14px', borderRadius: 14, border: '1.5px solid #ECEDEE', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
   opCardOn: { borderColor: '#16A34A', background: '#F5FBF7', boxShadow: '0 0 0 3px rgba(22,163,74,.1)' },
