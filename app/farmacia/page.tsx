@@ -286,7 +286,11 @@ export default function FarmaciaPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data?.ok) setEnviado(true);
-      else setEnviarErro(data?.error || t('Não foi possível enviar automaticamente.', 'No se pudo enviar automáticamente.'));
+      else {
+        const base = data?.error || t('Não foi possível enviar automaticamente.', 'No se pudo enviar automáticamente.');
+        const codigo = data?.code ? ` (cód. ${data.code})` : (res.status ? ` (HTTP ${res.status})` : '');
+        setEnviarErro(base + codigo);
+      }
     } catch { setEnviarErro(t('Erro de conexão ao enviar.', 'Error de conexión al enviar.')); }
     finally { setEnviando(false); }
   };
