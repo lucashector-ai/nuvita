@@ -31,6 +31,8 @@ const PATHS: Record<string, string> = {
   clipboard: 'M9 4V3h6v1h2a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2zM9 4h6',
   fork: 'M5 3v6a2 2 0 0 0 2 2h0V3M7 3v18M18 3c-2 0-3 2-3 5s1 4 3 4v9',
   eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  mail: 'M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM3 7l9 6 9-6',
+  whatsapp: 'M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z',
 };
 
 export default function Icon({

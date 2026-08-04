@@ -132,6 +132,7 @@ export default function FarmaciaPage() {
   const [enviando, setEnviando] = useState(false);
   const [enviarErro, setEnviarErro] = useState('');
   const [email, setEmail] = useState('');
+  const [emailNome, setEmailNome] = useState('');
   const [emailEnviado, setEmailEnviado] = useState(false);
   const [emailEnviando, setEmailEnviando] = useState(false);
   const [emailErro, setEmailErro] = useState('');
@@ -302,11 +303,11 @@ export default function FarmaciaPage() {
   const enviarPorEmail = async () => {
     if (!respostas || !rec) return;
     setEmailErro('');
-    if (!nome.trim()) return setEmailErro(t('Preencha o nome da pessoa.', 'Complete el nombre de la persona.'));
+    if (!emailNome.trim()) return setEmailErro(t('Preencha o nome da pessoa.', 'Complete el nombre de la persona.'));
     const mail = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return setEmailErro(t('Informe um e-mail válido.', 'Ingrese un e-mail válido.'));
     setEmailEnviando(true);
-    const rComContato = { ...respostas, nome: nome.trim() };
+    const rComContato = { ...respostas, nome: emailNome.trim() };
     const msg = montarMensagemWhatsApp(rComContato, rec);
     try {
       const res = await fetch('/api/farmacia/enviar-email', {
@@ -333,7 +334,7 @@ export default function FarmaciaPage() {
     setNivel(''); setAtividade(''); setSono(''); setCondicoes([]); setCondicaoOutros('');
     setNome(''); setTelefone(''); setRec(null); setErro(''); setEnviado(false); setGerando(false);
     setEnviando(false); setEnviarErro(''); setPasso(1);
-    setEmail(''); setEmailEnviado(false); setEmailEnviando(false); setEmailErro('');
+    setEmail(''); setEmailNome(''); setEmailEnviado(false); setEmailEnviando(false); setEmailErro('');
     if (voltarHome) { setTela('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   };
 
@@ -544,7 +545,8 @@ export default function FarmaciaPage() {
             pais={pais} trocarPais={trocarPais} telefoneE164={telefoneE164}
             enviado={enviado} enviando={enviando} enviarErro={enviarErro} setEnviarErro={setEnviarErro}
             enviarProtocolo={enviarProtocolo} abrirWhatsAppManual={abrirWhatsAppManual} novoAtendimento={() => novoAtendimento(true)}
-            email={email} setEmail={setEmail} emailEnviado={emailEnviado} emailEnviando={emailEnviando}
+            email={email} setEmail={setEmail} emailNome={emailNome} setEmailNome={setEmailNome}
+            emailEnviado={emailEnviado} emailEnviando={emailEnviando}
             emailErro={emailErro} setEmailErro={setEmailErro} enviarPorEmail={enviarPorEmail}
           />}
 
@@ -705,7 +707,7 @@ function Spec({ label, valor, destaque }: { label: string; valor: string; destaq
 }
 
 function Resultado(props: any) {
-  const { rec, idioma, t, imc, idade, atividade, nome, setNome, telefone, onTelefone, prepararWhatsApp, pais, trocarPais, telefoneE164, enviado, enviando, enviarErro, setEnviarErro, enviarProtocolo, abrirWhatsAppManual, novoAtendimento, email, setEmail, emailEnviado, emailEnviando, emailErro, setEmailErro, enviarPorEmail } = props;
+  const { rec, idioma, t, imc, idade, atividade, nome, setNome, telefone, onTelefone, prepararWhatsApp, pais, trocarPais, telefoneE164, enviado, enviando, enviarErro, setEnviarErro, enviarProtocolo, abrirWhatsAppManual, novoAtendimento, email, setEmail, emailNome, setEmailNome, emailEnviado, emailEnviando, emailErro, setEmailErro, enviarPorEmail } = props;
   const perfil = [idade && `${idade} ${t('anos', 'años')}`, imc && `IMC ${imc.valor} (${imc.classe})`, atividade && (idioma === 'es' ? ATIVIDADES.find((a) => a.key === atividade)?.le : ATIVIDADES.find((a) => a.key === atividade)?.label)].filter(Boolean).join(' · ');
   return (
     <div style={S.wrapWide}>
@@ -765,6 +767,10 @@ function Resultado(props: any) {
           )}
 
           {/* Contato / envio */}
+          <div style={{ fontWeight: 700, fontSize: 16, marginTop: 18 }}>{t('Quer receber o protocolo?', '¿Quiere recibir el protocolo?')}</div>
+          <div style={{ fontSize: 13, color: '#667085', marginTop: 3 }}>{t('Se a pessoa tiver interesse, preencha os dados e enviamos o protocolo em PDF por WhatsApp ou e-mail.', 'Si la persona tiene interés, complete los datos y enviamos el protocolo en PDF por WhatsApp o e-mail.')}</div>
+
+          {/* Caixa 1 — WhatsApp */}
           <div style={S.receberCard}>
             {enviado ? (
               <div style={{ textAlign: 'center', padding: '6px 0' }}>
@@ -774,8 +780,7 @@ function Resultado(props: any) {
               </div>
             ) : (
               <>
-                <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Quer receber o protocolo?', '¿Quiere recibir el protocolo?')}</div>
-                <div style={{ fontSize: 13, color: '#667085', marginTop: 3, marginBottom: 14 }}>{t('Se a pessoa tiver interesse, preencha os dados que enviamos o protocolo em PDF direto no WhatsApp dela.', 'Si la persona tiene interés, complete los datos y enviamos el protocolo en PDF a su WhatsApp.')}</div>
+                <div style={S.envioTit}><span style={{ color: '#16A34A' }}><Icon name="whatsapp" size={16} /></span>{t('Enviar por WhatsApp', 'Enviar por WhatsApp')}</div>
                 <Campo label={t('Nome da pessoa', 'Nombre de la persona')}><input className="inp" placeholder={t('Nome completo', 'Nombre completo')} value={nome} onChange={(e) => { setEnviarErro(''); setNome(e.target.value); }} style={S.inp} /></Campo>
                 <div style={{ marginTop: 12 }}>
                   <Campo label="WhatsApp">
@@ -788,22 +793,29 @@ function Resultado(props: any) {
                 {enviarErro && <div style={{ ...S.hint, color: '#B45309', marginTop: 10 }}>{enviarErro} <button onClick={abrirWhatsAppManual} style={S.linkBtn}>{t('Abrir no WhatsApp', 'Abrir en WhatsApp')}</button></div>}
                 <button onClick={enviarProtocolo} disabled={enviando} style={{ ...S.waBtn, opacity: enviando ? 0.7 : 1 }}>{enviando ? t('Enviando…', 'Enviando…') : t('Enviar no WhatsApp', 'Enviar por WhatsApp')}</button>
                 <button onClick={abrirWhatsAppManual} style={S.waManualBtn}>{t('ou abrir o WhatsApp e enviar manualmente', 'o abrir WhatsApp y enviar manualmente')}</button>
+              </>
+            )}
+          </div>
 
-                <div style={S.ouSep}><span style={S.ouSepLine} /><span style={S.ouSepTxt}>{t('ou por e-mail', 'o por e-mail')}</span><span style={S.ouSepLine} /></div>
-
-                {emailEnviado ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', color: '#16A34A', fontWeight: 600, fontSize: 14, padding: '4px 0' }}>
-                    <Icon name="check" size={18} />{t('Protocolo enviado para', 'Protocolo enviado a')} {email.trim()}
-                  </div>
-                ) : (
-                  <>
-                    <Campo label={t('E-mail da pessoa', 'E-mail de la persona')}>
-                      <input className="inp" type="email" inputMode="email" placeholder={t('nome@email.com', 'nombre@email.com')} value={email} onChange={(e) => { setEmailErro(''); setEmail(e.target.value); }} style={S.inp} />
-                    </Campo>
-                    {emailErro && <div style={{ ...S.hint, color: '#B45309', marginTop: 10 }}>{emailErro}</div>}
-                    <button onClick={enviarPorEmail} disabled={emailEnviando} style={{ ...S.emailBtn, opacity: emailEnviando ? 0.7 : 1 }}>{emailEnviando ? t('Enviando…', 'Enviando…') : t('Enviar por e-mail', 'Enviar por e-mail')}</button>
-                  </>
-                )}
+          {/* Caixa 2 — E-mail */}
+          <div style={S.receberCard}>
+            {emailEnviado ? (
+              <div style={{ textAlign: 'center', padding: '6px 0' }}>
+                <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center', marginBottom: 8 }}><Icon name="check" size={30} /></div>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Protocolo enviado por e-mail!', '¡Protocolo enviado por e-mail!')}</div>
+                <div style={{ fontSize: 13, color: '#667085', marginTop: 3 }}>{t('Enviamos o PDF para', 'Enviamos el PDF a')} {email.trim()}.</div>
+              </div>
+            ) : (
+              <>
+                <div style={S.envioTit}><span style={{ color: '#16A34A' }}><Icon name="mail" size={16} /></span>{t('Enviar por e-mail', 'Enviar por e-mail')}</div>
+                <Campo label={t('Nome da pessoa', 'Nombre de la persona')}><input className="inp" placeholder={t('Nome completo', 'Nombre completo')} value={emailNome} onChange={(e) => { setEmailErro(''); setEmailNome(e.target.value); }} style={S.inp} /></Campo>
+                <div style={{ marginTop: 12 }}>
+                  <Campo label={t('E-mail da pessoa', 'E-mail de la persona')}>
+                    <input className="inp" type="email" inputMode="email" placeholder={t('nome@email.com', 'nombre@email.com')} value={email} onChange={(e) => { setEmailErro(''); setEmail(e.target.value); }} style={S.inp} />
+                  </Campo>
+                </div>
+                {emailErro && <div style={{ ...S.hint, color: '#B45309', marginTop: 10 }}>{emailErro}</div>}
+                <button onClick={enviarPorEmail} disabled={emailEnviando} style={{ ...S.waBtn, opacity: emailEnviando ? 0.7 : 1 }}>{emailEnviando ? t('Enviando…', 'Enviando…') : t('Enviar por e-mail', 'Enviar por e-mail')}</button>
               </>
             )}
           </div>
@@ -1025,10 +1037,7 @@ const S: Record<string, React.CSSProperties> = {
   paisSelect: { padding: '14px 10px', fontSize: 15, borderRadius: 14, border: '1px solid #E4E4E4', background: '#fff', fontFamily: 'inherit', color: '#0E1113', cursor: 'pointer' },
   waBtn: { width: '100%', marginTop: 16, padding: '15px', borderRadius: 14, background: '#16A34A', border: 'none', color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700, cursor: 'pointer' },
   waManualBtn: { width: '100%', marginTop: 8, background: 'none', border: 'none', color: '#667085', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, cursor: 'pointer', textDecoration: 'underline', padding: '6px 0' },
-  emailBtn: { width: '100%', marginTop: 12, padding: '15px', borderRadius: 14, background: '#fff', border: '1.5px solid #16A34A', color: '#16A34A', fontFamily: 'inherit', fontSize: 16, fontWeight: 700, cursor: 'pointer' },
-  ouSep: { display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0 4px' },
-  ouSepLine: { flex: 1, height: 1, background: '#ECECEC' },
-  ouSepTxt: { fontSize: 12, color: '#98A2B3', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' },
+  envioTit: { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 15, marginBottom: 14 },
   linkBtn: { background: 'none', border: 'none', color: '#16A34A', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 },
   hint: { fontSize: 12.5, color: '#98A2B3' },
   secondaryBtn: { width: '100%', marginTop: 18, padding: '14px', borderRadius: 14, background: '#fff', border: '1px solid #E4E4E4', color: '#344054', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' },
