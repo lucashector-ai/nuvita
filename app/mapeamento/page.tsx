@@ -9,9 +9,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
-
-const OK_KEY = 'nv_mapa_ok';
+import Gate, { USER_KEY } from '@/components/mapeamento/Gate';
 
 type Farmacia = {
   id: string;
@@ -19,6 +19,8 @@ type Farmacia = {
   foto: string | null;
   lat: number | null;
   lng: number | null;
+  referencia?: string | null;
+  criado_por?: string | null;
   criado_em?: string;
 };
 
@@ -50,65 +52,10 @@ function comprimirImagem(file: File): Promise<string> {
 }
 
 export default function MapeamentoPage() {
-  const [checked, setChecked] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
-
-  useEffect(() => {
-    try { if (sessionStorage.getItem(OK_KEY) === '1') setUnlocked(true); } catch { /* */ }
-    setChecked(true);
-  }, []);
-
-  if (!checked) return null;
-  if (!unlocked) return <Gate onOk={() => setUnlocked(true)} />;
-  return <Mapeamento />;
-}
-
-// ─── Gate por PIN (reaproveita /api/farmacia/auth) ───
-function Gate({ onOk }: { onOk: () => void }) {
-  const [pin, setPin] = useState('');
-  const [erro, setErro] = useState('');
-  const [loading, setLoading] = useState(false);
-  const LEN = 4;
-
-  const validar = useCallback(async (codigo: string) => {
-    setLoading(true); setErro('');
-    try {
-      const res = await fetch('/api/farmacia/auth', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: codigo }),
-      });
-      if (res.ok) { try { sessionStorage.setItem(OK_KEY, '1'); } catch { /* */ } onOk(); }
-      else if (res.status === 429) { setErro('Muitas tentativas. Aguarde.'); setPin(''); }
-      else { setErro('PIN incorreto.'); setPin(''); }
-    } catch { setErro('Erro de conexão.'); setPin(''); }
-    finally { setLoading(false); }
-  }, [onOk]);
-
-  useEffect(() => { if (pin.length === LEN && !loading) validar(pin); /* eslint-disable-next-line */ }, [pin]);
-
   return (
-    <div style={S.gateWrap} className="grad">
-      <div style={S.gateCard}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><NuvitaLogo width={120} height={26} /></div>
-        <div style={S.tag}>Mapeamento</div>
-        <p style={S.gateLead}>Digite o PIN de acesso</p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', margin: '18px 0' }}>
-          {Array.from({ length: LEN }).map((_, i) => (
-            <div key={i} style={{ width: 12, height: 12, borderRadius: '50%', background: i < pin.length ? '#16A34A' : '#E5E7EB', transition: 'background .15s' }} />
-          ))}
-        </div>
-        {erro && <div style={S.gateErro}>{erro}</div>}
-        <div style={S.pad}>
-          {['1','2','3','4','5','6','7','8','9'].map((d) => (
-            <button key={d} onClick={() => { setErro(''); setPin((p) => p.length >= LEN ? p : p + d); }} style={S.key} disabled={loading}>{d}</button>
-          ))}
-          <div />
-          <button onClick={() => { setErro(''); setPin((p) => p.length >= LEN ? p : p + '0'); }} style={S.key} disabled={loading}>0</button>
-          <button onClick={() => { setErro(''); setPin((p) => p.slice(0, -1)); }} style={{ ...S.key, fontSize: 20 }} disabled={loading}>⌫</button>
-        </div>
-        {loading && <div style={{ fontSize: 12, color: '#98A2B3', marginTop: 14 }}>Verificando…</div>}
-      </div>
-    </div>
+    <Gate>
+      <Mapeamento />
+    </Gate>
   );
 }
 
@@ -123,6 +70,8 @@ function Mapeamento() {
   const [foto, setFoto] = useState<string | null>(null);
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
+  const [referencia, setReferencia] = useState('');
+  const [usuario, setUsuario] = useState('');
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'carregando' | 'ok' | 'erro'>('idle');
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const [salvando, setSalvando] = useState(false);
@@ -141,10 +90,11 @@ function Mapeamento() {
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => { try { setUsuario(sessionStorage.getItem(USER_KEY) || ''); } catch { /* */ } }, []);
 
   const limparForm = () => {
     setEditId(null); setNome(''); setFoto(null); setLat(null); setLng(null);
-    setGpsStatus('idle'); setErro('');
+    setReferencia(''); setGpsStatus('idle'); setErro('');
     if (fileRef.current) fileRef.current.value = '';
   };
 
@@ -172,7 +122,7 @@ function Mapeamento() {
     if (!nome.trim()) { setErro('Escreva o nome da farmácia.'); return; }
     setSalvando(true);
     try {
-      const payload = { nome: nome.trim(), foto, lat, lng };
+      const payload = { nome: nome.trim(), foto, lat, lng, referencia: referencia.trim(), criado_por: usuario };
       const res = editId
         ? await fetch('/api/mapeamento', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editId, ...payload }) })
         : await fetch('/api/mapeamento', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -188,6 +138,7 @@ function Mapeamento() {
 
   const editar = (f: Farmacia) => {
     setEditId(f.id); setNome(f.nome); setFoto(f.foto); setLat(f.lat); setLng(f.lng);
+    setReferencia(f.referencia || '');
     setGpsStatus(f.lat != null && f.lng != null ? 'ok' : 'idle'); setErro('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     formRef.current?.focus?.();
@@ -206,7 +157,10 @@ function Mapeamento() {
   return (
     <div style={S.page}>
       <div style={S.header}>
-        <NuvitaLogo width={104} height={22} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <NuvitaLogo width={104} height={22} />
+          {usuario && <span style={S.usuarioBadge}>{usuario}</span>}
+        </div>
         <div style={S.headerTag}>Mapeamento de farmácias</div>
       </div>
 
@@ -247,6 +201,10 @@ function Mapeamento() {
             </div>
           )}
 
+          {/* Referência */}
+          <label style={S.label}>Ponto de referência</label>
+          <input className="inp" placeholder="Ex.: ao lado do mercado, esquina com a praça…" value={referencia} onChange={(e) => setReferencia(e.target.value)} style={S.inp} />
+
           {erro && <div style={S.erro}>{erro}</div>}
 
           <button onClick={salvar} disabled={!podeSalvar} style={{ ...S.salvarBtn, opacity: podeSalvar ? 1 : 0.5 }}>
@@ -254,6 +212,11 @@ function Mapeamento() {
           </button>
           {editId && <button onClick={limparForm} style={S.cancelar}>Cancelar edição</button>}
         </div>
+
+        {/* Atalho para mapa + relatório */}
+        <Link href="/mapeamento/mapa" style={S.mapaLink}>
+          <PinIcon /> Ver mapa e relatório
+        </Link>
 
         {/* Lista */}
         <div style={S.listaHead}>
@@ -274,6 +237,7 @@ function Mapeamento() {
                   : <div style={{ ...S.itemFoto, ...S.itemFotoVazia }}><CamIcon dim /></div>}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={S.itemNome}>{f.nome}</div>
+                  {f.referencia && <div style={S.itemRef}>{f.referencia}</div>}
                   {f.lat != null && f.lng != null ? (
                     <a href={`https://www.google.com/maps?q=${f.lat},${f.lng}`} target="_blank" rel="noopener noreferrer" style={S.itemLoc}><PinIcon small /> ver no mapa</a>
                   ) : (
@@ -313,20 +277,13 @@ const TrashIcon = () => (
 );
 
 const S: Record<string, React.CSSProperties> = {
-  // gate
-  gateWrap: { minHeight: '100vh', background: '#FBFBFA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  gateCard: { background: '#fff', border: '1px solid #ECEDEE', borderRadius: 28, padding: '36px 30px', width: '100%', maxWidth: 344, textAlign: 'center', boxShadow: '0 12px 40px rgba(16,24,40,.08)' },
-  tag: { fontSize: 11, color: '#98A2B3', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600, marginTop: 8 },
-  gateLead: { fontSize: 13.5, color: '#667085', marginTop: 12 },
-  gateErro: { fontSize: 13, color: '#B91C1C', background: '#FEF2F2', borderRadius: 10, padding: '9px 12px', marginBottom: 16 },
-  pad: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 6 },
-  key: { height: 64, borderRadius: 18, border: '1px solid #EDEDED', background: '#FBFBFA', fontFamily: 'inherit', fontSize: 24, fontWeight: 500, color: '#0E1113', cursor: 'pointer' },
-
   // página
   page: { minHeight: '100vh', background: '#FBFBFA', paddingBottom: 40 },
   header: { background: '#16A34A', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 4 },
   headerTag: { color: '#DCFCE7', fontSize: 13, fontWeight: 600 },
+  usuarioBadge: { background: 'rgba(255,255,255,.22)', color: '#fff', fontSize: 12.5, fontWeight: 600, borderRadius: 20, padding: '4px 12px' },
   container: { maxWidth: 560, margin: '0 auto', padding: '16px 14px 0' },
+  mapaLink: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 14, padding: '13px', borderRadius: 14, background: '#fff', border: '1px solid #ECECEC', color: '#16A34A', fontSize: 15, fontWeight: 700, textDecoration: 'none' },
 
   card: { background: '#fff', border: '1px solid #ECECEC', borderRadius: 18, padding: 18, outline: 'none' },
   cardTit: { fontWeight: 700, fontSize: 16, marginBottom: 14 },
@@ -356,6 +313,7 @@ const S: Record<string, React.CSSProperties> = {
   itemFoto: { width: 58, height: 58, borderRadius: 12, objectFit: 'cover', flexShrink: 0 },
   itemFotoVazia: { background: '#F4FBF7', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   itemNome: { fontWeight: 600, fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  itemRef: { fontSize: 12.5, color: '#667085', lineHeight: 1.35, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   itemLoc: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, color: '#16A34A', fontWeight: 600, textDecoration: 'none', marginTop: 3 },
 
   acaoBtn: { width: 40, height: 40, borderRadius: 11, border: '1px solid #EDEDED', background: '#FBFBFA', color: '#475467', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },

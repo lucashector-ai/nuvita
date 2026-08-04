@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     const admin = getSupabaseAdmin();
     const { data, error } = await admin
       .from(TABELA)
-      .select('id, nome, foto, lat, lng, criado_em')
+      .select('id, nome, foto, lat, lng, referencia, criado_por, criado_em')
       .order('criado_em', { ascending: false });
     if (error) throw error;
     return NextResponse.json({ ok: true, farmacias: data || [] });
@@ -58,13 +58,15 @@ export async function POST(req: NextRequest) {
     const foto = typeof body?.foto === 'string' && body.foto.startsWith('data:image') ? body.foto.slice(0, 3_500_000) : null;
     const lat = limparCoord(body?.lat);
     const lng = limparCoord(body?.lng);
+    const referencia = String(body?.referencia || '').trim().slice(0, 300) || null;
+    const criadoPor = String(body?.criado_por || '').trim().slice(0, 60) || null;
     if (!nome) return NextResponse.json({ ok: false, error: 'Informe o nome da farmácia.' }, { status: 400 });
 
     const admin = getSupabaseAdmin();
     const { data, error } = await admin
       .from(TABELA)
-      .insert({ nome, foto, lat, lng })
-      .select('id, nome, foto, lat, lng, criado_em')
+      .insert({ nome, foto, lat, lng, referencia, criado_por: criadoPor })
+      .select('id, nome, foto, lat, lng, referencia, criado_por, criado_em')
       .single();
     if (error) throw error;
     return NextResponse.json({ ok: true, farmacia: data });
@@ -93,6 +95,7 @@ export async function PATCH(req: NextRequest) {
     if (typeof body?.foto === 'string' && body.foto.startsWith('data:image')) patch.foto = body.foto.slice(0, 3_500_000);
     if (body?.lat !== undefined) patch.lat = limparCoord(body.lat);
     if (body?.lng !== undefined) patch.lng = limparCoord(body.lng);
+    if (body?.referencia !== undefined) patch.referencia = String(body.referencia || '').trim().slice(0, 300) || null;
     if (Object.keys(patch).length === 0) return NextResponse.json({ ok: false, error: 'Nada para atualizar.' }, { status: 400 });
 
     const admin = getSupabaseAdmin();
@@ -100,7 +103,7 @@ export async function PATCH(req: NextRequest) {
       .from(TABELA)
       .update(patch)
       .eq('id', id)
-      .select('id, nome, foto, lat, lng, criado_em')
+      .select('id, nome, foto, lat, lng, referencia, criado_por, criado_em')
       .single();
     if (error) throw error;
     return NextResponse.json({ ok: true, farmacia: data });

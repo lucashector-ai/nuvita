@@ -7,8 +7,14 @@ create table if not exists public.mapeamento_farmacias (
   foto text,                       -- foto comprimida (data URL base64)
   lat double precision,
   lng double precision,
+  referencia text,                 -- ponto de referência (ex.: "ao lado do mercado X")
+  criado_por text,                 -- qual acesso cadastrou
   criado_em timestamptz default now()
 );
+
+-- Se a tabela já existia, garanta as colunas novas:
+alter table public.mapeamento_farmacias add column if not exists referencia text;
+alter table public.mapeamento_farmacias add column if not exists criado_por text;
 
 -- Acesso é feito pelo servidor (service role), então o RLS pode ficar ligado
 -- sem policies públicas. Recarrega o cache do PostgREST:
