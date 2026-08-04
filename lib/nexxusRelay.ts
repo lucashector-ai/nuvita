@@ -17,6 +17,17 @@ export function relayConfigurado(): boolean {
   return Boolean(BASE && TOKEN);
 }
 
+// Manda o token em vários formatos comuns — assim funciona seja qual for o
+// esquema que o relay da Nexxus espera (Bearer, token cru, x-api-key, etc.).
+function authHeaders(): Record<string, string> {
+  return {
+    Authorization: `Bearer ${TOKEN}`,
+    'x-api-key': TOKEN,
+    'x-relay-token': TOKEN,
+    'x-auth-token': TOKEN,
+  };
+}
+
 export interface RelayResultado {
   ok: boolean;
   id?: string | null;
@@ -54,7 +65,7 @@ export async function enviarDocumentoViaNexxus(
   try {
     const res = await fetch(`${BASE}/api/whatsapp/send-document`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${TOKEN}` },
+      headers: authHeaders(),
       body: form,
     });
     const data = await res.json().catch(() => ({} as any));
@@ -76,7 +87,7 @@ export async function silenciarEmiliViaNexxus(telefone: string, minutes = 180): 
   try {
     const res = await fetch(`${BASE}/api/whatsapp/mute`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ to: telefone, minutes }),
     });
     const data = await res.json().catch(() => ({} as any));
