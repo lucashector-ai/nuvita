@@ -18,6 +18,11 @@ export function normalizarTelefone(tel: string): string {
   let d = (tel || '').replace(/\D/g, '');
   // Sem DDI reconhecido (55 Brasil / 595 Paraguai) e curto → assume Brasil.
   if (d.length <= 11 && !d.startsWith('55') && !d.startsWith('595')) d = '55' + d;
+  // Rede de segurança do 9 do celular no Brasil: 55 + DDD(2) + 8 dígitos = 12,
+  // ou seja, faltou o 9 inicial do celular. Como o WhatsApp é sempre celular,
+  // insere o 9 depois do DDD (ex.: 557599396576 → 5575999396576). Sem isso a
+  // mensagem vai pro número errado.
+  if (d.startsWith('55') && d.length === 12) d = d.slice(0, 4) + '9' + d.slice(4);
   return d;
 }
 
