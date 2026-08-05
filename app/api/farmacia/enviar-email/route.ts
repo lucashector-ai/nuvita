@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rateLimit';
 import { getSupabaseAdmin } from '@/lib/serverAuth';
-import { gerarPdfProtocolo } from '@/lib/gerarPdfProtocolo';
+import { gerarPdfProtocolo, gerarPdfProtocoloRich } from '@/lib/gerarPdfProtocolo';
 
 // ════════════════════════════════════════════════
 //  Balcão → E-mail (via Resend)
@@ -73,18 +73,19 @@ export async function POST(req: NextRequest) {
     const email = String(body?.email || '').trim().toLowerCase();
     const mensagem = String(body?.mensagem || '').slice(0, 6000);
     const nome = String(body?.nome || '').slice(0, 120).trim() || null;
+    const dados = body?.dados && Array.isArray(body.dados.itens) ? body.dados : null;
 
     if (!EMAIL_RE.test(email)) {
       return NextResponse.json({ ok: false, error: 'E-mail inválido.' }, { status: 400 });
     }
-    if (!mensagem) {
-      return NextResponse.json({ ok: false, error: 'Mensagem vazia.' }, { status: 400 });
+    if (!mensagem && !dados) {
+      return NextResponse.json({ ok: false, error: 'Protocolo vazio.' }, { status: 400 });
     }
 
-    // 1) Gera o PDF do protocolo.
+    // 1) Gera o PDF do protocolo (design rico se vierem os dados estruturados).
     let pdf: Uint8Array;
     try {
-      pdf = await gerarPdfProtocolo(mensagem, nome || undefined);
+      pdf = dados ? await gerarPdfProtocoloRich(dados) : await gerarPdfProtocolo(mensagem, nome || undefined);
     } catch (e: any) {
       console.error('gerarPdf erro:', e?.message);
       return NextResponse.json({ ok: false, error: 'Não foi possível gerar o PDF.' }, { status: 500 });

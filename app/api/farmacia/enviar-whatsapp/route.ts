@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rateLimit';
 import { getSupabaseAdmin } from '@/lib/serverAuth';
-import { gerarPdfProtocolo } from '@/lib/gerarPdfProtocolo';
+import { gerarPdfProtocolo, gerarPdfProtocoloRich } from '@/lib/gerarPdfProtocolo';
 import { normalizarTelefone } from '@/lib/whatsappMeta';
 import { relayConfigurado, enviarDocumentoViaNexxus } from '@/lib/nexxusRelay';
 
@@ -38,17 +38,18 @@ export async function POST(req: NextRequest) {
     const telefone = normalizarTelefone(String(body?.telefone || ''));
     const mensagem = String(body?.mensagem || '').slice(0, 6000);
     const nome = String(body?.nome || '').slice(0, 120).trim() || null;
+    const dados = body?.dados && Array.isArray(body.dados.itens) ? body.dados : null;
     if (telefone.length < 12) {
       return NextResponse.json({ ok: false, error: 'Telefone inválido.' }, { status: 400 });
     }
-    if (!mensagem) {
-      return NextResponse.json({ ok: false, error: 'Mensagem vazia.' }, { status: 400 });
+    if (!mensagem && !dados) {
+      return NextResponse.json({ ok: false, error: 'Protocolo vazio.' }, { status: 400 });
     }
 
-    // 1) Gera o PDF do protocolo.
+    // 1) Gera o PDF do protocolo (design rico se vierem os dados estruturados).
     let pdf: Uint8Array;
     try {
-      pdf = await gerarPdfProtocolo(mensagem, nome || undefined);
+      pdf = dados ? await gerarPdfProtocoloRich(dados) : await gerarPdfProtocolo(mensagem, nome || undefined);
     } catch (e: any) {
       console.error('gerarPdf erro:', e?.message);
       return NextResponse.json({ ok: false, error: 'Não foi possível gerar o PDF.' }, { status: 500 });

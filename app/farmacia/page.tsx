@@ -104,6 +104,46 @@ const PRIORIDADE_STYLE: Record<string, { bg: string; tx: string; label: string; 
 
 const PASSOS = 5;
 
+// Monta os dados estruturados do protocolo para o PDF "rico" (mesmo visual da tela).
+function montarDadosPdf(r: RespostasFarmacia, rec: Recomendacao, idioma: Lang) {
+  const es = idioma === 'es';
+  const tr = (pt: string, esp: string) => (es ? esp : pt);
+  const imc = calcularIMC(r.peso, r.altura);
+  const objLabels = r.objetivos.map((k) => { const o = OBJETIVOS.find((x) => x.key === k); return o ? (es ? o.le : o.label) : k; });
+  const ativ = ATIVIDADES.find((a) => a.key === r.atividade);
+  const perfil = [
+    r.idade ? `${r.idade} ${tr('anos', 'años')}` : '',
+    imc ? `IMC ${imc.valor} (${imc.classe})` : '',
+    ativ ? (es ? ativ.le : ativ.label) : '',
+    objLabels.length ? `${tr('Objetivo', 'Objetivo')}: ${objLabels.join(', ')}` : '',
+  ].filter(Boolean).join(' · ');
+  return {
+    nome: r.nome,
+    idioma,
+    perfil,
+    resumo: rec.resumo,
+    itens: rec.itens.map((it) => ({
+      nome: it.peptide.n,
+      mecanismo: it.peptide.m,
+      dose: it.dose,
+      prioridade: it.prioridade,
+      freq: it.peptide.freq,
+      timing: it.peptide.timing,
+      route: it.peptide.route,
+      cycle: it.peptide.cycle,
+      rest: it.peptide.rest,
+      motivo: it.motivo,
+      comoUsar: it.comoUsar,
+      alternativa: it.alternativa,
+    })),
+    orientacaoAlimentar: rec.orientacaoAlimentar,
+    orientacaoTreino: rec.orientacaoTreino,
+    observacoes: rec.observacoes,
+    avisoMedico: rec.avisoMedico,
+    avisos: rec.avisos,
+  };
+}
+
 export default function FarmaciaPage() {
   const [tela, setTela] = useState<Tela>('home');
   const [passo, setPasso] = useState(1);
@@ -287,7 +327,7 @@ export default function FarmaciaPage() {
     try {
       const res = await fetch('/api/farmacia/enviar-whatsapp', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telefone: rComContato.telefone, mensagem: msg, nome: rComContato.nome }),
+        body: JSON.stringify({ telefone: rComContato.telefone, mensagem: msg, nome: rComContato.nome, dados: montarDadosPdf(rComContato, rec, idioma) }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data?.ok) setEnviado(true);
@@ -312,7 +352,7 @@ export default function FarmaciaPage() {
     try {
       const res = await fetch('/api/farmacia/enviar-email', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: mail, mensagem: msg, nome: rComContato.nome }),
+        body: JSON.stringify({ email: mail, mensagem: msg, nome: rComContato.nome, dados: montarDadosPdf(rComContato, rec, idioma) }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data?.ok) setEmailEnviado(true);
@@ -369,12 +409,30 @@ export default function FarmaciaPage() {
   return (
     <PinGate>
       <div style={S.page}>
+        <style>{`
+          .fxHeader { position: -webkit-sticky; position: sticky; top: 0; }
+          @media (max-width: 900px) {
+            .fxHero { padding: 26px !important; gap: 22px !important; }
+            .fxHeroTitle { font-size: 32px !important; }
+            .fxHeroImg { max-width: 300px !important; }
+          }
+          @media (max-width: 640px) {
+            .fxHero { flex-direction: column !important; padding: 22px !important; align-items: flex-start !important; }
+            .fxHeroTxt { min-width: 0 !important; width: 100%; }
+            .fxHeroImgWrap { width: 100% !important; min-width: 0 !important; }
+            .fxHeroImg { max-width: 240px !important; }
+            .fxHeroTitle { font-size: 27px !important; line-height: 1.12 !important; }
+            .fxToolGrid { grid-template-columns: 1fr !important; }
+            .fxHeaderIn { padding-left: 16px !important; padding-right: 16px !important; }
+            .fxBrandTag { display: none !important; }
+          }
+        `}</style>
         {/* ─── Header ─── */}
-        <header style={S.header}>
-          <div style={S.headerIn}>
+        <header style={S.header} className="fxHeader">
+          <div style={S.headerIn} className="fxHeaderIn">
             <button onClick={irHome} style={S.brandBtn} aria-label="Início">
               <NuvitaLogo width={104} height={22} />
-              <span style={S.brandTag}>Balcão</span>
+              <span style={S.brandTag} className="fxBrandTag">Balcão</span>
             </button>
             <div style={S.headerRight}>
               <div style={S.langWrap} role="group" aria-label="Idioma">
@@ -592,21 +650,21 @@ function Home({ t, onStart }: { t: (p: string, e: string) => string; onStart: (t
   ];
   return (
     <div style={S.wrapWide}>
-      <div style={S.hero}>
-        <div style={{ flex: 1, minWidth: 280 }}>
+      <div style={S.hero} className="fxHero">
+        <div style={S.heroTxt} className="fxHeroTxt">
           <div style={S.heroPill}><span style={S.dot} /> {t('DIAGNÓSTICO NUVITA', 'DIAGNÓSTICO NUVITA')}</div>
-          <h1 style={S.heroTitle}>{t('Descubra o protocolo', 'Descubre el protocolo')} <span style={{ color: '#16A34A' }}>{t('ideal para você', 'ideal para ti')}</span></h1>
+          <h1 style={S.heroTitle} className="fxHeroTitle">{t('Descubra o protocolo', 'Descubre el protocolo')} <span style={{ color: '#16A34A' }}>{t('ideal para você', 'ideal para ti')}</span></h1>
           <p style={S.heroLead}>{t('Responda algumas perguntas com o atendente e receba uma recomendação de peptídeos feita para o seu objetivo e o seu perfil.', 'Responde algunas preguntas con el atendedor y recibe una recomendación de péptidos hecha para tu objetivo y tu perfil.')}</p>
           <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>
             {feats.map((f) => <div key={f} style={S.feat}><span style={S.featCheck}>✓</span>{f}</div>)}
           </div>
           <div style={S.tempo}><span style={S.tempoIcon}><Icon name="refresh" size={16} /></span><div><div style={{ fontSize: 12, color: '#667085' }}>{t('Tempo médio', 'Tiempo medio')}</div><div style={{ fontWeight: 700 }}>2 {t('minutos', 'minutos')}</div></div></div>
         </div>
-        <div style={S.heroImgWrap}><img src={HERO_IMG} alt="" style={S.heroImg} /></div>
+        <div style={S.heroImgWrap} className="fxHeroImgWrap"><img src={HERO_IMG} alt="" style={S.heroImg} className="fxHeroImg" /></div>
       </div>
 
       <div style={S.comoRow}><h2 style={S.h2}>{t('Como quer começar?', '¿Cómo quieres empezar?')}</h2><span style={{ fontSize: 13, color: '#98A2B3' }}>{t('4 ferramentas do balcão', '4 herramientas del mostrador')}</span></div>
-      <div style={S.toolGrid}>
+      <div style={S.toolGrid} className="fxToolGrid">
         {tools.map((tl) => {
           const cor = TOOL_COR[tl.tl] || '#16A34A';
           return (
@@ -920,6 +978,7 @@ const S: Record<string, React.CSSProperties> = {
 
   // Hero
   hero: { display: 'flex', gap: 30, alignItems: 'center', flexWrap: 'wrap', background: '#fff', border: '1px solid #ECECEC', borderRadius: 28, padding: 34 },
+  heroTxt: { flex: 1, minWidth: 280 },
   heroPill: { display: 'inline-flex', alignItems: 'center', gap: 7, background: '#F0FAF3', color: '#15803D', fontSize: 11.5, fontWeight: 700, letterSpacing: '.1em', padding: '7px 13px', borderRadius: 999 },
   dot: { width: 7, height: 7, borderRadius: '50%', background: '#16A34A', display: 'inline-block' },
   heroTitle: { fontSize: 40, fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.08, marginTop: 16 },
