@@ -16,6 +16,7 @@ import TabelaFarmacia from '@/components/farmacia/TabelaFarmacia';
 import CalculadoraPeptideo from '@/components/farmacia/CalculadoraPeptideo';
 import { tf, IDIOMA_KEY, type Lang } from '@/lib/farmaciaI18n';
 import { HERO_IMG, OBJ_IMG, pepImg } from '@/lib/farmaciaAssets';
+import { doseUISeringa } from '@/lib/quantidadeProtocolo';
 import {
   recomendarPeptideos,
   diagnosticarComIA,
@@ -122,20 +123,25 @@ function montarDadosPdf(r: RespostasFarmacia, rec: Recomendacao, idioma: Lang) {
     idioma,
     perfil,
     resumo: rec.resumo,
-    itens: rec.itens.map((it) => ({
-      nome: it.peptide.n,
-      mecanismo: it.peptide.m,
-      dose: it.dose,
-      prioridade: it.prioridade,
-      freq: it.peptide.freq,
-      timing: it.peptide.timing,
-      route: it.peptide.route,
-      cycle: it.peptide.cycle,
-      rest: it.peptide.rest,
-      motivo: it.motivo,
-      comoUsar: it.comoUsar,
-      alternativa: it.alternativa,
-    })),
+    itens: rec.itens.map((it) => {
+      const ui = doseUISeringa(it.peptide.n, it.dose, it.peptide.route);
+      return {
+        nome: it.peptide.n,
+        mecanismo: it.peptide.m,
+        dose: it.dose,
+        doseUI: ui ? ui.texto : undefined,
+        doseUIBase: ui ? ui.base : undefined,
+        prioridade: it.prioridade,
+        freq: it.peptide.freq,
+        timing: it.peptide.timing,
+        route: it.peptide.route,
+        cycle: it.peptide.cycle,
+        rest: it.peptide.rest,
+        motivo: it.motivo,
+        comoUsar: it.comoUsar,
+        alternativa: it.alternativa,
+      };
+    }),
     orientacaoAlimentar: rec.orientacaoAlimentar,
     orientacaoTreino: rec.orientacaoTreino,
     observacoes: rec.observacoes,
@@ -760,8 +766,15 @@ function Campo({ label, unidade, icon, cor, children }: { label: string; unidade
   );
 }
 
-function Spec({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
-  return <div style={{ ...S.spec, ...(destaque ? S.specOn : {}) }}><div style={S.specLabel}>{label}</div><div style={{ ...S.specValor, ...(destaque ? { color: '#0B7A3B' } : {}) }}>{valor}</div></div>;
+function Spec({ label, valor, destaque, sub, hint }: { label: string; valor: string; destaque?: boolean; sub?: string; hint?: string }) {
+  return (
+    <div style={{ ...S.spec, ...(destaque ? S.specOn : {}) }}>
+      <div style={S.specLabel}>{label}</div>
+      <div style={{ ...S.specValor, ...(destaque ? { color: '#0B7A3B' } : {}) }}>{valor}</div>
+      {sub && <div style={S.specUI}>{sub}</div>}
+      {hint && <div style={S.specHint}>{hint}</div>}
+    </div>
+  );
 }
 
 function Resultado(props: any) {
@@ -789,6 +802,7 @@ function Resultado(props: any) {
               const pr = PRIORIDADE_STYLE[it.prioridade];
               const ehIa = rec.fonte === 'ia';
               const img = pepImg(it.peptide.n);
+              const ui = doseUISeringa(it.peptide.n, it.dose, it.peptide.route);
               return (
                 <div key={it.peptide.n} style={S.card}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
@@ -803,7 +817,7 @@ function Resultado(props: any) {
                   {it.comoUsar && <div style={S.comoUsar}><span style={S.blocoTit}><Icon name="clipboard" size={13} />{t('Como usar', 'Cómo usar')}</span>{it.comoUsar}</div>}
                   {it.alternativa && <div style={S.altBox}><span style={S.blocoTit}><Icon name="refresh" size={13} />{t('Comparação / alternativa', 'Comparación / alternativa')}</span>{it.alternativa}</div>}
                   <div style={S.specGrid}>
-                    <Spec label={t('Dose', 'Dosis')} valor={it.dose} destaque />
+                    <Spec label={t('Dose', 'Dosis')} valor={it.dose} destaque sub={ui ? `≈ ${ui.texto} ${t('na seringa', 'en la jeringa')}` : undefined} hint={ui ? ui.base : undefined} />
                     <Spec label={t('Frequência', 'Frecuencia')} valor={it.peptide.freq} />
                     <Spec label={t('Quando', 'Cuándo')} valor={it.peptide.timing} />
                     <Spec label={t('Via', 'Vía')} valor={it.peptide.route} />
@@ -917,6 +931,7 @@ function Catalogo({ t, idioma, lista, busca, setBusca, onSel, onBack }: any) {
 
 function ModalCatalogo({ p, t, onClose }: { p: Peptide; t: (a: string, b: string) => string; onClose: () => void }) {
   const img = pepImg(p.n);
+  const ui = doseUISeringa(p.n, p.doseStr(75), p.route);
   return (
     <div style={S.overlay} onClick={onClose}>
       <div style={S.modalCard} onClick={(e) => e.stopPropagation()}>
@@ -928,7 +943,7 @@ function ModalCatalogo({ p, t, onClose }: { p: Peptide; t: (a: string, b: string
         {p.why && <div style={S.why}><span style={S.blocoTit}><Icon name="bulb" size={13} /> {t('O que faz', 'Qué hace')}</span>{p.why}</div>}
         <div style={S.comoUsar}><span style={S.blocoTit}><Icon name="clipboard" size={13} /> {t('Como usar', 'Cómo usar')}</span>{p.how}</div>
         <div style={S.specGrid}>
-          <Spec label={t('Dose (ref. 75kg)', 'Dosis (ref. 75kg)')} valor={p.doseStr(75)} destaque />
+          <Spec label={t('Dose (ref. 75kg)', 'Dosis (ref. 75kg)')} valor={p.doseStr(75)} destaque sub={ui ? `≈ ${ui.texto} ${t('na seringa', 'en la jeringa')}` : undefined} hint={ui ? ui.base : undefined} />
           <Spec label={t('Frequência', 'Frecuencia')} valor={p.freq} />
           <Spec label={t('Quando', 'Cuándo')} valor={p.timing} />
           <Spec label={t('Via', 'Vía')} valor={p.route} />
@@ -1088,6 +1103,8 @@ const S: Record<string, React.CSSProperties> = {
   specOn: { background: '#EAF7EE', border: '1px solid #CFE9D7' },
   specLabel: { fontSize: 10.5, color: '#98A2B3', fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase' },
   specValor: { fontSize: 15, fontWeight: 700, marginTop: 3 },
+  specUI: { fontSize: 13.5, fontWeight: 800, color: '#0B7A3B', marginTop: 3 },
+  specHint: { fontSize: 10, color: '#98A2B3', marginTop: 1 },
   orient: { background: '#fff', border: '1px solid #ECECEC', borderRadius: 14, padding: '14px 16px' },
   orientTit: { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 14 },
   disc: { fontSize: 12.5, color: '#98A2B3', lineHeight: 1.5, padding: '4px 2px' },

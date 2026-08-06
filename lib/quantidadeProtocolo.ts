@@ -149,3 +149,45 @@ export const FRASCO_MG: Record<string, number> = {
 export function frascoDoPeptideo(nome: string, dose: FaixaMg): number {
   return FRASCO_MG[nome] ?? frascoPadrao(dose);
 }
+
+// Água padrão (mL) para reconstituir o frasco, conforme o tamanho dele.
+// Concentração = frasco/água. Escolhida para a UI da dose ficar num número
+// legível na seringa U-100. É um PADRÃO — a farmácia pode diluir diferente
+// (aí é só conferir na Calculadora).
+export function aguaPadraoMl(frascoMg: number): number {
+  if (frascoMg <= 2) return 1;
+  if (frascoMg <= 15) return 2;
+  if (frascoMg <= 40) return 3;
+  if (frascoMg <= 120) return 4;
+  return Math.max(5, Math.round(frascoMg / 100));
+}
+
+function fmtUI(u: number): string {
+  const r = Math.round(u * 10) / 10;
+  return (Number.isInteger(r) ? String(r) : r.toFixed(1)).replace('.', ',');
+}
+
+export interface DoseUI {
+  texto: string;   // "25 UI" ou "12,5–75 UI"
+  base: string;    // "frasco 60 mg + 4 mL"
+  frascoMg: number;
+  aguaMl: number;
+}
+
+// Converte a dose do protocolo (mg/mcg) em UNIDADES na seringa U-100, usando a
+// diluição padrão do peptídeo. Retorna null quando não se aplica: dose já em UI
+// (ex.: HGH), via não-injetável (oral/nasal/tópica) ou dose sob demanda.
+export function doseUISeringa(nome: string, doseStr: string, route?: string): DoseUI | null {
+  if (!doseStr) return null;
+  if (/\bui\b|unidades?\s+internacionais/i.test(doseStr)) return null; // já vem em UI
+  if (route && /(oral|v\.?\s?o\.?|c[áa]psula|comprimido|sublingual|nasal|t[óo]pic|creme|gel|spray)/i.test(route)) return null;
+  const dose = parseDoseMg(doseStr);
+  if (!dose || dose.max <= 0) return null;
+  const frascoMg = frascoDoPeptideo(nome, dose);
+  const aguaMl = aguaPadraoMl(frascoMg);
+  const uiMin = doseEmUI(dose.min, frascoMg, aguaMl);
+  const uiMax = doseEmUI(dose.max, frascoMg, aguaMl);
+  if (!Number.isFinite(uiMax) || uiMax <= 0) return null;
+  const texto = Math.abs(uiMin - uiMax) < 0.05 ? `${fmtUI(uiMax)} UI` : `${fmtUI(uiMin)}–${fmtUI(uiMax)} UI`;
+  return { texto, base: `frasco ${frascoMg} mg + ${aguaMl} mL`, frascoMg, aguaMl };
+}

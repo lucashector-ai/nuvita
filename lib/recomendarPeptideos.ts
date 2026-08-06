@@ -11,6 +11,7 @@
 
 import type { ObjectiveKey, Peptide } from '@/types';
 import { PEPTIDES, ALL_PEPTIDES, findPeptide } from '@/lib/peptides';
+import { doseUISeringa } from '@/lib/quantidadeProtocolo';
 
 export { ALL_PEPTIDES, findPeptide } from '@/lib/peptides';
 
@@ -467,7 +468,8 @@ export function montarMensagemWhatsApp(r: RespostasFarmacia, rec: Recomendacao):
   rec.itens.forEach((it, i) => {
     const p = it.peptide;
     L.push(`${i + 1}. ${p.e} *${p.n}*`);
-    L.push(`   • Dose: ${it.dose}`);
+    const ui = doseUISeringa(p.n, it.dose, p.route);
+    L.push(`   • Dose: ${it.dose}${ui ? ` (≈ ${ui.texto} na seringa — ${ui.base})` : ''}`);
     L.push(`   • Frequência: ${p.freq}`);
     L.push(`   • Quando: ${p.timing}`);
     L.push(`   • Via: ${p.route}`);

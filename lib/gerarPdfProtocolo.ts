@@ -47,6 +47,10 @@ function limpar(s: string): string {
       /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}\u{24C2}\u{2139}]/gu,
       '',
     )
+    // Símbolos matemáticos comuns que a WinAnsi não codifica → equivalentes.
+    .replace(/≈/g, '~').replace(/≤/g, '<=').replace(/≥/g, '>=').replace(/[×✕✖]/g, 'x').replace(/÷/g, '/')
+    // Rede de segurança: qualquer outro símbolo matemático (U+2200–U+22FF) sai.
+    .replace(/[∀-⋿]/g, '')
     .replace(/[*_]/g, '')
     .replace(/\s+$/g, '')
     .replace(/^\s+/g, (m) => m); // preserva a indentação da esquerda
@@ -242,6 +246,8 @@ export interface PdfItemProtocolo {
   nome: string;
   mecanismo?: string;
   dose: string;
+  doseUI?: string;      // "25 UI" ou "12,5–75 UI" (na seringa)
+  doseUIBase?: string;  // "frasco 60 mg + 4 mL"
   prioridade: 'essencial' | 'recomendado' | 'opcional';
   freq?: string;
   timing?: string;
@@ -321,15 +327,18 @@ export async function gerarPdfProtocoloRich(dados: PdfProtocoloInput): Promise<U
   };
 
   // Grade de especificações (Dose, Frequência, …) num quadro claro.
-  const specGrid = (specs: { label: string; val: string; hi?: boolean }[]) => {
+  type Spec = { label: string; val: string; hi?: boolean; sub?: string; hint?: string };
+  const specGrid = (specs: Spec[]) => {
     const arr = specs.filter((s) => san(s.val));
     if (!arr.length) return;
     const cols = 3, padX = 14, padY = 12, colGap = 12, rowGap = 12;
     const cellW = (LARGURA_TXT - padX * 2 - colGap * (cols - 1)) / cols;
-    const labelSize = 7.5, valSize = 10.5, valLh = 1.15;
-    const rows: { label: string; val: string; hi?: boolean }[][] = [];
+    const labelSize = 7.5, valSize = 10.5, valLh = 1.15, subSize = 9, hintSize = 7;
+    const cellH = (c: Spec) => labelSize + 5 + quebrar(san(c.val), bold, valSize, cellW).length * valSize * valLh
+      + (c.sub ? subSize + 3 : 0) + (c.hint ? hintSize + 2 : 0);
+    const rows: Spec[][] = [];
     for (let i = 0; i < arr.length; i += cols) rows.push(arr.slice(i, i + cols));
-    const rowHs = rows.map((r) => Math.max(...r.map((c) => labelSize + 5 + quebrar(san(c.val), bold, valSize, cellW).length * valSize * valLh)));
+    const rowHs = rows.map((r) => Math.max(...r.map(cellH)));
     const boxH = padY + rowHs.reduce((a, b) => a + b, 0) + rowGap * (rows.length - 1) + padY;
     precisa(boxH + 8);
     page.drawRectangle({ x: MARGEM, y: y - boxH, width: LARGURA_TXT, height: boxH, color: hx('F7FAF8'), borderColor: hx('E3F0E8'), borderWidth: 1 });
@@ -344,6 +353,8 @@ export async function gerarPdfProtocoloRich(dados: PdfProtocoloInput): Promise<U
           page.drawText(vl, { x: cx, y: vy, size: valSize, font: bold, color: c.hi ? VERDE : PRETO });
           vy -= valSize * (valLh - 1);
         }
+        if (c.sub) { vy -= subSize + 3; page.drawText(san(c.sub), { x: cx, y: vy, size: subSize, font: bold, color: VERDE_ESC }); }
+        if (c.hint) { vy -= hintSize + 2; page.drawText(san(c.hint), { x: cx, y: vy, size: hintSize, font: reg, color: CINZA }); }
       });
       ry -= rowHs[ri] + rowGap;
     });
@@ -377,7 +388,7 @@ export async function gerarPdfProtocoloRich(dados: PdfProtocoloInput): Promise<U
     if (san(it.mecanismo)) paragrafo(san(it.mecanismo), reg, 10.5, CINZA, MARGEM, 1.35);
     y -= 8;
     specGrid([
-      { label: tr('Dose', 'Dosis'), val: it.dose, hi: true },
+      { label: tr('Dose', 'Dosis'), val: it.dose, hi: true, sub: it.doseUI ? `~ ${it.doseUI} ${tr('na seringa', 'en la jeringa')}` : undefined, hint: it.doseUIBase },
       { label: tr('Frequência', 'Frecuencia'), val: it.freq || '' },
       { label: tr('Quando', 'Cuándo'), val: it.timing || '' },
       { label: tr('Via', 'Vía'), val: it.route || '' },
