@@ -163,26 +163,35 @@ function Escolha({
   const ehPredef = opcoes.includes(valor);
   const [outro, setOutro] = useState(false);
   const mostrarOutro = outro || !ehPredef;
+  // Texto próprio do campo "Outro": string, para poder apagar tudo livremente
+  // (o cálculo só é atualizado quando o número é válido; apagar não força valor).
+  const [texto, setTexto] = useState(ehPredef ? '' : String(valor));
+
+  const escolherPill = (o: number) => { setOutro(false); setTexto(''); onPick(o); };
+  const abrirOutro = () => { setOutro(true); setTexto(ehPredef ? '' : String(valor)); };
+  const digitar = (v: string) => {
+    setTexto(v); // permite vazio ou parcial ("0,", "1.")
+    if (v.trim() === '') return;
+    const n = Number(v.replace(',', '.'));
+    if (Number.isFinite(n) && n >= min && n <= max) onPick(n);
+  };
 
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
       {opcoes.map((o) => (
-        <button key={o} onClick={() => { setOutro(false); onPick(o); }}
+        <button key={o} onClick={() => escolherPill(o)}
           style={{ ...S.pill, ...(valor === o && !outro ? S.pillAtiva : {}) }}>
           {o} {sufixo}
         </button>
       ))}
-      <button onClick={() => setOutro(true)} style={{ ...S.pill, ...(mostrarOutro && !ehPredef ? S.pillAtiva : {}) }}>
+      <button onClick={abrirOutro} style={{ ...S.pill, ...(mostrarOutro && !ehPredef ? S.pillAtiva : {}) }}>
         {labelOutro}
       </button>
       {mostrarOutro && (
         <input
-          type="number" min={min} max={max} step={step}
-          value={ehPredef && !outro ? '' : valor}
-          onChange={(e) => {
-            const n = Number(e.target.value);
-            if (Number.isFinite(n) && n >= min && n <= max) onPick(n);
-          }}
+          type="text" inputMode="decimal"
+          value={texto}
+          onChange={(e) => digitar(e.target.value)}
           placeholder={sufixo}
           style={S.inpOutro}
           autoFocus
@@ -205,10 +214,10 @@ const S: Record<string, React.CSSProperties> = {
   grid: { display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 24 },
   blocoTitulo: { fontWeight: 700, fontSize: 15, color: '#0E1113', marginBottom: 10 },
   opcao: { display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderRadius: 12, border: '1px solid #E7E7E7', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, color: '#0E1113', textAlign: 'left', width: '100%' },
-  opcaoAtiva: { borderColor: '#16A34A', boxShadow: '0 0 0 3px rgba(22,163,74,.12)' },
+  opcaoAtiva: { border: '1px solid #16A34A', boxShadow: '0 0 0 3px rgba(22,163,74,.12)' },
   opSub: { fontSize: 12.5, color: '#98A2B3', marginLeft: 'auto' },
   pill: { padding: '10px 16px', borderRadius: 10, border: '1px solid #E7E7E7', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: '#344054' },
-  pillAtiva: { borderColor: '#16A34A', color: '#0B7A3B', background: '#F0FAF3', boxShadow: '0 0 0 3px rgba(22,163,74,.12)' },
+  pillAtiva: { border: '1px solid #16A34A', color: '#0B7A3B', background: '#F0FAF3', boxShadow: '0 0 0 3px rgba(22,163,74,.12)' },
   inpOutro: { width: 90, padding: '9px 10px', borderRadius: 10, border: '1px solid #16A34A', fontFamily: 'inherit', fontSize: 14, color: '#0E1113' },
   resultado: { border: '1px solid #ECEDEE', borderRadius: 16, padding: '22px 24px', background: '#fff' },
   frase: { fontSize: 20, color: '#0E1113', lineHeight: 1.4 },
