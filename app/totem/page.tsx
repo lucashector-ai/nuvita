@@ -468,11 +468,28 @@ function Analisando({ t }: { t: (a: string, b: string) => string }) {
   );
 }
 
-// ─── Resultado: protocolo COMPLETO em rolagem vertical (simples e robusto) ───
+// ─── Resultado: carrossel horizontal (passa pro lado, um peptídeo por slide) ───
+//  Usa o scroll NATIVO do navegador com snap por slide (robusto, não trava).
 function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, montarMensagem, erro, setErro }: any) {
   const perfil = [respostas?.idade && `${respostas.idade} ${t('anos', 'años')}`, imc && `IMC ${imc.valor} (${imc.classe})`].filter(Boolean).join(' · ');
   const bloqueado = rec.bloqueado || rec.itens.length === 0;
   const temOrient = rec.orientacaoAlimentar || rec.orientacaoTreino || rec.observacoes;
+  const itens: any[] = bloqueado ? [] : rec.itens;
+  const totalSlides = bloqueado ? 1 : itens.length + 2 + (temOrient ? 1 : 0); // intro + peptídeos + [orientações] + receber
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [idx, setIdx] = useState(0);
+  // Botões: posiciona direto no slide (robusto). O swipe é o scroll nativo.
+  const irPara = (i: number) => {
+    const el = scrollRef.current; if (!el) return;
+    const alvo = Math.max(0, Math.min(totalSlides - 1, i));
+    el.scrollLeft = alvo * el.clientWidth;
+    setIdx(alvo);
+  };
+  const onScroll = () => {
+    const el = scrollRef.current; if (!el) return;
+    setIdx(Math.round(el.scrollLeft / el.clientWidth));
+  };
 
   return (
     <div style={S.tela}>
@@ -481,29 +498,41 @@ function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, m
           <NuvitaLogo width={92} height={20} />
           <button onClick={onReiniciar} style={S.voltarBtn}>✕ {t('Encerrar', 'Cerrar')}</button>
         </div>
+        {!bloqueado && (
+          <div style={S.dotsRow}>
+            {Array.from({ length: totalSlides }).map((_, i) => (
+              <span key={i} style={{ ...S.dot2, ...(i === idx ? S.dot2On : {}) }} />
+            ))}
+          </div>
+        )}
       </div>
 
-      <div style={S.resScroll} className="hidescroll">
-        <div style={S.resHead}>
-          <div style={S.resBadge}><span style={{ ...S.dot, background: '#7C3AED' }} /> {t('SEU PROTOCOLO', 'TU PROTOCOLO')}</div>
-          <h1 style={S.resTit}>{t('Seu protocolo está pronto', 'Tu protocolo está listo')}</h1>
-          {perfil && <p style={S.introPerfil}>{perfil}</p>}
-          {rec.resumo && <p style={S.introResumo}>{rec.resumo}</p>}
+      {bloqueado ? (
+        <div style={S.resScroll} className="hidescroll">
+          {rec.avisos?.map((a: string, i: number) => <div key={i} style={S.aviso}>{a}</div>)}
+          <div style={S.bloqueado}>
+            <Icon name="pulse" size={44} />
+            <p style={{ marginTop: 12, lineHeight: 1.5 }}>{t('Neste caso o ideal é procurar acompanhamento médico antes de qualquer uso.', 'En este caso lo ideal es buscar acompañamiento médico antes de cualquier uso.')}</p>
+          </div>
+          <button onClick={onReiniciar} style={S.novoBtn}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
         </div>
-
-        {rec.avisos?.map((a: string, i: number) => <div key={i} style={S.aviso}>{a}</div>)}
-
-        {bloqueado ? (
-          <>
-            <div style={S.bloqueado}>
-              <Icon name="pulse" size={44} />
-              <p style={{ marginTop: 12, lineHeight: 1.5 }}>{t('Neste caso o ideal é procurar acompanhamento médico antes de qualquer uso.', 'En este caso lo ideal es buscar acompañamiento médico antes de cualquier uso.')}</p>
+      ) : (
+        <>
+          <div ref={scrollRef} onScroll={onScroll} style={S.carrossel} className="hidescroll">
+            {/* Slide intro */}
+            <div style={S.slide}>
+              <div style={S.slideInner}>
+                <div style={S.resBadge}><span style={{ ...S.dot, background: '#7C3AED' }} /> {t('SEU PROTOCOLO', 'TU PROTOCOLO')}</div>
+                <h1 style={S.introTit}>{t('Está pronto!', '¡Está listo!')}</h1>
+                {perfil && <p style={S.introPerfil}>{perfil}</p>}
+                {rec.resumo && <p style={S.introResumo}>{rec.resumo}</p>}
+                <div style={S.introCount}>{itens.length} {itens.length === 1 ? t('peptídeo recomendado', 'péptido recomendado') : t('peptídeos recomendados', 'péptidos recomendados')}</div>
+                <div style={S.swipeHint}><Icon name="refresh" size={16} /> {t('Deslize para o lado para ver cada um', 'Desliza al lado para ver cada uno')} ›</div>
+              </div>
             </div>
-            <button onClick={onReiniciar} style={S.novoBtn}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
-          </>
-        ) : (
-          <>
-            {rec.itens.map((it: any, i: number) => {
+
+            {/* Um slide por peptídeo (conteúdo completo) */}
+            {itens.map((it: any, i: number) => {
               const img = pepImg(it.peptide.n);
               const ui = doseUISeringa(it.peptide.n, it.dose, it.peptide.route);
               const pr = PRIO[it.prioridade as keyof typeof PRIO] || PRIO.opcional;
@@ -514,53 +543,75 @@ function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, m
                 [t('Descanso', 'Descanso'), it.peptide.rest],
               ].filter(([, v]) => v);
               return (
-                <div key={it.peptide.n} style={S.pepCardV}>
-                  <div style={S.pepTopoV}>
-                    <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={30} />}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={S.pepNomeV}>{i + 1}. {it.peptide.n}</div>
-                      <div style={S.pepMecV}>{it.peptide.m}</div>
+                <div key={it.peptide.n} style={S.slide}>
+                  <div style={S.slideScroll} className="hidescroll">
+                    <div style={S.pepNumero}>{i + 1} / {itens.length}</div>
+                    <div style={S.pepTopoV}>
+                      <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={30} />}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={S.pepNomeV}>{it.peptide.n}</div>
+                        <div style={S.pepMecV}>{it.peptide.m}</div>
+                      </div>
+                      <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
                     </div>
-                    <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
-                  </div>
 
-                  <div style={S.doseGrande}>
-                    <div style={S.doseLbl}>{t('Dose', 'Dosis')}</div>
-                    <div style={S.doseVal}>{it.dose}</div>
-                    {ui && <div style={S.doseUI}>≈ {ui.texto} {t('na seringa', 'en la jeringa')}</div>}
-                    <div style={S.doseInfo}>{it.peptide.freq} · {it.peptide.route}</div>
-                  </div>
-
-                  {specs.length > 0 && (
-                    <div style={S.specsGrid}>
-                      {specs.map(([l, v]) => (
-                        <div key={l} style={S.specCell}><div style={S.specL}>{l}</div><div style={S.specV}>{v}</div></div>
-                      ))}
+                    <div style={S.doseGrande}>
+                      <div style={S.doseLbl}>{t('Dose', 'Dosis')}</div>
+                      <div style={S.doseVal}>{it.dose}</div>
+                      {ui && <div style={S.doseUI}>≈ {ui.texto} {t('na seringa', 'en la jeringa')}</div>}
+                      <div style={S.doseInfo}>{it.peptide.freq} · {it.peptide.route}</div>
                     </div>
-                  )}
 
-                  {it.motivo && <div style={S.pepBloco}><span style={S.pepBlocoTit}><Icon name="bulb" size={13} /> {t('Por que para você', 'Por qué para ti')}</span>{it.motivo}</div>}
-                  {it.comoUsar && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="clipboard" size={13} /> {t('Como usar', 'Cómo usar')}</span>{it.comoUsar}</div>}
-                  {it.alternativa && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="refresh" size={13} /> {t('Comparação', 'Comparación')}</span>{it.alternativa}</div>}
+                    {specs.length > 0 && (
+                      <div style={S.specsGrid}>
+                        {specs.map(([l, v]) => (
+                          <div key={l} style={S.specCell}><div style={S.specL}>{l}</div><div style={S.specV}>{v}</div></div>
+                        ))}
+                      </div>
+                    )}
+
+                    {it.motivo && <div style={S.pepBloco}><span style={S.pepBlocoTit}><Icon name="bulb" size={13} /> {t('Por que para você', 'Por qué para ti')}</span>{it.motivo}</div>}
+                    {it.comoUsar && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="clipboard" size={13} /> {t('Como usar', 'Cómo usar')}</span>{it.comoUsar}</div>}
+                    {it.alternativa && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="refresh" size={13} /> {t('Comparação', 'Comparación')}</span>{it.alternativa}</div>}
+                  </div>
                 </div>
               );
             })}
 
+            {/* Slide de orientações */}
             {temOrient && (
-              <div style={S.pepCardV}>
-                <div style={S.orientTit}>{t('Orientações', 'Orientaciones')}</div>
-                {rec.orientacaoAlimentar && <div style={S.pepBloco}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="fork" size={13} /> {t('Alimentação', 'Alimentación')}</span>{rec.orientacaoAlimentar}</div>}
-                {rec.orientacaoTreino && <div style={S.pepBloco}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="dumbbell" size={13} /> {t('Treino', 'Entrenamiento')}</span>{rec.orientacaoTreino}</div>}
-                {rec.observacoes && <div style={S.pepBloco}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="eye" size={13} /> {t('O que observar', 'Qué observar')}</span>{rec.observacoes}</div>}
+              <div style={S.slide}>
+                <div style={S.slideScroll} className="hidescroll">
+                  <div style={S.orientTit}>{t('Orientações', 'Orientaciones')}</div>
+                  {rec.orientacaoAlimentar && <div style={S.pepBloco}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="fork" size={13} /> {t('Alimentação', 'Alimentación')}</span>{rec.orientacaoAlimentar}</div>}
+                  {rec.orientacaoTreino && <div style={S.pepBloco}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="dumbbell" size={13} /> {t('Treino', 'Entrenamiento')}</span>{rec.orientacaoTreino}</div>}
+                  {rec.observacoes && <div style={S.pepBloco}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="eye" size={13} /> {t('O que observar', 'Qué observar')}</span>{rec.observacoes}</div>}
+                </div>
               </div>
             )}
 
-            <Receber t={t} idioma={idioma} respostas={respostas} montarDados={montarDados} montarMensagem={montarMensagem} erro={erro} setErro={setErro} />
+            {/* Slide final: receber */}
+            <div style={S.slide}>
+              <div style={S.slideScroll} className="hidescroll">
+                <Receber t={t} idioma={idioma} respostas={respostas} montarDados={montarDados} montarMensagem={montarMensagem} erro={erro} setErro={setErro} />
+              </div>
+            </div>
+          </div>
 
-            <button onClick={onReiniciar} style={S.novoBtn}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
-          </>
-        )}
-      </div>
+          {/* Navegação */}
+          <div style={S.navRow}>
+            <button onClick={() => irPara(idx - 1)} disabled={idx === 0} style={{ ...S.navBtn, opacity: idx === 0 ? 0.35 : 1 }}>‹</button>
+            {idx < totalSlides - 1 ? (
+              <button onClick={() => irPara(idx + 1)} style={S.navProximo}>
+                {idx === 0 ? t('Ver os peptídeos', 'Ver los péptidos') : idx === totalSlides - 2 ? t('Enviar meu protocolo', 'Enviar mi protocolo') : t('Próximo', 'Siguiente')} ›
+              </button>
+            ) : (
+              <button onClick={onReiniciar} style={S.navProximo}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
+            )}
+            <button onClick={() => irPara(idx + 1)} disabled={idx >= totalSlides - 1} style={{ ...S.navBtn, opacity: idx >= totalSlides - 1 ? 0.35 : 1 }}>›</button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -755,9 +806,8 @@ const S: Record<string, React.CSSProperties> = {
   dotsRow: { display: 'flex', gap: 6, justifyContent: 'center', marginTop: 12 },
   dot2: { width: 8, height: 8, borderRadius: '50%', background: '#D9DCE1', transition: 'all .2s' },
   dot2On: { background: VERDE, width: 22, borderRadius: 999 },
-  viewport: { flex: 1, minHeight: 0, overflow: 'hidden', touchAction: 'pan-y', cursor: 'grab' },
-  track: { display: 'flex', height: '100%', willChange: 'transform' },
-  slide: { flex: '0 0 100%', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '10px 22px' },
+  carrossel: { flex: 1, minHeight: 0, display: 'flex', overflowX: 'auto', overflowY: 'hidden', scrollSnapType: 'x proximity', WebkitOverflowScrolling: 'touch' },
+  slide: { flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'start', display: 'flex', flexDirection: 'column', padding: '12px 22px' },
   slideInner: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 10 },
   slideScroll: { flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: 10 },
 
