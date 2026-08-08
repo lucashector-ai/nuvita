@@ -95,14 +95,6 @@ function alpha(hex: string, a: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
-// Resume um texto para caber no totem (versão completa vai no PDF).
-function resumir(s?: string, max = 120): string {
-  const t = (s || '').trim();
-  if (t.length <= max) return t;
-  const corte = t.slice(0, max);
-  const fim = corte.lastIndexOf(' ');
-  return (fim > 50 ? corte.slice(0, fim) : corte).trim() + '…';
-}
 
 function montarDadosPdf(r: RespostasFarmacia, rec: Recomendacao, idioma: Lang) {
   const es = idioma === 'es';
@@ -186,9 +178,8 @@ export default function TotemPage() {
 
   const comecar = () => { reiniciar(); setTela('wizard'); setPasso(1); };
 
-  const gerar = async () => {
-    if (!respostas) return;
-    setErro(''); setTela('analisando');
+  // Gera a recomendação (busca estoque fresco + IA com fallback). Não mexe na UI.
+  const gerarInterno = async (r: RespostasFarmacia): Promise<Recomendacao | null> => {
     let estoqueAtual = estoque;
     try {
       const codigo = sessionStorage.getItem(CODE_KEY);
@@ -198,11 +189,33 @@ export default function TotemPage() {
         if (data?.found && Array.isArray(data.peptideos)) { estoqueAtual = data.peptideos; setEstoque(data.peptideos); }
       }
     } catch { /* cache */ }
-    let resultado: Recomendacao | null = null;
     try {
-      resultado = await diagnosticarComIA(respostas, estoqueAtual, idioma);
-      if (!resultado || (resultado.itens.length === 0 && !resultado.bloqueado)) resultado = recomendarPeptideos(respostas, estoqueAtual);
-    } catch { resultado = recomendarPeptideos(respostas, estoqueAtual); }
+      let res = await diagnosticarComIA(r, estoqueAtual, idioma);
+      if (!res || (res.itens.length === 0 && !res.bloqueado)) res = recomendarPeptideos(r, estoqueAtual);
+      return res;
+    } catch { return recomendarPeptideos(r, estoqueAtual); }
+  };
+
+  // Prefetch: começa a gerar já na última etapa, enquanto a pessoa escolhe a
+  // condição de saúde. Ao clicar, o resultado já costuma estar pronto.
+  const chaveAtual = () => JSON.stringify({ objetivos, nivel, sexo, idade, peso, altura, atividade, sono, condicoes, idioma });
+  const prefetch = useRef<{ chave: string; p: Promise<Recomendacao | null> } | null>(null);
+  useEffect(() => {
+    if (passo === PASSOS && respostas) {
+      const chave = chaveAtual();
+      if (prefetch.current?.chave !== chave) prefetch.current = { chave, p: gerarInterno(respostas).catch(() => null) };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passo, condicoes]);
+
+  const gerar = async () => {
+    if (!respostas) return;
+    setErro(''); setTela('analisando');
+    const chave = chaveAtual();
+    const p = prefetch.current?.chave === chave ? prefetch.current.p : gerarInterno(respostas).catch(() => null);
+    let resultado = await p;
+    if (!resultado) resultado = await gerarInterno(respostas);
+    prefetch.current = null;
     setRec(resultado);
     setTela('resultado');
     window.scrollTo({ top: 0 });
@@ -455,46 +468,11 @@ function Analisando({ t }: { t: (a: string, b: string) => string }) {
   );
 }
 
-// ─── Resultado: carrossel gamificado (passa pro lado) ───
+// ─── Resultado: protocolo COMPLETO em rolagem vertical (simples e robusto) ───
 function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, montarMensagem, erro, setErro }: any) {
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [idx, setIdx] = useState(0);
-  const [drag, setDrag] = useState(0);      // deslocamento visual do arrasto, em px
-  const [arrastando, setArrastando] = useState(false);
-  const inicioX = useRef<number | null>(null);
-  const deltaRef = useRef(0);               // deslocamento atual (fonte da verdade no soltar)
-  const perfil = [respostas?.idade && `${respostas.idade} ${t('anos', 'años')}`, imc && `IMC ${imc.valor}`].filter(Boolean).join(' · ');
-
+  const perfil = [respostas?.idade && `${respostas.idade} ${t('anos', 'años')}`, imc && `IMC ${imc.valor} (${imc.classe})`].filter(Boolean).join(' · ');
   const bloqueado = rec.bloqueado || rec.itens.length === 0;
-  const itens: any[] = bloqueado ? [] : rec.itens;
-  const totalSlides = bloqueado ? 1 : itens.length + 2; // intro + peptídeos + receber
-
-  // Navegação anda SEMPRE no máximo 1 slide por vez.
-  const irPara = (i: number) => setIdx((cur) => {
-    const alvo = i > cur ? cur + 1 : i < cur ? cur - 1 : cur;
-    return Math.max(0, Math.min(totalSlides - 1, alvo));
-  });
-
-  const largura = () => wrapRef.current?.clientWidth || 1;
-  const onDown = (e: React.PointerEvent) => { inicioX.current = e.clientX; deltaRef.current = 0; setArrastando(true); };
-  const onMove = (e: React.PointerEvent) => {
-    if (inicioX.current == null) return;
-    let d = e.clientX - inicioX.current;
-    const w = largura();
-    // resistência nas pontas e trava em no máximo uma tela de arrasto
-    if ((idx === 0 && d > 0) || (idx === totalSlides - 1 && d < 0)) d *= 0.3;
-    d = Math.max(-w, Math.min(w, d));
-    deltaRef.current = d;
-    setDrag(d);
-  };
-  const onUp = () => {
-    if (inicioX.current == null) return;
-    const d = deltaRef.current; // ref: não depende do re-render (arrasto rápido também conta)
-    const limite = Math.min(80, largura() * 0.16);
-    if (d <= -limite) irPara(idx + 1);      // arrastou para a esquerda → próximo
-    else if (d >= limite) irPara(idx - 1);  // arrastou para a direita → anterior
-    deltaRef.current = 0; setDrag(0); setArrastando(false); inicioX.current = null;
-  };
+  const temOrient = rec.orientacaoAlimentar || rec.orientacaoTreino || rec.observacoes;
 
   return (
     <div style={S.tela}>
@@ -503,94 +481,86 @@ function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, m
           <NuvitaLogo width={92} height={20} />
           <button onClick={onReiniciar} style={S.voltarBtn}>✕ {t('Encerrar', 'Cerrar')}</button>
         </div>
-        {!bloqueado && (
-          <div style={S.dotsRow}>
-            {Array.from({ length: totalSlides }).map((_, i) => (
-              <span key={i} style={{ ...S.dot2, ...(i === idx ? S.dot2On : {}) }} />
-            ))}
-          </div>
-        )}
       </div>
 
-      {bloqueado ? (
-        <div style={S.conteudo}>
-          {rec.avisos?.map((a: string, i: number) => <div key={i} style={S.aviso}>{a}</div>)}
-          <div style={S.bloqueado}>
-            <Icon name="pulse" size={44} />
-            <p style={{ marginTop: 12, lineHeight: 1.5 }}>{t('Neste caso o ideal é procurar acompanhamento médico antes de qualquer uso.', 'En este caso lo ideal es buscar acompañamiento médico antes de cualquier uso.')}</p>
-          </div>
-          <button onClick={onReiniciar} style={S.novoBtn}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
+      <div style={S.resScroll} className="hidescroll">
+        <div style={S.resHead}>
+          <div style={S.resBadge}><span style={{ ...S.dot, background: '#7C3AED' }} /> {t('SEU PROTOCOLO', 'TU PROTOCOLO')}</div>
+          <h1 style={S.resTit}>{t('Seu protocolo está pronto', 'Tu protocolo está listo')}</h1>
+          {perfil && <p style={S.introPerfil}>{perfil}</p>}
+          {rec.resumo && <p style={S.introResumo}>{rec.resumo}</p>}
         </div>
-      ) : (
-        <>
-          <div ref={wrapRef} style={S.viewport} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
-            <div style={{ ...S.track, transform: `translateX(calc(${-idx * 100}% + ${drag}px))`, transition: arrastando ? 'none' : 'transform .34s cubic-bezier(.4,0,.2,1)' }}>
-              {/* Slide intro */}
-              <div style={S.slide}>
-                <div style={S.slideInner}>
-                  <div style={S.resBadge}><span style={{ ...S.dot, background: '#7C3AED' }} /> {t('SEU PROTOCOLO', 'TU PROTOCOLO')}</div>
-                  <h1 style={S.introTit}>{t('Está pronto!', '¡Está listo!')}</h1>
-                  {perfil && <p style={S.introPerfil}>{perfil}</p>}
-                  {rec.resumo && <p style={S.introResumo}>{rec.resumo}</p>}
-                  <div style={S.introCount}>{itens.length} {itens.length === 1 ? t('peptídeo recomendado', 'péptido recomendado') : t('peptídeos recomendados', 'péptidos recomendados')}</div>
-                  <div style={S.swipeHint}><Icon name="refresh" size={16} /> {t('Deslize para o lado para ver cada um', 'Desliza al lado para ver cada uno')} ›</div>
-                </div>
-              </div>
 
-              {/* Um slide por peptídeo — resumo (versão completa no PDF) */}
-              {itens.map((it: any, i: number) => {
-                const img = pepImg(it.peptide.n);
-                const ui = doseUISeringa(it.peptide.n, it.dose, it.peptide.route);
-                const pr = PRIO[it.prioridade as keyof typeof PRIO] || PRIO.opcional;
-                return (
-                  <div key={it.peptide.n} style={S.slide}>
-                    <div style={S.slideScroll} className="hidescroll">
-                      <div style={S.pepNumero}>{i + 1} / {itens.length}</div>
-                      <div style={S.pepTopo}>
-                        <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={34} />}</span>
-                        <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
-                      </div>
-                      <h2 style={S.pepNome}>{it.peptide.n}</h2>
-                      <p style={S.pepMec}>{it.peptide.m}</p>
+        {rec.avisos?.map((a: string, i: number) => <div key={i} style={S.aviso}>{a}</div>)}
 
-                      <div style={S.doseGrande}>
-                        <div style={S.doseLbl}>{t('Dose', 'Dosis')}</div>
-                        <div style={S.doseVal}>{it.dose}</div>
-                        {ui && <div style={S.doseUI}>≈ {ui.texto} {t('na seringa', 'en la jeringa')}</div>}
-                        <div style={S.doseInfo}>{it.peptide.freq} · {it.peptide.route}</div>
-                      </div>
-
-                      {it.motivo && <div style={S.pepBloco}><span style={S.pepBlocoTit}><Icon name="bulb" size={13} /> {t('Por que para você', 'Por qué para ti')}</span>{resumir(it.motivo)}</div>}
-                      {it.comoUsar && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="clipboard" size={13} /> {t('Como usar', 'Cómo usar')}</span>{resumir(it.comoUsar)}</div>}
-                      <div style={S.pdfHint}><Icon name="clipboard" size={14} /> {t('Passo a passo completo no seu PDF', 'Paso a paso completo en tu PDF')}</div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Slide final: receber */}
-              <div style={S.slide}>
-                <div style={S.slideScroll} className="hidescroll">
-                  <Receber t={t} idioma={idioma} respostas={respostas} montarDados={montarDados} montarMensagem={montarMensagem} erro={erro} setErro={setErro} onReiniciar={onReiniciar} />
-                </div>
-              </div>
+        {bloqueado ? (
+          <>
+            <div style={S.bloqueado}>
+              <Icon name="pulse" size={44} />
+              <p style={{ marginTop: 12, lineHeight: 1.5 }}>{t('Neste caso o ideal é procurar acompanhamento médico antes de qualquer uso.', 'En este caso lo ideal es buscar acompañamiento médico antes de cualquier uso.')}</p>
             </div>
-          </div>
+            <button onClick={onReiniciar} style={S.novoBtn}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
+          </>
+        ) : (
+          <>
+            {rec.itens.map((it: any, i: number) => {
+              const img = pepImg(it.peptide.n);
+              const ui = doseUISeringa(it.peptide.n, it.dose, it.peptide.route);
+              const pr = PRIO[it.prioridade as keyof typeof PRIO] || PRIO.opcional;
+              const specs = [
+                [t('Quando', 'Cuándo'), it.peptide.timing],
+                [t('Via', 'Vía'), it.peptide.route],
+                [t('Ciclo', 'Ciclo'), it.peptide.cycle],
+                [t('Descanso', 'Descanso'), it.peptide.rest],
+              ].filter(([, v]) => v);
+              return (
+                <div key={it.peptide.n} style={S.pepCardV}>
+                  <div style={S.pepTopoV}>
+                    <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={30} />}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={S.pepNomeV}>{i + 1}. {it.peptide.n}</div>
+                      <div style={S.pepMecV}>{it.peptide.m}</div>
+                    </div>
+                    <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
+                  </div>
 
-          {/* Navegação */}
-          <div style={S.navRow}>
-            <button onClick={() => irPara(idx - 1)} disabled={idx === 0} style={{ ...S.navBtn, opacity: idx === 0 ? 0.35 : 1 }}>‹</button>
-            {idx < totalSlides - 1 ? (
-              <button onClick={() => irPara(idx + 1)} style={S.navProximo}>
-                {idx === 0 ? t('Ver os peptídeos', 'Ver los péptidos') : idx === totalSlides - 2 ? t('Receber protocolo', 'Recibir protocolo') : t('Próximo', 'Siguiente')} ›
-              </button>
-            ) : (
-              <button onClick={onReiniciar} style={S.navProximo}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
+                  <div style={S.doseGrande}>
+                    <div style={S.doseLbl}>{t('Dose', 'Dosis')}</div>
+                    <div style={S.doseVal}>{it.dose}</div>
+                    {ui && <div style={S.doseUI}>≈ {ui.texto} {t('na seringa', 'en la jeringa')}</div>}
+                    <div style={S.doseInfo}>{it.peptide.freq} · {it.peptide.route}</div>
+                  </div>
+
+                  {specs.length > 0 && (
+                    <div style={S.specsGrid}>
+                      {specs.map(([l, v]) => (
+                        <div key={l} style={S.specCell}><div style={S.specL}>{l}</div><div style={S.specV}>{v}</div></div>
+                      ))}
+                    </div>
+                  )}
+
+                  {it.motivo && <div style={S.pepBloco}><span style={S.pepBlocoTit}><Icon name="bulb" size={13} /> {t('Por que para você', 'Por qué para ti')}</span>{it.motivo}</div>}
+                  {it.comoUsar && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="clipboard" size={13} /> {t('Como usar', 'Cómo usar')}</span>{it.comoUsar}</div>}
+                  {it.alternativa && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="refresh" size={13} /> {t('Comparação', 'Comparación')}</span>{it.alternativa}</div>}
+                </div>
+              );
+            })}
+
+            {temOrient && (
+              <div style={S.pepCardV}>
+                <div style={S.orientTit}>{t('Orientações', 'Orientaciones')}</div>
+                {rec.orientacaoAlimentar && <div style={S.pepBloco}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="fork" size={13} /> {t('Alimentação', 'Alimentación')}</span>{rec.orientacaoAlimentar}</div>}
+                {rec.orientacaoTreino && <div style={S.pepBloco}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="dumbbell" size={13} /> {t('Treino', 'Entrenamiento')}</span>{rec.orientacaoTreino}</div>}
+                {rec.observacoes && <div style={S.pepBloco}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="eye" size={13} /> {t('O que observar', 'Qué observar')}</span>{rec.observacoes}</div>}
+              </div>
             )}
-            <button onClick={() => irPara(idx + 1)} disabled={idx >= totalSlides - 1} style={{ ...S.navBtn, opacity: idx >= totalSlides - 1 ? 0.35 : 1 }}>›</button>
-          </div>
-        </>
-      )}
+
+            <Receber t={t} idioma={idioma} respostas={respostas} montarDados={montarDados} montarMensagem={montarMensagem} erro={erro} setErro={setErro} />
+
+            <button onClick={onReiniciar} style={S.novoBtn}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -812,6 +782,20 @@ const S: Record<string, React.CSSProperties> = {
   doseVal: { fontSize: 34, fontWeight: 800, marginTop: 4, color: '#0B7A3B' },
   doseUI: { fontSize: 19, fontWeight: 800, color: '#15803D', marginTop: 4 },
   doseInfo: { fontSize: 15, color: '#667085', marginTop: 6 },
+
+  // Resultado vertical (protocolo completo)
+  resScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '18px 22px 40px' },
+  resHead: { marginBottom: 16 },
+  resTit: { fontSize: 30, fontWeight: 800, letterSpacing: '-.02em', margin: '10px 0 0', lineHeight: 1.12 },
+  pepCardV: { background: '#fff', border: '1px solid #ECECEC', borderRadius: 20, padding: 18, marginBottom: 14 },
+  pepTopoV: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 4 },
+  pepNomeV: { fontWeight: 800, fontSize: 21, letterSpacing: '-.02em', lineHeight: 1.15 },
+  pepMecV: { fontSize: 14.5, color: '#667085', lineHeight: 1.4, marginTop: 3 },
+  specsGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 },
+  specCell: { background: '#F7F9F8', border: '1px solid #EEF0EF', borderRadius: 12, padding: '10px 14px' },
+  specL: { fontSize: 11.5, fontWeight: 700, color: '#98A2B3', textTransform: 'uppercase', letterSpacing: '.04em' },
+  specV: { fontSize: 15.5, fontWeight: 700, marginTop: 3, color: '#0E1113' },
+  orientTit: { fontWeight: 800, fontSize: 18, letterSpacing: '-.01em', marginBottom: 4 },
   pdfHint: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 14.5, color: '#98A2B3', fontWeight: 600, marginTop: 6, maxWidth: 420, lineHeight: 1.4, justifyContent: 'center' },
   pepBloco: { background: '#F0FAF3', borderRadius: 16, padding: '14px 16px', fontSize: 16, color: '#344054', lineHeight: 1.5, marginTop: 12 },
   pepBlocoTit: { display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.04em', color: '#15803D', marginBottom: 6 },
