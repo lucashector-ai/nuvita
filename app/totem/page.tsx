@@ -95,6 +95,15 @@ function alpha(hex: string, a: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
+// Resume um texto para caber no totem (versão completa vai no PDF).
+function resumir(s?: string, max = 120): string {
+  const t = (s || '').trim();
+  if (t.length <= max) return t;
+  const corte = t.slice(0, max);
+  const fim = corte.lastIndexOf(' ');
+  return (fim > 50 ? corte.slice(0, fim) : corte).trim() + '…';
+}
+
 function montarDadosPdf(r: RespostasFarmacia, rec: Recomendacao, idioma: Lang) {
   const es = idioma === 'es';
   const tr = (pt: string, esp: string) => (es ? esp : pt);
@@ -448,22 +457,43 @@ function Analisando({ t }: { t: (a: string, b: string) => string }) {
 
 // ─── Resultado: carrossel gamificado (passa pro lado) ───
 function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, montarMensagem, erro, setErro }: any) {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const [idx, setIdx] = useState(0);
+  const [drag, setDrag] = useState(0);      // deslocamento visual do arrasto, em px
+  const [arrastando, setArrastando] = useState(false);
+  const inicioX = useRef<number | null>(null);
+  const deltaRef = useRef(0);               // deslocamento atual (fonte da verdade no soltar)
   const perfil = [respostas?.idade && `${respostas.idade} ${t('anos', 'años')}`, imc && `IMC ${imc.valor}`].filter(Boolean).join(' · ');
 
   const bloqueado = rec.bloqueado || rec.itens.length === 0;
   const itens: any[] = bloqueado ? [] : rec.itens;
   const totalSlides = bloqueado ? 1 : itens.length + 2; // intro + peptídeos + receber
 
-  const irPara = (i: number) => {
-    const el = scrollRef.current; if (!el) return;
-    const alvo = Math.max(0, Math.min(totalSlides - 1, i));
-    el.scrollTo({ left: alvo * el.clientWidth, behavior: 'smooth' });
+  // Navegação anda SEMPRE no máximo 1 slide por vez.
+  const irPara = (i: number) => setIdx((cur) => {
+    const alvo = i > cur ? cur + 1 : i < cur ? cur - 1 : cur;
+    return Math.max(0, Math.min(totalSlides - 1, alvo));
+  });
+
+  const largura = () => wrapRef.current?.clientWidth || 1;
+  const onDown = (e: React.PointerEvent) => { inicioX.current = e.clientX; deltaRef.current = 0; setArrastando(true); };
+  const onMove = (e: React.PointerEvent) => {
+    if (inicioX.current == null) return;
+    let d = e.clientX - inicioX.current;
+    const w = largura();
+    // resistência nas pontas e trava em no máximo uma tela de arrasto
+    if ((idx === 0 && d > 0) || (idx === totalSlides - 1 && d < 0)) d *= 0.3;
+    d = Math.max(-w, Math.min(w, d));
+    deltaRef.current = d;
+    setDrag(d);
   };
-  const onScroll = () => {
-    const el = scrollRef.current; if (!el) return;
-    setIdx(Math.round(el.scrollLeft / el.clientWidth));
+  const onUp = () => {
+    if (inicioX.current == null) return;
+    const d = deltaRef.current; // ref: não depende do re-render (arrasto rápido também conta)
+    const limite = Math.min(80, largura() * 0.16);
+    if (d <= -limite) irPara(idx + 1);      // arrastou para a esquerda → próximo
+    else if (d >= limite) irPara(idx - 1);  // arrastou para a direita → anterior
+    deltaRef.current = 0; setDrag(0); setArrastando(false); inicioX.current = null;
   };
 
   return (
@@ -493,50 +523,56 @@ function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, m
         </div>
       ) : (
         <>
-          <div ref={scrollRef} onScroll={onScroll} style={S.carrossel} className="hidescroll">
-            {/* Slide intro */}
-            <div style={S.slide}>
-              <div style={S.slideInner}>
-                <div style={S.resBadge}><span style={{ ...S.dot, background: '#7C3AED' }} /> {t('SEU PROTOCOLO', 'TU PROTOCOLO')}</div>
-                <h1 style={S.introTit}>{t('Está pronto!', '¡Está listo!')}</h1>
-                {perfil && <p style={S.introPerfil}>{perfil}</p>}
-                {rec.resumo && <p style={S.introResumo}>{rec.resumo}</p>}
-                <div style={S.introCount}>{itens.length} {itens.length === 1 ? t('peptídeo recomendado', 'péptido recomendado') : t('peptídeos recomendados', 'péptidos recomendados')}</div>
-                <div style={S.swipeHint}><Icon name="refresh" size={16} /> {t('Deslize para o lado para ver cada um', 'Desliza al lado para ver cada uno')} ›</div>
-              </div>
-            </div>
-
-            {/* Um slide por peptídeo — resumo rápido (detalhes completos no PDF) */}
-            {itens.map((it: any, i: number) => {
-              const img = pepImg(it.peptide.n);
-              const ui = doseUISeringa(it.peptide.n, it.dose, it.peptide.route);
-              const pr = PRIO[it.prioridade as keyof typeof PRIO] || PRIO.opcional;
-              return (
-                <div key={it.peptide.n} style={S.slide}>
-                  <div style={S.slideInner}>
-                    <div style={S.pepNumero}>{i + 1} / {itens.length}</div>
-                    <span style={S.pepIconBig}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={44} />}</span>
-                    <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
-                    <h2 style={S.pepNome}>{it.peptide.n}</h2>
-                    <p style={S.pepMec}>{it.peptide.m}</p>
-
-                    <div style={S.doseGrande}>
-                      <div style={S.doseLbl}>{t('Dose', 'Dosis')}</div>
-                      <div style={S.doseVal}>{it.dose}</div>
-                      {ui && <div style={S.doseUI}>≈ {ui.texto} {t('na seringa', 'en la jeringa')}</div>}
-                      <div style={S.doseInfo}>{it.peptide.freq} · {it.peptide.route}</div>
-                    </div>
-
-                    <div style={S.pdfHint}><Icon name="clipboard" size={15} /> {t('Como usar e todos os detalhes vão no seu PDF', 'Cómo usar y todos los detalles van en tu PDF')}</div>
-                  </div>
+          <div ref={wrapRef} style={S.viewport} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
+            <div style={{ ...S.track, transform: `translateX(calc(${-idx * 100}% + ${drag}px))`, transition: arrastando ? 'none' : 'transform .34s cubic-bezier(.4,0,.2,1)' }}>
+              {/* Slide intro */}
+              <div style={S.slide}>
+                <div style={S.slideInner}>
+                  <div style={S.resBadge}><span style={{ ...S.dot, background: '#7C3AED' }} /> {t('SEU PROTOCOLO', 'TU PROTOCOLO')}</div>
+                  <h1 style={S.introTit}>{t('Está pronto!', '¡Está listo!')}</h1>
+                  {perfil && <p style={S.introPerfil}>{perfil}</p>}
+                  {rec.resumo && <p style={S.introResumo}>{rec.resumo}</p>}
+                  <div style={S.introCount}>{itens.length} {itens.length === 1 ? t('peptídeo recomendado', 'péptido recomendado') : t('peptídeos recomendados', 'péptidos recomendados')}</div>
+                  <div style={S.swipeHint}><Icon name="refresh" size={16} /> {t('Deslize para o lado para ver cada um', 'Desliza al lado para ver cada uno')} ›</div>
                 </div>
-              );
-            })}
+              </div>
 
-            {/* Slide final: receber */}
-            <div style={S.slide}>
-              <div style={S.slideScroll} className="hidescroll">
-                <Receber t={t} idioma={idioma} respostas={respostas} montarDados={montarDados} montarMensagem={montarMensagem} erro={erro} setErro={setErro} onReiniciar={onReiniciar} />
+              {/* Um slide por peptídeo — resumo (versão completa no PDF) */}
+              {itens.map((it: any, i: number) => {
+                const img = pepImg(it.peptide.n);
+                const ui = doseUISeringa(it.peptide.n, it.dose, it.peptide.route);
+                const pr = PRIO[it.prioridade as keyof typeof PRIO] || PRIO.opcional;
+                return (
+                  <div key={it.peptide.n} style={S.slide}>
+                    <div style={S.slideScroll} className="hidescroll">
+                      <div style={S.pepNumero}>{i + 1} / {itens.length}</div>
+                      <div style={S.pepTopo}>
+                        <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={34} />}</span>
+                        <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
+                      </div>
+                      <h2 style={S.pepNome}>{it.peptide.n}</h2>
+                      <p style={S.pepMec}>{it.peptide.m}</p>
+
+                      <div style={S.doseGrande}>
+                        <div style={S.doseLbl}>{t('Dose', 'Dosis')}</div>
+                        <div style={S.doseVal}>{it.dose}</div>
+                        {ui && <div style={S.doseUI}>≈ {ui.texto} {t('na seringa', 'en la jeringa')}</div>}
+                        <div style={S.doseInfo}>{it.peptide.freq} · {it.peptide.route}</div>
+                      </div>
+
+                      {it.motivo && <div style={S.pepBloco}><span style={S.pepBlocoTit}><Icon name="bulb" size={13} /> {t('Por que para você', 'Por qué para ti')}</span>{resumir(it.motivo)}</div>}
+                      {it.comoUsar && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="clipboard" size={13} /> {t('Como usar', 'Cómo usar')}</span>{resumir(it.comoUsar)}</div>}
+                      <div style={S.pdfHint}><Icon name="clipboard" size={14} /> {t('Passo a passo completo no seu PDF', 'Paso a paso completo en tu PDF')}</div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Slide final: receber */}
+              <div style={S.slide}>
+                <div style={S.slideScroll} className="hidescroll">
+                  <Receber t={t} idioma={idioma} respostas={respostas} montarDados={montarDados} montarMensagem={montarMensagem} erro={erro} setErro={setErro} onReiniciar={onReiniciar} />
+                </div>
               </div>
             </div>
           </div>
@@ -749,8 +785,9 @@ const S: Record<string, React.CSSProperties> = {
   dotsRow: { display: 'flex', gap: 6, justifyContent: 'center', marginTop: 12 },
   dot2: { width: 8, height: 8, borderRadius: '50%', background: '#D9DCE1', transition: 'all .2s' },
   dot2On: { background: VERDE, width: 22, borderRadius: 999 },
-  carrossel: { flex: 1, minHeight: 0, display: 'flex', overflowX: 'auto', overflowY: 'hidden', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' },
-  slide: { flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', display: 'flex', flexDirection: 'column', padding: '10px 22px' },
+  viewport: { flex: 1, minHeight: 0, overflow: 'hidden', touchAction: 'pan-y', cursor: 'grab' },
+  track: { display: 'flex', height: '100%', willChange: 'transform' },
+  slide: { flex: '0 0 100%', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '10px 22px' },
   slideInner: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 10 },
   slideScroll: { flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: 10 },
 
@@ -769,8 +806,8 @@ const S: Record<string, React.CSSProperties> = {
   pepIconImg: { width: '100%', height: '100%', objectFit: 'cover' },
   pepBadge: { fontSize: 13, fontWeight: 800, padding: '7px 14px', borderRadius: 999 },
   pepNome: { fontSize: 32, fontWeight: 800, letterSpacing: '-.02em', margin: 0, lineHeight: 1.1 },
-  pepMec: { fontSize: 16.5, color: '#667085', lineHeight: 1.45, maxWidth: 460 },
-  doseGrande: { alignSelf: 'stretch', background: '#F7FAF8', border: '1px solid #E3F0E8', borderRadius: 18, padding: '20px', marginTop: 6, textAlign: 'center' },
+  pepMec: { fontSize: 16, color: '#667085', lineHeight: 1.45, marginTop: 6 },
+  doseGrande: { background: '#F7FAF8', border: '1px solid #E3F0E8', borderRadius: 18, padding: '18px 20px', marginTop: 14, textAlign: 'center' },
   doseLbl: { fontSize: 13, fontWeight: 700, color: '#98A2B3', textTransform: 'uppercase', letterSpacing: '.06em' },
   doseVal: { fontSize: 34, fontWeight: 800, marginTop: 4, color: '#0B7A3B' },
   doseUI: { fontSize: 19, fontWeight: 800, color: '#15803D', marginTop: 4 },
