@@ -3,12 +3,12 @@
 //  Versão TOTEM (self-service) do balcão: a pessoa chega, toca em
 //  "Começar diagnóstico" e preenche tudo sozinha numa tela vertical grande.
 //  Reaproveita o motor de IA e as APIs de envio (WhatsApp/e-mail) do balcão.
-//  Auto-reinicia por inatividade (privacidade em totem público).
+//  NÃO reinicia sozinho — o fluxo vai até o fim; só volta pelo "Voltar".
 // ════════════════════════════════════════════════
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ObjectiveKey } from '@/types';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import Icon from '@/components/farmacia/Icon';
@@ -31,41 +31,41 @@ import {
 
 type Tela = 'atracao' | 'wizard' | 'analisando' | 'resultado';
 type Pais = 'BR' | 'PY';
-const PASSOS = 5;
+const PASSOS = 6;
 
 const PAISES: Record<Pais, { ddi: string; flag: string; max: number }> = {
   BR: { ddi: '55', flag: '🇧🇷', max: 11 },
   PY: { ddi: '595', flag: '🇵🇾', max: 10 },
 };
 
-const OBJETIVOS: { key: ObjectiveKey; label: string; le: string; desc: string; de: string; cor: string }[] = [
-  { key: 'gordura', label: 'Emagrecer', le: 'Adelgazar', desc: 'Perder gordura e controlar o apetite', de: 'Perder grasa y controlar el apetito', cor: '#EA580C' },
-  { key: 'massa', label: 'Ganhar massa', le: 'Ganar masa', desc: 'Mais músculo e força', de: 'Más músculo y fuerza', cor: '#2563EB' },
-  { key: 'pele', label: 'Pele / anti-idade', le: 'Piel / antiedad', desc: 'Colágeno, viço e rejuvenescimento', de: 'Colágeno y rejuvenecimiento', cor: '#EC4899' },
-  { key: 'cognitivo', label: 'Foco / cognição', le: 'Enfoque / cognición', desc: 'Memória, concentração e clareza', de: 'Memoria, concentración y claridad', cor: '#7C3AED' },
-  { key: 'longevidade', label: 'Energia / longevidade', le: 'Energía / longevidad', desc: 'Mais disposição e vitalidade', de: 'Más disposición y vitalidad', cor: '#16A34A' },
-  { key: 'sono', label: 'Dormir melhor', le: 'Dormir mejor', desc: 'Sono profundo e recuperação', de: 'Sueño profundo y recuperación', cor: '#4F46E5' },
-  { key: 'recuperacao', label: 'Recuperação / lesões', le: 'Recuperación / lesiones', desc: 'Acelerar o reparo e reduzir a dor', de: 'Acelerar la reparación y reducir el dolor', cor: '#0EA5E9' },
-  { key: 'hormonal', label: 'Libido / hormonal', le: 'Libido / hormonal', desc: 'Libido e equilíbrio hormonal', de: 'Libido y equilibrio hormonal', cor: '#E11D48' },
+const OBJETIVOS: { key: ObjectiveKey; label: string; le: string; cor: string }[] = [
+  { key: 'gordura', label: 'Emagrecer', le: 'Adelgazar', cor: '#EA580C' },
+  { key: 'massa', label: 'Ganhar massa', le: 'Ganar masa', cor: '#2563EB' },
+  { key: 'pele', label: 'Pele / anti-idade', le: 'Piel / antiedad', cor: '#EC4899' },
+  { key: 'cognitivo', label: 'Foco / cognição', le: 'Enfoque', cor: '#7C3AED' },
+  { key: 'longevidade', label: 'Energia', le: 'Energía', cor: '#16A34A' },
+  { key: 'sono', label: 'Dormir melhor', le: 'Dormir mejor', cor: '#4F46E5' },
+  { key: 'recuperacao', label: 'Recuperação', le: 'Recuperación', cor: '#0EA5E9' },
+  { key: 'hormonal', label: 'Libido / hormonal', le: 'Libido', cor: '#E11D48' },
 ];
 
 const NIVEIS: { key: NivelFarmacia; label: string; le: string; sub: string; se: string; icon: string; cor: string }[] = [
-  { key: 'iniciante', label: 'Nunca usei', le: 'Nunca usé', sub: 'Primeira vez', se: 'Primera vez', icon: 'sparkle', cor: '#16A34A' },
-  { key: 'intermediario', label: 'Já usei', le: 'Ya usé', sub: 'Alguma experiência', se: 'Algo de experiencia', icon: 'refresh', cor: '#2563EB' },
-  { key: 'avancado', label: 'Uso sempre', le: 'Uso siempre', sub: 'Experiente', se: 'Experto', icon: 'bolt', cor: '#7C3AED' },
+  { key: 'iniciante', label: 'Nunca usei', le: 'Nunca usé', sub: 'É a minha primeira vez', se: 'Es mi primera vez', icon: 'sparkle', cor: '#16A34A' },
+  { key: 'intermediario', label: 'Já usei', le: 'Ya usé', sub: 'Tenho alguma experiência', se: 'Tengo algo de experiencia', icon: 'refresh', cor: '#2563EB' },
+  { key: 'avancado', label: 'Uso sempre', le: 'Uso siempre', sub: 'Já sou experiente', se: 'Ya soy experto', icon: 'bolt', cor: '#7C3AED' },
 ];
 
 const ATIVIDADES: { key: AtividadeFarmacia; label: string; le: string; sub: string; se: string; icon: string; cor: string }[] = [
   { key: 'sedentario', label: 'Sedentário', le: 'Sedentario', sub: 'Pouco exercício', se: 'Poco ejercicio', icon: 'moon', cor: '#D97706' },
-  { key: 'moderado', label: 'Moderado', le: 'Moderado', sub: 'Treino 1–3x/sem', se: 'Entreno 1–3x/sem', icon: 'dumbbell', cor: '#16A34A' },
-  { key: 'ativo', label: 'Ativo', le: 'Activo', sub: 'Treino 4–5x/sem', se: 'Entreno 4–5x/sem', icon: 'pulse', cor: '#2563EB' },
-  { key: 'muito_ativo', label: 'Muito ativo', le: 'Muy activo', sub: 'Treino 6–7x/sem', se: 'Entreno 6–7x/sem', icon: 'bolt', cor: '#EA580C' },
+  { key: 'moderado', label: 'Moderado', le: 'Moderado', sub: 'Treino 1 a 3 vezes por semana', se: 'Entreno 1 a 3 veces por semana', icon: 'dumbbell', cor: '#16A34A' },
+  { key: 'ativo', label: 'Ativo', le: 'Activo', sub: 'Treino 4 a 5 vezes por semana', se: 'Entreno 4 a 5 veces por semana', icon: 'pulse', cor: '#2563EB' },
+  { key: 'muito_ativo', label: 'Muito ativo', le: 'Muy activo', sub: 'Treino quase todo dia', se: 'Entreno casi todos los días', icon: 'bolt', cor: '#EA580C' },
 ];
 
 const SONOS: { key: SonoFarmacia; label: string; le: string; sub: string; se: string; icon: string; cor: string }[] = [
-  { key: 'ruim', label: 'Ruim', le: 'Malo', sub: 'Custa dormir', se: 'Cuesta dormir', icon: 'drop', cor: '#EC4899' },
+  { key: 'ruim', label: 'Ruim', le: 'Malo', sub: 'Custo pra dormir', se: 'Me cuesta dormir', icon: 'drop', cor: '#EC4899' },
   { key: 'regular', label: 'Regular', le: 'Regular', sub: 'Dá pra melhorar', se: 'Se puede mejorar', icon: 'pulse', cor: '#16A34A' },
-  { key: 'bom', label: 'Bom', le: 'Bueno', sub: 'Acordo disposto', se: 'Despierto descansado', icon: 'moon', cor: '#4F46E5' },
+  { key: 'bom', label: 'Bom', le: 'Bueno', sub: 'Acordo bem disposto', se: 'Despierto descansado', icon: 'moon', cor: '#4F46E5' },
 ];
 
 const CONDICOES: { key: CondicaoSaude; label: string; le: string; icon: string; cor: string }[] = [
@@ -74,7 +74,7 @@ const CONDICOES: { key: CondicaoSaude; label: string; le: string; icon: string; 
   { key: 'hipertensao', label: 'Pressão alta', le: 'Presión alta', icon: 'heart', cor: '#E11D48' },
   { key: 'tireoide', label: 'Tireoide', le: 'Tiroides', icon: 'pulse', cor: '#0EA5E9' },
   { key: 'cancer', label: 'Histórico de câncer', le: 'Antecedente de cáncer', icon: 'ribbon', cor: '#7C3AED' },
-  { key: 'gestacao', label: 'Gestante / amamentando', le: 'Embarazo / lactancia', icon: 'person', cor: '#D97706' },
+  { key: 'gestacao', label: 'Gestante', le: 'Embarazo', icon: 'person', cor: '#D97706' },
 ];
 
 const PRIO = {
@@ -83,11 +83,11 @@ const PRIO = {
   opcional: { bg: '#F1F1F1', tx: '#6B7280', label: 'Opcional', le: 'Opcional' },
 } as const;
 
-// Frases fortes que giram na tela de atração.
+// Frases fortes que giram na tela de atração (naturais, sem travessão).
 const HOOKS: { pt: string; es: string }[] = [
-  { pt: 'Descubra o peptídeo ideal para o SEU corpo', es: 'Descubre el péptido ideal para TU cuerpo' },
-  { pt: 'Emagrecer, ganhar massa, dormir melhor — comece agora', es: 'Adelgazar, ganar masa, dormir mejor — empieza ahora' },
-  { pt: 'Um protocolo feito para você em 2 minutos', es: 'Un protocolo hecho para ti en 2 minutos' },
+  { pt: 'Descubra o peptídeo ideal para o seu corpo', es: 'Descubre el péptido ideal para tu cuerpo' },
+  { pt: 'Emagrecer, ganhar massa ou dormir melhor começa aqui', es: 'Adelgazar, ganar masa o dormir mejor empieza aquí' },
+  { pt: 'Seu protocolo personalizado em 2 minutos', es: 'Tu protocolo personalizado en 2 minutos' },
 ];
 
 function alpha(hex: string, a: number) {
@@ -95,7 +95,6 @@ function alpha(hex: string, a: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
-// Dados estruturados para o PDF (mesmo formato do balcão).
 function montarDadosPdf(r: RespostasFarmacia, rec: Recomendacao, idioma: Lang) {
   const es = idioma === 'es';
   const tr = (pt: string, esp: string) => (es ? esp : pt);
@@ -132,10 +131,10 @@ export default function TotemPage() {
 
   const [objetivos, setObjetivos] = useState<ObjectiveKey[]>([]);
   const [nivel, setNivel] = useState<NivelFarmacia | ''>('');
-  const [sexo, setSexo] = useState<'masculino' | 'feminino' | 'ni' | ''>('');
-  const [idade, setIdade] = useState('');
-  const [peso, setPeso] = useState('');
-  const [altura, setAltura] = useState('');
+  const [sexo, setSexo] = useState<'masculino' | 'feminino' | ''>('');
+  const [idade, setIdade] = useState(30);
+  const [peso, setPeso] = useState(75);
+  const [altura, setAltura] = useState(170);
   const [atividade, setAtividade] = useState<AtividadeFarmacia | ''>('');
   const [sono, setSono] = useState<SonoFarmacia | ''>('');
   const [condicoes, setCondicoes] = useState<CondicaoSaude[]>([]);
@@ -163,18 +162,15 @@ export default function TotemPage() {
       nome: 'Cliente', telefone: '', sexo: sexo || undefined,
       objetivos, nivel: nivel as NivelFarmacia,
       condicoes: condicoes.length ? condicoes : ['nenhuma'],
-      peso: peso ? Number(peso) : undefined, altura: altura ? Number(altura) : undefined,
-      idade: idade ? Number(idade) : undefined,
+      peso, altura, idade,
       atividade: atividade || undefined, sono: sono || undefined,
     };
   }, [objetivos, nivel, sexo, condicoes, peso, altura, idade, atividade, sono]);
 
-  const imc = useMemo(() => calcularIMC(Number(peso), Number(altura)), [peso, altura]);
+  const imc = useMemo(() => calcularIMC(peso, altura), [peso, altura]);
 
-  // Volta ao início SOMENTE por ação explícita (Voltar na etapa 1, Encerrar ou
-  // Novo diagnóstico). Nunca reinicia sozinho — o fluxo vai até o fim.
   const reiniciar = useCallback(() => {
-    setObjetivos([]); setNivel(''); setSexo(''); setIdade(''); setPeso(''); setAltura('');
+    setObjetivos([]); setNivel(''); setSexo(''); setIdade(30); setPeso(75); setAltura(170);
     setAtividade(''); setSono(''); setCondicoes([]); setRec(null); setErro(''); setPasso(1);
     setTela('atracao');
   }, []);
@@ -203,13 +199,13 @@ export default function TotemPage() {
     window.scrollTo({ top: 0 });
   };
 
-  // Validação por passo → habilita "Continuar".
   const podeAvancar = (): boolean => {
     if (passo === 1) return objetivos.length > 0;
     if (passo === 2) return !!nivel;
-    if (passo === 3) return !!idade && !!peso && !!altura;
-    if (passo === 4) return !!atividade && !!sono;
-    if (passo === 5) return condicoes.length > 0;
+    if (passo === 3) return !!sexo;
+    if (passo === 4) return !!atividade;
+    if (passo === 5) return !!sono;
+    if (passo === 6) return condicoes.length > 0;
     return false;
   };
 
@@ -249,13 +245,12 @@ export default function TotemPage() {
                   {OBJETIVOS.map((o) => {
                     const on = objetivos.includes(o.key);
                     return (
-                      <button key={o.key} onClick={() => toggleObjetivo(o.key)} style={{ ...S.objCard, ...(on ? { borderColor: o.cor, boxShadow: `0 0 0 4px ${alpha(o.cor, 0.15)}` } : {}) }}>
+                      <button key={o.key} onClick={() => toggleObjetivo(o.key)} style={{ ...S.objCard, ...(on ? { borderColor: o.cor, background: alpha(o.cor, 0.06) } : {}) }}>
                         <span style={{ ...S.objImgWrap, background: alpha(o.cor, 0.1) }}>
                           <img src={OBJ_IMG[o.key]} alt="" style={S.objImg} />
-                          {on && <span style={{ ...S.objCheck, background: o.cor }}><Icon name="check" size={20} /></span>}
+                          {on && <span style={{ ...S.objCheck, background: o.cor }}><Icon name="check" size={16} /></span>}
                         </span>
                         <span style={S.objLabel}>{idioma === 'es' ? o.le : o.label}</span>
-                        <span style={S.objDesc}>{idioma === 'es' ? o.de : o.desc}</span>
                       </button>
                     );
                   })}
@@ -264,7 +259,7 @@ export default function TotemPage() {
             )}
 
             {passo === 2 && (
-              <Passo titulo={t('Você já usou peptídeos?', '¿Ya usaste péptidos?')} sub={t('Para ajustar as doses.', 'Para ajustar las dosis.')}>
+              <Passo titulo={t('Você já usou peptídeos?', '¿Ya usaste péptidos?')} sub={t('Isso ajuda a ajustar as doses.', 'Esto ayuda a ajustar las dosis.')}>
                 <div style={S.optCol}>
                   {NIVEIS.map((n) => (
                     <OptRow key={n.key} ativo={nivel === n.key} cor={n.cor} icon={n.icon}
@@ -276,19 +271,23 @@ export default function TotemPage() {
             )}
 
             {passo === 3 && (
-              <Passo titulo={t('Seus dados', 'Tus datos')} sub={t('Para calcular as doses certas.', 'Para calcular las dosis correctas.')}>
+              <Passo titulo={t('Sobre você', 'Sobre ti')} sub={t('Para calcular as doses certas.', 'Para calcular las dosis correctas.')}>
                 <div style={S.sexoRow}>
-                  {([['masculino', t('Masculino', 'Masculino'), 'person'], ['feminino', t('Feminino', 'Femenino'), 'person'], ['ni', t('Prefiro não dizer', 'Prefiero no decir'), 'person']] as const).map(([k, lbl]) => (
-                    <button key={k} onClick={() => setSexo(k)} style={{ ...S.sexoBtn, ...(sexo === k ? S.sexoBtnOn : {}) }}>{lbl}</button>
+                  {([['masculino', t('Masculino', 'Masculino'), 'person'], ['feminino', t('Feminino', 'Femenino'), 'person']] as const).map(([k, lbl, ic]) => (
+                    <button key={k} onClick={() => setSexo(k)} style={{ ...S.sexoBtn, ...(sexo === k ? S.sexoBtnOn : {}) }}>
+                      <Icon name={ic} size={26} /> {lbl}
+                    </button>
                   ))}
                 </div>
-                <Medidas idade={idade} peso={peso} altura={altura} setIdade={setIdade} setPeso={setPeso} setAltura={setAltura} imc={imc} t={t} />
+                <Slider label={t('Idade', 'Edad')} valor={idade} setValor={setIdade} min={16} max={90} sufixo={t('anos', 'años')} />
+                <Slider label={t('Peso', 'Peso')} valor={peso} setValor={setPeso} min={40} max={180} sufixo="kg" />
+                <Slider label={t('Altura', 'Altura')} valor={altura} setValor={setAltura} min={130} max={210} sufixo="cm" />
+                {imc && <div style={S.imcRow}>{t('Seu IMC', 'Tu IMC')}: <b>{imc.valor}</b> · {imc.classe}</div>}
               </Passo>
             )}
 
             {passo === 4 && (
-              <Passo titulo={t('Sua rotina', 'Tu rutina')} sub={t('Atividade física e sono.', 'Actividad física y sueño.')}>
-                <div style={S.blocoLabel}>{t('Atividade física', 'Actividad física')}</div>
+              <Passo titulo={t('Como é a sua atividade física?', '¿Cómo es tu actividad física?')} sub={t('Com que frequência você treina.', 'Con qué frecuencia entrenas.')}>
                 <div style={S.optCol}>
                   {ATIVIDADES.map((a) => (
                     <OptRow key={a.key} ativo={atividade === a.key} cor={a.cor} icon={a.icon}
@@ -296,7 +295,11 @@ export default function TotemPage() {
                       onClick={() => setAtividade(a.key)} />
                   ))}
                 </div>
-                <div style={{ ...S.blocoLabel, marginTop: 26 }}>{t('Como é o seu sono?', '¿Cómo es tu sueño?')}</div>
+              </Passo>
+            )}
+
+            {passo === 5 && (
+              <Passo titulo={t('Como é o seu sono?', '¿Cómo es tu sueño?')} sub={t('Qualidade do descanso.', 'Calidad del descanso.')}>
                 <div style={S.optCol}>
                   {SONOS.map((s) => (
                     <OptRow key={s.key} ativo={sono === s.key} cor={s.cor} icon={s.icon}
@@ -307,7 +310,7 @@ export default function TotemPage() {
               </Passo>
             )}
 
-            {passo === 5 && (
+            {passo === 6 && (
               <Passo titulo={t('Alguma condição de saúde?', '¿Alguna condición de salud?')} sub={t('Sua segurança em primeiro lugar.', 'Tu seguridad primero.')}>
                 <div style={S.condGrid}>
                   {CONDICOES.map((c) => {
@@ -352,30 +355,32 @@ function Atracao({ t, idioma, trocarIdioma, onComecar }: { t: (a: string, b: str
     return () => clearInterval(id);
   }, []);
   return (
-    <div style={S.atracao} className="grad">
-      <div style={S.langTop}>
+    <div style={S.atracao} className="grad" onClick={onComecar}>
+      <div style={S.langTop} onClick={(e) => e.stopPropagation()}>
         <button onClick={() => trocarIdioma('pt')} style={{ ...S.langBtn, ...(idioma === 'pt' ? S.langOn : {}) }}>PT</button>
         <button onClick={() => trocarIdioma('es')} style={{ ...S.langBtn, ...(idioma === 'es' ? S.langOn : {}) }}>ES</button>
       </div>
 
       <div style={S.atracaoMid}>
-        <NuvitaLogo width={220} height={48} />
+        <NuvitaLogo width={200} height={44} />
         <div style={S.selo}>{t('DIAGNÓSTICO INTELIGENTE DE PEPTÍDEOS', 'DIAGNÓSTICO INTELIGENTE DE PÉPTIDOS')}</div>
         <h1 key={hook} style={S.hook} className="fade">{idioma === 'es' ? HOOKS[hook].es : HOOKS[hook].pt}</h1>
-        <p style={S.atracaoSub}>{t('Responda algumas perguntas e receba um protocolo feito só para você — grátis e em 2 minutos.', 'Responde algunas preguntas y recibe un protocolo hecho solo para ti — gratis y en 2 minutos.')}</p>
+        <p style={S.atracaoSub}>{t('Responda algumas perguntas e receba um protocolo feito para você. É grátis e leva 2 minutos.', 'Responde algunas preguntas y recibe un protocolo hecho para ti. Es gratis y toma 2 minutos.')}</p>
+        <div style={S.hookDots}>
+          {HOOKS.map((_, i) => <span key={i} style={{ ...S.hookDot, ...(i === hook ? S.hookDotOn : {}) }} />)}
+        </div>
       </div>
 
-      <div style={S.atracaoBottom}>
+      <div style={S.atracaoBottom} onClick={(e) => e.stopPropagation()}>
         <button onClick={onComecar} style={S.cta} className="pulse">
           {t('Começar diagnóstico', 'Comenzar diagnóstico')} ›
         </button>
-        <div style={S.toque}>{t('Toque para começar', 'Toca para comenzar')}</div>
+        <div style={S.toque}>{t('Toque em qualquer lugar para começar', 'Toca en cualquier lugar para comenzar')}</div>
       </div>
     </div>
   );
 }
 
-// ─── Topo do wizard ───
 function Topo({ t, pct, passo, onVoltar }: { t: (a: string, b: string) => string; pct: number; passo: number; onVoltar: () => void }) {
   return (
     <div style={S.topo}>
@@ -391,10 +396,10 @@ function Topo({ t, pct, passo, onVoltar }: { t: (a: string, b: string) => string
 
 function Passo({ titulo, sub, children }: { titulo: string; sub: string; children: React.ReactNode }) {
   return (
-    <div>
+    <div style={S.passoWrap}>
       <h1 style={S.passoTitulo}>{titulo}</h1>
       <p style={S.passoSub}>{sub}</p>
-      <div style={{ marginTop: 26 }}>{children}</div>
+      <div style={{ marginTop: 22, flex: 1 }}>{children}</div>
     </div>
   );
 }
@@ -412,63 +417,55 @@ function OptRow({ ativo, cor, icon, label, sub, onClick }: { ativo: boolean; cor
   );
 }
 
-// ─── Medidas com teclado numérico ───
-function Medidas({ idade, peso, altura, setIdade, setPeso, setAltura, imc, t }: any) {
-  const [campo, setCampo] = useState<'idade' | 'peso' | 'altura'>('idade');
-  const val = campo === 'idade' ? idade : campo === 'peso' ? peso : altura;
-  const setVal = (v: string) => { if (campo === 'idade') setIdade(v); else if (campo === 'peso') setPeso(v); else setAltura(v); };
-  const maxLen = campo === 'idade' ? 3 : 3;
-
-  const digitar = (d: string) => { if (String(val).length >= maxLen) return; setVal(String(val) + d); };
-  const apagar = () => setVal(String(val).slice(0, -1));
-
-  const Campo = ({ k, label, sufixo }: { k: 'idade' | 'peso' | 'altura'; label: string; sufixo: string }) => {
-    const v = k === 'idade' ? idade : k === 'peso' ? peso : altura;
-    const on = campo === k;
-    return (
-      <button onClick={() => setCampo(k)} style={{ ...S.medCampo, ...(on ? S.medCampoOn : {}) }}>
-        <span style={S.medLabel}>{label}</span>
-        <span style={S.medValor}>{v || <span style={{ color: '#C4CBD4' }}>—</span>} <span style={S.medSuf}>{v ? sufixo : ''}</span></span>
-      </button>
-    );
-  };
-
+// ─── Slider grande para idade / peso / altura ───
+function Slider({ label, valor, setValor, min, max, sufixo }: { label: string; valor: number; setValor: (n: number) => void; min: number; max: number; sufixo: string }) {
+  const p = ((valor - min) / (max - min)) * 100;
   return (
-    <div style={{ marginTop: 18 }}>
-      <div style={S.medRow}>
-        <Campo k="idade" label={t('Idade', 'Edad')} sufixo={t('anos', 'años')} />
-        <Campo k="peso" label={t('Peso', 'Peso')} sufixo="kg" />
-        <Campo k="altura" label={t('Altura', 'Altura')} sufixo="cm" />
+    <div style={S.sliderCard}>
+      <div style={S.sliderTop}>
+        <span style={S.sliderLabel}>{label}</span>
+        <span style={S.sliderVal}>{valor}<span style={S.sliderSuf}> {sufixo}</span></span>
       </div>
-      {imc && idade && peso && altura && (
-        <div style={S.imcRow}>IMC <b>{imc.valor}</b> · {imc.classe}</div>
-      )}
-      <div style={S.keypad}>
-        {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => (
-          <button key={d} onClick={() => digitar(d)} style={S.key}>{d}</button>
-        ))}
-        <div />
-        <button onClick={() => digitar('0')} style={S.key}>0</button>
-        <button onClick={apagar} style={{ ...S.key, fontSize: 30 }}>⌫</button>
-      </div>
+      <input
+        type="range" min={min} max={max} value={valor}
+        onChange={(e) => setValor(Number(e.target.value))}
+        className="totem-range"
+        style={{ ['--p' as string]: `${p}%` } as React.CSSProperties}
+      />
     </div>
   );
 }
 
-// ─── Analisando ───
 function Analisando({ t }: { t: (a: string, b: string) => string }) {
   return (
     <div style={S.analisando} className="grad">
       <div style={S.spinner} className="spin" />
-      <div style={S.analiseTit}>{t('Analisando o seu perfil…', 'Analizando tu perfil…')}</div>
+      <div style={S.analiseTit}>{t('Analisando o seu perfil', 'Analizando tu perfil')}</div>
       <div style={S.analiseSub}>{t('Montando um protocolo feito para você.', 'Armando un protocolo hecho para ti.')}</div>
     </div>
   );
 }
 
-// ─── Resultado ───
+// ─── Resultado: carrossel gamificado (passa pro lado) ───
 function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, montarMensagem, erro, setErro }: any) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [idx, setIdx] = useState(0);
   const perfil = [respostas?.idade && `${respostas.idade} ${t('anos', 'años')}`, imc && `IMC ${imc.valor}`].filter(Boolean).join(' · ');
+
+  const bloqueado = rec.bloqueado || rec.itens.length === 0;
+  const itens: any[] = bloqueado ? [] : rec.itens;
+  const totalSlides = bloqueado ? 1 : itens.length + 2; // intro + peptídeos + receber
+
+  const irPara = (i: number) => {
+    const el = scrollRef.current; if (!el) return;
+    const alvo = Math.max(0, Math.min(totalSlides - 1, i));
+    el.scrollTo({ left: alvo * el.clientWidth, behavior: 'smooth' });
+  };
+  const onScroll = () => {
+    const el = scrollRef.current; if (!el) return;
+    setIdx(Math.round(el.scrollLeft / el.clientWidth));
+  };
+
   return (
     <div style={S.tela}>
       <div style={S.topo}>
@@ -476,69 +473,96 @@ function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, m
           <NuvitaLogo width={92} height={20} />
           <button onClick={onReiniciar} style={S.voltarBtn}>✕ {t('Encerrar', 'Cerrar')}</button>
         </div>
+        {!bloqueado && (
+          <div style={S.dotsRow}>
+            {Array.from({ length: totalSlides }).map((_, i) => (
+              <span key={i} style={{ ...S.dot2, ...(i === idx ? S.dot2On : {}) }} />
+            ))}
+          </div>
+        )}
       </div>
-      <div style={S.conteudo}>
-        <div style={S.resHead}>
-          <div style={S.resBadge}><span style={{ ...S.dot, background: '#7C3AED' }} /> {t('SEU PROTOCOLO', 'TU PROTOCOLO')}</div>
-          <h1 style={S.passoTitulo}>{t('Feito para você', 'Hecho para ti')}</h1>
-          {perfil && <p style={{ ...S.passoSub, marginTop: 4 }}>{perfil}</p>}
-          {rec.resumo && <p style={S.resResumo}>{rec.resumo}</p>}
-        </div>
 
-        {rec.avisos?.map((a: string, i: number) => <div key={i} style={S.aviso}>{a}</div>)}
-
-        {rec.bloqueado || rec.itens.length === 0 ? (
+      {bloqueado ? (
+        <div style={S.conteudo}>
+          {rec.avisos?.map((a: string, i: number) => <div key={i} style={S.aviso}>{a}</div>)}
           <div style={S.bloqueado}>
             <Icon name="pulse" size={44} />
             <p style={{ marginTop: 12, lineHeight: 1.5 }}>{t('Neste caso o ideal é procurar acompanhamento médico antes de qualquer uso.', 'En este caso lo ideal es buscar acompañamiento médico antes de cualquier uso.')}</p>
           </div>
-        ) : (
-          <div style={{ display: 'grid', gap: 14 }}>
-            {rec.itens.map((it: any) => {
+          <button onClick={onReiniciar} style={S.novoBtn}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
+        </div>
+      ) : (
+        <>
+          <div ref={scrollRef} onScroll={onScroll} style={S.carrossel} className="hidescroll">
+            {/* Slide intro */}
+            <div style={S.slide}>
+              <div style={S.slideInner}>
+                <div style={S.resBadge}><span style={{ ...S.dot, background: '#7C3AED' }} /> {t('SEU PROTOCOLO', 'TU PROTOCOLO')}</div>
+                <h1 style={S.introTit}>{t('Está pronto!', '¡Está listo!')}</h1>
+                {perfil && <p style={S.introPerfil}>{perfil}</p>}
+                {rec.resumo && <p style={S.introResumo}>{rec.resumo}</p>}
+                <div style={S.introCount}>{itens.length} {itens.length === 1 ? t('peptídeo recomendado', 'péptido recomendado') : t('peptídeos recomendados', 'péptidos recomendados')}</div>
+                <div style={S.swipeHint}><Icon name="refresh" size={16} /> {t('Deslize para o lado para ver cada um', 'Desliza al lado para ver cada uno')} ›</div>
+              </div>
+            </div>
+
+            {/* Um slide por peptídeo */}
+            {itens.map((it: any, i: number) => {
               const img = pepImg(it.peptide.n);
               const ui = doseUISeringa(it.peptide.n, it.dose, it.peptide.route);
               const pr = PRIO[it.prioridade as keyof typeof PRIO] || PRIO.opcional;
               return (
-                <div key={it.peptide.n} style={S.pepCard}>
-                  <div style={S.pepHead}>
-                    <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={28} />}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={S.pepNome}>{it.peptide.n}</div>
-                      <div style={S.pepMec}>{it.peptide.m}</div>
+                <div key={it.peptide.n} style={S.slide}>
+                  <div style={S.slideScroll} className="hidescroll">
+                    <div style={S.pepNumero}>{i + 1} / {itens.length}</div>
+                    <div style={S.pepTopo}>
+                      <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={34} />}</span>
+                      <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
                     </div>
-                    <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
-                  </div>
-                  {it.motivo && <div style={S.pepBloco}><span style={S.pepBlocoTit}><Icon name="bulb" size={14} /> {t('Por que para você', 'Por qué para ti')}</span>{it.motivo}</div>}
-                  {it.comoUsar && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={S.pepBlocoTit}><Icon name="clipboard" size={14} /> {t('Como usar', 'Cómo usar')}</span>{it.comoUsar}</div>}
-                  <div style={S.doseRow}>
-                    <div>
+                    <h2 style={S.pepNome}>{it.peptide.n}</h2>
+                    <p style={S.pepMec}>{it.peptide.m}</p>
+
+                    <div style={S.doseGrande}>
                       <div style={S.doseLbl}>{t('Dose', 'Dosis')}</div>
                       <div style={S.doseVal}>{it.dose}</div>
                       {ui && <div style={S.doseUI}>≈ {ui.texto} {t('na seringa', 'en la jeringa')}</div>}
+                      <div style={S.doseInfo}>{it.peptide.freq} · {it.peptide.route}</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={S.doseLbl}>{t('Frequência', 'Frecuencia')}</div>
-                      <div style={S.doseVal}>{it.peptide.freq}</div>
-                      <div style={S.doseUI2}>{it.peptide.route} · {it.peptide.timing}</div>
-                    </div>
+
+                    {it.motivo && <div style={S.pepBloco}><span style={S.pepBlocoTit}><Icon name="bulb" size={14} /> {t('Por que para você', 'Por qué para ti')}</span>{it.motivo}</div>}
+                    {it.comoUsar && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="clipboard" size={14} /> {t('Como usar', 'Cómo usar')}</span>{it.comoUsar}</div>}
                   </div>
                 </div>
               );
             })}
+
+            {/* Slide final: receber */}
+            <div style={S.slide}>
+              <div style={S.slideScroll} className="hidescroll">
+                <Receber t={t} idioma={idioma} respostas={respostas} montarDados={montarDados} montarMensagem={montarMensagem} erro={erro} setErro={setErro} onReiniciar={onReiniciar} />
+              </div>
+            </div>
           </div>
-        )}
 
-        {!rec.bloqueado && rec.itens.length > 0 && (
-          <Receber t={t} idioma={idioma} respostas={respostas} montarDados={montarDados} montarMensagem={montarMensagem} erro={erro} setErro={setErro} />
-        )}
-
-        <button onClick={onReiniciar} style={S.novoBtn}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
-      </div>
+          {/* Navegação */}
+          <div style={S.navRow}>
+            <button onClick={() => irPara(idx - 1)} disabled={idx === 0} style={{ ...S.navBtn, opacity: idx === 0 ? 0.35 : 1 }}>‹</button>
+            {idx < totalSlides - 1 ? (
+              <button onClick={() => irPara(idx + 1)} style={S.navProximo}>
+                {idx === 0 ? t('Ver os peptídeos', 'Ver los péptidos') : idx === totalSlides - 2 ? t('Receber protocolo', 'Recibir protocolo') : t('Próximo', 'Siguiente')} ›
+              </button>
+            ) : (
+              <button onClick={onReiniciar} style={S.navProximo}>↺ {t('Novo diagnóstico', 'Nuevo diagnóstico')}</button>
+            )}
+            <button onClick={() => irPara(idx + 1)} disabled={idx >= totalSlides - 1} style={{ ...S.navBtn, opacity: idx >= totalSlides - 1 ? 0.35 : 1 }}>›</button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-// ─── Receber (WhatsApp / e-mail, self-service) ───
+// ─── Receber (WhatsApp / e-mail) ───
 function Receber({ t, idioma, respostas, montarDados, montarMensagem, erro, setErro }: any) {
   const [canal, setCanal] = useState<'whatsapp' | 'email'>('whatsapp');
   const [nome, setNome] = useState('');
@@ -547,15 +571,14 @@ function Receber({ t, idioma, respostas, montarDados, montarMensagem, erro, setE
   const [email, setEmail] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
-  const [foco, setFoco] = useState<'nome' | 'tel'>('tel');
 
   const telefoneE164 = () => { let d = telefone.replace(/\D/g, ''); if (pais === 'PY') { d = d.replace(/^0+/, ''); return '595' + d; } if (!d.startsWith('55')) d = '55' + d; return d; };
 
   const enviar = async () => {
     setErro('');
     const r = { ...respostas, nome: nome.trim() || 'Cliente' };
-    const dados = montarDados(r);       // estruturado → PDF rico
-    const mensagem = montarMensagem(r); // texto → registro + fallback
+    const dados = montarDados(r);
+    const mensagem = montarMensagem(r);
     setEnviando(true);
     try {
       if (canal === 'whatsapp') {
@@ -579,25 +602,27 @@ function Receber({ t, idioma, respostas, montarDados, montarMensagem, erro, setE
 
   if (enviado) {
     return (
-      <div style={{ ...S.receber, textAlign: 'center' }}>
-        <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center' }}><Icon name="check" size={44} /></div>
-        <div style={S.receberTit}>{t('Enviado!', '¡Enviado!')}</div>
+      <div style={{ textAlign: 'center', padding: '30px 10px' }}>
+        <div style={{ color: '#16A34A', display: 'flex', justifyContent: 'center' }}><Icon name="check" size={54} /></div>
+        <div style={{ ...S.receberTit, marginTop: 12 }}>{t('Enviado!', '¡Enviado!')}</div>
         <div style={S.receberSub}>{t('Confira o seu protocolo no', 'Revisa tu protocolo en el')} {canal === 'whatsapp' ? 'WhatsApp' : t('e-mail', 'e-mail')}.</div>
       </div>
     );
   }
 
   return (
-    <div style={S.receber}>
-      <div style={S.receberTit}>{t('Receba o seu protocolo', 'Recibe tu protocolo')}</div>
-      <div style={S.receberSub}>{t('Enviamos o PDF completo para você guardar.', 'Te enviamos el PDF completo para guardar.')}</div>
+    <div>
+      <div style={{ textAlign: 'center', marginBottom: 6 }}>
+        <div style={S.receberTit}>{t('Leve o seu protocolo', 'Llévate tu protocolo')}</div>
+        <div style={S.receberSub}>{t('Enviamos o PDF completo para você guardar.', 'Te enviamos el PDF completo para guardar.')}</div>
+      </div>
 
       <div style={S.tabs}>
         <button onClick={() => { setCanal('whatsapp'); setErro(''); }} style={{ ...S.tab, ...(canal === 'whatsapp' ? S.tabOn : {}) }}><Icon name="whatsapp" size={18} /> WhatsApp</button>
-        <button onClick={() => { setCanal('email'); setErro(''); setFoco('nome'); }} style={{ ...S.tab, ...(canal === 'email' ? S.tabOn : {}) }}><Icon name="mail" size={18} /> {t('E-mail', 'E-mail')}</button>
+        <button onClick={() => { setCanal('email'); setErro(''); }} style={{ ...S.tab, ...(canal === 'email' ? S.tabOn : {}) }}><Icon name="mail" size={18} /> {t('E-mail', 'E-mail')}</button>
       </div>
 
-      <input className="inp" placeholder={t('Seu nome', 'Tu nombre')} value={nome} onChange={(e) => { setErro(''); setNome(e.target.value); }} onFocus={() => setFoco('nome')} style={S.inp} />
+      <input className="inp" placeholder={t('Seu nome', 'Tu nombre')} value={nome} onChange={(e) => { setErro(''); setNome(e.target.value); }} style={S.inp} />
 
       {canal === 'whatsapp' ? (
         <>
@@ -607,15 +632,13 @@ function Receber({ t, idioma, respostas, montarDados, montarMensagem, erro, setE
                 <button key={p} onClick={() => { setPais(p); setTelefone(''); }} style={{ ...S.paisBtn, ...(pais === p ? S.paisOn : {}) }}>{PAISES[p].flag} +{PAISES[p].ddi}</button>
               ))}
             </div>
-            <div onClick={() => setFoco('tel')} style={{ ...S.telDisplay, ...(foco === 'tel' ? { borderColor: '#16A34A' } : {}) }}>
-              {telefone || <span style={{ color: '#C4CBD4' }}>{t('Número do WhatsApp', 'Número de WhatsApp')}</span>}
-            </div>
+            <div style={S.telDisplay}>{telefone || <span style={{ color: '#C4CBD4' }}>{t('WhatsApp', 'WhatsApp')}</span>}</div>
           </div>
           <div style={{ ...S.keypad, marginTop: 12 }}>
             {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => <button key={d} onClick={() => digitarTel(d)} style={S.key}>{d}</button>)}
             <div />
             <button onClick={() => digitarTel('0')} style={S.key}>0</button>
-            <button onClick={() => { setErro(''); setTelefone(telefone.slice(0, -1)); }} style={{ ...S.key, fontSize: 30 }}>⌫</button>
+            <button onClick={() => { setErro(''); setTelefone(telefone.slice(0, -1)); }} style={{ ...S.key, fontSize: 28 }}>⌫</button>
           </div>
         </>
       ) : (
@@ -635,53 +658,59 @@ const ESTILO = `
   .fade { animation: fadeUp .5s ease both; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   .pulse { animation: pulse 2.2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100% { transform: scale(1); box-shadow: 0 18px 40px rgba(22,163,74,.35); } 50% { transform: scale(1.03); box-shadow: 0 24px 60px rgba(22,163,74,.5); } }
+  @keyframes pulse { 0%,100% { transform: scale(1); box-shadow: 0 16px 36px rgba(22,163,74,.32); } 50% { transform: scale(1.03); box-shadow: 0 22px 54px rgba(22,163,74,.48); } }
   .spin { animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .totem-root, .totem-root * { -webkit-tap-highlight-color: transparent; }
+  .hidescroll::-webkit-scrollbar { display: none; }
+  .hidescroll { scrollbar-width: none; -ms-overflow-style: none; }
   .inp:focus { border-color: ${VERDE}; box-shadow: 0 0 0 4px rgba(22,163,74,.12); outline: none; }
+  .totem-range { -webkit-appearance: none; appearance: none; width: 100%; height: 14px; border-radius: 999px; margin-top: 14px; background: linear-gradient(90deg, ${VERDE} var(--p,50%), #E9ECEF var(--p,50%)); outline: none; }
+  .totem-range::-webkit-slider-thumb { -webkit-appearance: none; width: 42px; height: 42px; border-radius: 50%; background: #fff; border: 5px solid ${VERDE}; box-shadow: 0 3px 12px rgba(0,0,0,.18); cursor: pointer; }
+  .totem-range::-moz-range-thumb { width: 42px; height: 42px; border-radius: 50%; background: #fff; border: 5px solid ${VERDE}; box-shadow: 0 3px 12px rgba(0,0,0,.18); cursor: pointer; }
 `;
 
 const S: Record<string, React.CSSProperties> = {
-  root: { minHeight: '100vh', background: '#FBFBFA', color: '#0E1113', fontFamily: 'inherit', userSelect: 'none', WebkitUserSelect: 'none' },
+  root: { height: '100vh', overflow: 'hidden', background: '#FBFBFA', color: '#0E1113', fontFamily: 'inherit', userSelect: 'none', WebkitUserSelect: 'none' },
 
   // Atração
-  atracao: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 34px 56px', textAlign: 'center' },
+  atracao: { height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '36px 34px 44px', textAlign: 'center', cursor: 'pointer' },
   langTop: { alignSelf: 'flex-end', display: 'flex', gap: 8, background: '#fff', border: '1px solid #E7E7E7', borderRadius: 999, padding: 4 },
   langBtn: { padding: '10px 18px', fontSize: 16, fontWeight: 700, border: 'none', background: 'transparent', color: '#98A2B3', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit' },
   langOn: { background: VERDE, color: '#fff' },
-  atracaoMid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, maxWidth: 640 },
-  selo: { fontSize: 14, fontWeight: 800, letterSpacing: '.14em', color: '#15803D', background: '#EAF7EE', padding: '9px 18px', borderRadius: 999 },
-  hook: { fontSize: 46, fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.08, margin: 0, minHeight: 160, display: 'flex', alignItems: 'center' },
-  atracaoSub: { fontSize: 20, color: '#667085', lineHeight: 1.5, maxWidth: 540 },
-  atracaoBottom: { width: '100%', maxWidth: 640, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 },
+  atracaoMid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 22, maxWidth: 640 },
+  selo: { fontSize: 13.5, fontWeight: 800, letterSpacing: '.12em', color: '#15803D', background: '#EAF7EE', padding: '9px 18px', borderRadius: 999 },
+  hook: { fontSize: 44, fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.1, margin: 0, minHeight: 150, display: 'flex', alignItems: 'center' },
+  atracaoSub: { fontSize: 19, color: '#667085', lineHeight: 1.5, maxWidth: 520 },
+  hookDots: { display: 'flex', gap: 8, marginTop: 4 },
+  hookDot: { width: 9, height: 9, borderRadius: '50%', background: '#D9DCE1', transition: 'all .2s' },
+  hookDotOn: { background: VERDE, width: 24, borderRadius: 999 },
+  atracaoBottom: { width: '100%', maxWidth: 640, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 },
   cta: { width: '100%', padding: '26px', borderRadius: 22, background: VERDE, border: 'none', color: '#fff', fontFamily: 'inherit', fontSize: 26, fontWeight: 800, cursor: 'pointer' },
   toque: { fontSize: 15, color: '#98A2B3', fontWeight: 600 },
 
   // Wizard shell
-  tela: { minHeight: '100vh', display: 'flex', flexDirection: 'column', maxWidth: 680, margin: '0 auto', background: '#FBFBFA' },
-  topo: { position: 'sticky', top: 0, zIndex: 20, background: 'rgba(251,251,250,.92)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', padding: '16px 22px 12px', borderBottom: '1px solid #EEE' },
+  tela: { height: '100vh', display: 'flex', flexDirection: 'column', maxWidth: 680, margin: '0 auto', background: '#FBFBFA' },
+  topo: { flexShrink: 0, background: '#FBFBFA', padding: '16px 22px 12px', borderBottom: '1px solid #EEE' },
   topoRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   voltarBtn: { padding: '10px 16px', borderRadius: 999, background: '#fff', border: '1px solid #E4E4E4', color: '#344054', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' },
   passoNum: { fontSize: 15, fontWeight: 700, color: '#98A2B3' },
   barra: { height: 7, background: '#ECECEC', borderRadius: 999, marginTop: 12, overflow: 'hidden' },
   barraFill: { height: 7, background: VERDE, borderRadius: 999, transition: 'width .3s ease' },
-  conteudo: { flex: 1, padding: '26px 22px 40px' },
-  rodape: { position: 'sticky', bottom: 0, background: 'rgba(251,251,250,.94)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderTop: '1px solid #EDEDED', padding: 18 },
+  conteudo: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '22px 22px 32px', display: 'flex', flexDirection: 'column' },
+  rodape: { flexShrink: 0, background: '#FBFBFA', borderTop: '1px solid #EDEDED', padding: 18 },
   btnPrimario: { width: '100%', padding: '22px', borderRadius: 18, background: VERDE, border: 'none', color: '#fff', fontFamily: 'inherit', fontSize: 21, fontWeight: 800, cursor: 'pointer' },
 
-  passoTitulo: { fontSize: 32, fontWeight: 800, letterSpacing: '-.02em', margin: 0, lineHeight: 1.12 },
+  passoWrap: { flex: 1, display: 'flex', flexDirection: 'column' },
+  passoTitulo: { fontSize: 30, fontWeight: 800, letterSpacing: '-.02em', margin: 0, lineHeight: 1.12 },
   passoSub: { fontSize: 17, color: '#667085', marginTop: 8 },
-  blocoLabel: { fontSize: 15, fontWeight: 700, color: '#475467', marginBottom: 12 },
 
-  // Objetivos
-  objGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 },
-  objCard: { background: '#fff', border: '2px solid #ECECEC', borderRadius: 20, padding: 16, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, transition: 'border-color .15s, box-shadow .15s' },
-  objImgWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  objImg: { width: '78%', height: '78%', objectFit: 'contain' },
-  objCheck: { position: 'absolute', top: 8, right: 8, width: 34, height: 34, borderRadius: '50%', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  objLabel: { fontWeight: 700, fontSize: 18, letterSpacing: '-.01em' },
-  objDesc: { fontSize: 13.5, color: '#98A2B3', lineHeight: 1.35 },
+  // Objetivos (compacto, cabe em 1 tela)
+  objGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, height: '100%', alignContent: 'stretch' },
+  objCard: { background: '#fff', border: '2px solid #ECECEC', borderRadius: 18, padding: '12px 10px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 8, transition: 'border-color .15s, background .15s' },
+  objImgWrap: { position: 'relative', width: 96, height: 96, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  objImg: { width: '80%', height: '80%', objectFit: 'contain' },
+  objCheck: { position: 'absolute', top: 5, right: 5, width: 26, height: 26, borderRadius: '50%', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  objLabel: { fontWeight: 700, fontSize: 17, letterSpacing: '-.01em', lineHeight: 1.15 },
 
   // Opções em linha
   optCol: { display: 'grid', gap: 12 },
@@ -691,21 +720,20 @@ const S: Record<string, React.CSSProperties> = {
   optSub: { display: 'block', fontSize: 14.5, color: '#98A2B3', marginTop: 2 },
   radio: { width: 30, height: 30, borderRadius: '50%', border: '2px solid #D9DCE1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 },
 
-  // Sexo
-  sexoRow: { display: 'flex', gap: 10, marginBottom: 6, flexWrap: 'wrap' },
-  sexoBtn: { flex: 1, minWidth: 100, padding: '16px 12px', borderRadius: 14, border: '2px solid #ECECEC', background: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700, color: '#344054', cursor: 'pointer' },
+  // Dados: sexo + sliders
+  sexoRow: { display: 'flex', gap: 12, marginBottom: 22 },
+  sexoBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '20px 12px', borderRadius: 16, border: '2px solid #ECECEC', background: '#fff', fontFamily: 'inherit', fontSize: 18, fontWeight: 700, color: '#344054', cursor: 'pointer' },
   sexoBtnOn: { borderColor: VERDE, background: '#F0FAF3', color: '#15803D' },
+  sliderCard: { background: '#fff', border: '1px solid #ECECEC', borderRadius: 18, padding: '18px 20px', marginBottom: 14 },
+  sliderTop: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' },
+  sliderLabel: { fontSize: 16, fontWeight: 700, color: '#475467' },
+  sliderVal: { fontSize: 30, fontWeight: 800, color: '#0E1113', letterSpacing: '-.02em' },
+  sliderSuf: { fontSize: 16, fontWeight: 600, color: '#98A2B3' },
+  imcRow: { textAlign: 'center', fontSize: 16, color: '#475467', marginTop: 4, background: '#F2F7F4', borderRadius: 12, padding: '12px' },
 
-  // Medidas + keypad
-  medRow: { display: 'flex', gap: 10 },
-  medCampo: { flex: 1, background: '#fff', border: '2px solid #ECECEC', borderRadius: 16, padding: '14px 12px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
-  medCampoOn: { borderColor: VERDE, boxShadow: '0 0 0 4px rgba(22,163,74,.1)' },
-  medLabel: { display: 'block', fontSize: 13, fontWeight: 700, color: '#98A2B3', textTransform: 'uppercase', letterSpacing: '.04em' },
-  medValor: { display: 'block', fontSize: 26, fontWeight: 800, marginTop: 4 },
-  medSuf: { fontSize: 15, fontWeight: 600, color: '#98A2B3' },
-  imcRow: { textAlign: 'center', fontSize: 15, color: '#667085', marginTop: 14, background: '#F2F7F4', borderRadius: 10, padding: '8px' },
-  keypad: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 18 },
-  key: { height: 68, borderRadius: 16, border: '1px solid #EAEAEA', background: '#fff', fontFamily: 'inherit', fontSize: 26, fontWeight: 600, color: '#0E1113', cursor: 'pointer' },
+  // Keypad (telefone)
+  keypad: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 },
+  key: { height: 62, borderRadius: 14, border: '1px solid #EAEAEA', background: '#fff', fontFamily: 'inherit', fontSize: 24, fontWeight: 600, color: '#0E1113', cursor: 'pointer' },
 
   // Condições
   condGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
@@ -715,39 +743,53 @@ const S: Record<string, React.CSSProperties> = {
   condCheck: { position: 'absolute', top: 12, right: 12 },
 
   // Analisando
-  analisando: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, padding: 40, textAlign: 'center' },
+  analisando: { height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, padding: 40, textAlign: 'center' },
   spinner: { width: 72, height: 72, borderRadius: '50%', border: '6px solid #DCFCE7', borderTopColor: VERDE },
   analiseTit: { fontSize: 28, fontWeight: 800, letterSpacing: '-.02em' },
   analiseSub: { fontSize: 18, color: '#667085' },
 
-  // Resultado
-  resHead: { marginBottom: 18 },
+  // Resultado — carrossel
+  dotsRow: { display: 'flex', gap: 6, justifyContent: 'center', marginTop: 12 },
+  dot2: { width: 8, height: 8, borderRadius: '50%', background: '#D9DCE1', transition: 'all .2s' },
+  dot2On: { background: VERDE, width: 22, borderRadius: 999 },
+  carrossel: { flex: 1, minHeight: 0, display: 'flex', overflowX: 'auto', overflowY: 'hidden', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' },
+  slide: { flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', display: 'flex', flexDirection: 'column', padding: '10px 22px' },
+  slideInner: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 10 },
+  slideScroll: { flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: 10 },
+
   resBadge: { display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 800, letterSpacing: '.1em', color: '#7C3AED', background: '#F3EEFF', padding: '8px 14px', borderRadius: 999 },
   dot: { width: 8, height: 8, borderRadius: '50%', display: 'inline-block' },
-  resResumo: { fontSize: 16, color: '#475467', lineHeight: 1.55, marginTop: 12 },
+  introTit: { fontSize: 40, fontWeight: 800, letterSpacing: '-.03em', margin: '6px 0 0' },
+  introPerfil: { fontSize: 16, color: '#98A2B3' },
+  introResumo: { fontSize: 17, color: '#475467', lineHeight: 1.55, maxWidth: 520 },
+  introCount: { fontSize: 15, fontWeight: 700, color: '#15803D', background: '#EAF7EE', padding: '10px 18px', borderRadius: 999, marginTop: 6 },
+  swipeHint: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, color: '#98A2B3', fontWeight: 600, marginTop: 18 },
+
+  pepNumero: { fontSize: 14, fontWeight: 700, color: '#98A2B3', marginBottom: 8 },
+  pepTopo: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  pepIcon: { width: 66, height: 66, borderRadius: 16, background: '#F2F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16A34A', overflow: 'hidden' },
+  pepIconImg: { width: '100%', height: '100%', objectFit: 'cover' },
+  pepBadge: { fontSize: 13, fontWeight: 800, padding: '7px 14px', borderRadius: 999 },
+  pepNome: { fontSize: 30, fontWeight: 800, letterSpacing: '-.02em', margin: 0, lineHeight: 1.1 },
+  pepMec: { fontSize: 16, color: '#667085', lineHeight: 1.45, marginTop: 6 },
+  doseGrande: { background: '#F7FAF8', border: '1px solid #E3F0E8', borderRadius: 18, padding: '18px 20px', marginTop: 16, textAlign: 'center' },
+  doseLbl: { fontSize: 13, fontWeight: 700, color: '#98A2B3', textTransform: 'uppercase', letterSpacing: '.06em' },
+  doseVal: { fontSize: 30, fontWeight: 800, marginTop: 4, color: '#0B7A3B' },
+  doseUI: { fontSize: 18, fontWeight: 800, color: '#15803D', marginTop: 4 },
+  doseInfo: { fontSize: 15, color: '#667085', marginTop: 6 },
+  pepBloco: { background: '#F0FAF3', borderRadius: 16, padding: '14px 16px', fontSize: 16, color: '#344054', lineHeight: 1.5, marginTop: 12 },
+  pepBlocoTit: { display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.04em', color: '#15803D', marginBottom: 6 },
+
   aviso: { background: '#FFFBEB', border: '1px solid #FDE68A', color: '#92400E', borderRadius: 14, padding: '14px 16px', fontSize: 15, lineHeight: 1.5, marginBottom: 12 },
   bloqueado: { textAlign: 'center', color: '#16A34A', background: '#fff', border: '1px solid #ECECEC', borderRadius: 18, padding: '36px 24px', fontSize: 16, maxWidth: 460, margin: '0 auto' },
-
-  pepCard: { background: '#fff', border: '1px solid #ECECEC', borderRadius: 20, padding: 18 },
-  pepHead: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 },
-  pepIcon: { width: 56, height: 56, borderRadius: 14, background: '#F2F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16A34A', flexShrink: 0, overflow: 'hidden' },
-  pepIconImg: { width: '100%', height: '100%', objectFit: 'cover' },
-  pepNome: { fontWeight: 800, fontSize: 21, letterSpacing: '-.02em' },
-  pepMec: { fontSize: 14.5, color: '#667085', lineHeight: 1.4 },
-  pepBadge: { fontSize: 12.5, fontWeight: 800, padding: '6px 12px', borderRadius: 999, flexShrink: 0 },
-  pepBloco: { background: '#F0FAF3', borderRadius: 14, padding: '12px 14px', fontSize: 15, color: '#344054', lineHeight: 1.5, marginTop: 10 },
-  pepBlocoTit: { display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.04em', color: '#15803D', marginBottom: 5 },
-  doseRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginTop: 14, background: '#F7FAF8', border: '1px solid #E3F0E8', borderRadius: 14, padding: '14px 16px' },
-  doseLbl: { fontSize: 12, fontWeight: 700, color: '#98A2B3', textTransform: 'uppercase', letterSpacing: '.04em' },
-  doseVal: { fontSize: 19, fontWeight: 800, marginTop: 3 },
-  doseUI: { fontSize: 14.5, fontWeight: 800, color: '#0B7A3B', marginTop: 3 },
-  doseUI2: { fontSize: 13, color: '#98A2B3', marginTop: 3 },
-
   novoBtn: { width: '100%', marginTop: 24, padding: '18px', borderRadius: 16, background: '#fff', border: '1px solid #E4E4E4', color: '#344054', fontFamily: 'inherit', fontSize: 17, fontWeight: 700, cursor: 'pointer' },
 
+  navRow: { flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12, padding: 18, borderTop: '1px solid #EDEDED', background: '#FBFBFA' },
+  navBtn: { width: 60, height: 60, flexShrink: 0, borderRadius: 16, border: '1px solid #E4E4E4', background: '#fff', color: '#344054', fontSize: 28, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  navProximo: { flex: 1, padding: '20px', borderRadius: 16, background: VERDE, border: 'none', color: '#fff', fontFamily: 'inherit', fontSize: 19, fontWeight: 800, cursor: 'pointer' },
+
   // Receber
-  receber: { background: '#fff', border: '2px solid #E3F0E8', borderRadius: 22, padding: 22, marginTop: 24 },
-  receberTit: { fontWeight: 800, fontSize: 22, letterSpacing: '-.01em' },
+  receberTit: { fontWeight: 800, fontSize: 24, letterSpacing: '-.01em' },
   receberSub: { fontSize: 15.5, color: '#667085', marginTop: 4 },
   tabs: { display: 'flex', gap: 10, margin: '16px 0' },
   tab: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', borderRadius: 14, border: '2px solid #ECECEC', background: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700, color: '#667085', cursor: 'pointer' },
