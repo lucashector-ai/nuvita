@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ObjectiveKey } from '@/types';
 import NuvitaLogo from '@/components/ui/NuvitaLogo';
 import Icon from '@/components/farmacia/Icon';
@@ -171,20 +171,13 @@ export default function TotemPage() {
 
   const imc = useMemo(() => calcularIMC(Number(peso), Number(altura)), [peso, altura]);
 
+  // Volta ao início SOMENTE por ação explícita (Voltar na etapa 1, Encerrar ou
+  // Novo diagnóstico). Nunca reinicia sozinho — o fluxo vai até o fim.
   const reiniciar = useCallback(() => {
     setObjetivos([]); setNivel(''); setSexo(''); setIdade(''); setPeso(''); setAltura('');
     setAtividade(''); setSono(''); setCondicoes([]); setRec(null); setErro(''); setPasso(1);
     setTela('atracao');
   }, []);
-
-  // Auto-reset por inatividade (não na atração nem analisando).
-  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const agendarReset = useCallback(() => {
-    if (resetTimer.current) clearTimeout(resetTimer.current);
-    if (tela === 'atracao' || tela === 'analisando') return;
-    resetTimer.current = setTimeout(() => reiniciar(), 120_000);
-  }, [tela, reiniciar]);
-  useEffect(() => { agendarReset(); return () => { if (resetTimer.current) clearTimeout(resetTimer.current); }; }, [agendarReset, passo]);
 
   const comecar = () => { reiniciar(); setTela('wizard'); setPasso(1); };
 
@@ -241,7 +234,7 @@ export default function TotemPage() {
   const pct = Math.round((passo / PASSOS) * 100);
 
   return (
-    <div style={S.root} onPointerDown={agendarReset}>
+    <div style={S.root}>
       <style>{ESTILO}</style>
 
       {tela === 'atracao' && <Atracao t={t} idioma={idioma} trocarIdioma={trocarIdioma} onComecar={comecar} />}
