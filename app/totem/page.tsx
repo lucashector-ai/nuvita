@@ -506,19 +506,17 @@ function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, m
               </div>
             </div>
 
-            {/* Um slide por peptídeo */}
+            {/* Um slide por peptídeo — resumo rápido (detalhes completos no PDF) */}
             {itens.map((it: any, i: number) => {
               const img = pepImg(it.peptide.n);
               const ui = doseUISeringa(it.peptide.n, it.dose, it.peptide.route);
               const pr = PRIO[it.prioridade as keyof typeof PRIO] || PRIO.opcional;
               return (
                 <div key={it.peptide.n} style={S.slide}>
-                  <div style={S.slideScroll} className="hidescroll">
+                  <div style={S.slideInner}>
                     <div style={S.pepNumero}>{i + 1} / {itens.length}</div>
-                    <div style={S.pepTopo}>
-                      <span style={S.pepIcon}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={34} />}</span>
-                      <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
-                    </div>
+                    <span style={S.pepIconBig}>{img ? <img src={img} alt="" style={S.pepIconImg} /> : <Icon name="pill" size={44} />}</span>
+                    <span style={{ ...S.pepBadge, background: pr.bg, color: pr.tx }}>{idioma === 'es' ? pr.le : pr.label}</span>
                     <h2 style={S.pepNome}>{it.peptide.n}</h2>
                     <p style={S.pepMec}>{it.peptide.m}</p>
 
@@ -529,8 +527,7 @@ function Resultado({ rec, idioma, t, respostas, imc, onReiniciar, montarDados, m
                       <div style={S.doseInfo}>{it.peptide.freq} · {it.peptide.route}</div>
                     </div>
 
-                    {it.motivo && <div style={S.pepBloco}><span style={S.pepBlocoTit}><Icon name="bulb" size={14} /> {t('Por que para você', 'Por qué para ti')}</span>{it.motivo}</div>}
-                    {it.comoUsar && <div style={{ ...S.pepBloco, background: '#F6F7F9' }}><span style={{ ...S.pepBlocoTit, color: '#475467' }}><Icon name="clipboard" size={14} /> {t('Como usar', 'Cómo usar')}</span>{it.comoUsar}</div>}
+                    <div style={S.pdfHint}><Icon name="clipboard" size={15} /> {t('Como usar e todos os detalhes vão no seu PDF', 'Cómo usar y todos los detalles van en tu PDF')}</div>
                   </div>
                 </div>
               );
@@ -768,15 +765,17 @@ const S: Record<string, React.CSSProperties> = {
   pepNumero: { fontSize: 14, fontWeight: 700, color: '#98A2B3', marginBottom: 8 },
   pepTopo: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   pepIcon: { width: 66, height: 66, borderRadius: 16, background: '#F2F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16A34A', overflow: 'hidden' },
+  pepIconBig: { width: 104, height: 104, borderRadius: 24, background: '#F2F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16A34A', overflow: 'hidden' },
   pepIconImg: { width: '100%', height: '100%', objectFit: 'cover' },
   pepBadge: { fontSize: 13, fontWeight: 800, padding: '7px 14px', borderRadius: 999 },
-  pepNome: { fontSize: 30, fontWeight: 800, letterSpacing: '-.02em', margin: 0, lineHeight: 1.1 },
-  pepMec: { fontSize: 16, color: '#667085', lineHeight: 1.45, marginTop: 6 },
-  doseGrande: { background: '#F7FAF8', border: '1px solid #E3F0E8', borderRadius: 18, padding: '18px 20px', marginTop: 16, textAlign: 'center' },
+  pepNome: { fontSize: 32, fontWeight: 800, letterSpacing: '-.02em', margin: 0, lineHeight: 1.1 },
+  pepMec: { fontSize: 16.5, color: '#667085', lineHeight: 1.45, maxWidth: 460 },
+  doseGrande: { alignSelf: 'stretch', background: '#F7FAF8', border: '1px solid #E3F0E8', borderRadius: 18, padding: '20px', marginTop: 6, textAlign: 'center' },
   doseLbl: { fontSize: 13, fontWeight: 700, color: '#98A2B3', textTransform: 'uppercase', letterSpacing: '.06em' },
-  doseVal: { fontSize: 30, fontWeight: 800, marginTop: 4, color: '#0B7A3B' },
-  doseUI: { fontSize: 18, fontWeight: 800, color: '#15803D', marginTop: 4 },
+  doseVal: { fontSize: 34, fontWeight: 800, marginTop: 4, color: '#0B7A3B' },
+  doseUI: { fontSize: 19, fontWeight: 800, color: '#15803D', marginTop: 4 },
   doseInfo: { fontSize: 15, color: '#667085', marginTop: 6 },
+  pdfHint: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 14.5, color: '#98A2B3', fontWeight: 600, marginTop: 6, maxWidth: 420, lineHeight: 1.4, justifyContent: 'center' },
   pepBloco: { background: '#F0FAF3', borderRadius: 16, padding: '14px 16px', fontSize: 16, color: '#344054', lineHeight: 1.5, marginTop: 12 },
   pepBlocoTit: { display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.04em', color: '#15803D', marginBottom: 6 },
 
