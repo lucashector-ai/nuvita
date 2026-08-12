@@ -14,7 +14,7 @@ const perKg      = (base: number, unit: string) =>
 const BPC157: Peptide = {
   n: 'BPC-157', m: 'Regeneração tecidual, gut healing, tendões e ligamentos',
   e: '🔄', why: 'Acelera a recuperação de lesões e melhora a integridade intestinal',
-  freq: 'Diário', timing: 'Manhã, em jejum', route: 'SC ou oral',
+  freq: 'Diário', timing: 'Manhã, em jejum', route: 'Injeção',
   cycle: '8–12 semanas', rest: '4–8 semanas',
   how: 'Reconstituir com água bacteriostática. Armazenar refrigerado.',
   ck: true, doseStr: fixedDose('250–500 mcg'),
@@ -23,7 +23,7 @@ const BPC157: Peptide = {
 const TB500: Peptide = {
   n: 'TB-500', m: 'Reparo muscular, anti-inflamatório, regeneração tecidual sistêmica',
   e: '💪', why: 'Promove cicatrização e reduz inflamação crônica',
-  freq: '2x/semana', timing: 'Qualquer horário', route: 'SC',
+  freq: '2x/semana', timing: 'Qualquer horário', route: 'Injeção',
   cycle: '4–6 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática. Dose total semanal dividida em 2 aplicações.',
   ck: true, doseStr: fixedDose('2–2,5 mg'),
@@ -32,7 +32,7 @@ const TB500: Peptide = {
 const IPAMORELIN: Peptide = {
   n: 'Ipamorelin', m: 'Secretagogo de GH, melhora sono, composição corporal e recuperação',
   e: '🌙', why: 'Estimula liberação pulsátil de GH sem impacto no cortisol',
-  freq: 'Diário', timing: 'Antes de dormir, jejum de 2h', route: 'SC',
+  freq: 'Diário', timing: 'Antes de dormir, jejum de 2h', route: 'Injeção',
   cycle: '8–12 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática. Aplicar 30–60 min antes de dormir.',
   ck: true, doseStr: fixedDose('200–300 mcg'),
@@ -41,7 +41,7 @@ const IPAMORELIN: Peptide = {
 const TIRZEPATIDE: Peptide = {
   n: 'Tirzepatide', m: 'Agonista duplo GIP+GLP-1 — emagrecimento, saciedade, controle glicêmico',
   e: '🔥', why: 'O mais eficaz disponível para perda de gordura — reduz apetite, estimula lipólise e melhora metabolismo',
-  freq: '1x/semana', timing: 'Mesmo dia da semana', route: 'SC',
+  freq: '1x/semana', timing: 'Mesmo dia da semana', route: 'Injeção',
   cycle: '12–24 semanas', rest: 'A critério médico',
   how: 'Dose inicial 2,5 mg/semana com titulação gradual a cada 4 semanas. Supervisão médica recomendada.',
   ck: true, doseStr: fixedDose('2,5–15 mg/sem'),
@@ -50,7 +50,7 @@ const TIRZEPATIDE: Peptide = {
 const SEMAGLUTIDE: Peptide = {
   n: 'Semaglutide', m: 'Agonista GLP-1 — saciedade, perda de gordura, controle glicêmico',
   e: '🔥', why: 'Reduz apetite e estimula lipólise seletiva',
-  freq: '1x/semana', timing: 'Mesmo dia da semana', route: 'SC',
+  freq: '1x/semana', timing: 'Mesmo dia da semana', route: 'Injeção',
   cycle: '12–24 semanas', rest: 'A critério médico',
   how: 'Dose inicial baixa com titulação gradual. Supervisão médica recomendada.',
   ck: true, doseStr: fixedDose('0,25–2,4 mg/sem'),
@@ -59,7 +59,7 @@ const SEMAGLUTIDE: Peptide = {
 const AOD9604: Peptide = {
   n: 'AOD-9604', m: 'Fragmento do GH lipolítico — queima gordura sem efeitos anabólicos',
   e: '🏃', why: 'Estimula lipólise sem alterar glicemia ou crescimento',
-  freq: 'Diário', timing: 'Manhã, jejum', route: 'SC',
+  freq: 'Diário', timing: 'Manhã, jejum', route: 'Injeção',
   cycle: '8–12 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática. Aplicar em jejum de 2h.',
   ck: true, doseStr: fixedDose('300 mcg'),
@@ -68,7 +68,7 @@ const AOD9604: Peptide = {
 const IGF1LR3: Peptide = {
   n: 'IGF-1 LR3', m: 'Fator de crescimento análogo — hipertrofia muscular, síntese proteica',
   e: '🏋️', why: 'Potencializa síntese proteica e favorece hipertrofia muscular',
-  freq: '5x/semana', timing: 'Pós-treino', route: 'SC ou IM',
+  freq: '5x/semana', timing: 'Pós-treino', route: 'Injeção',
   cycle: '4–6 semanas', rest: '4–6 semanas',
   how: 'Diluir em água bacteriostática acidificada (ácido acético 0,6%). Aplicar pós-treino.',
   ck: true, doseStr: perKg(1, 'mcg'),
@@ -77,7 +77,7 @@ const IGF1LR3: Peptide = {
 const EPITALON: Peptide = {
   n: 'Epithalamin (Epitalon)', m: 'Tetra-peptídeo pineal — telômeros, sono, longevidade',
   e: '🌟', why: 'Estimula telomerase e melhora qualidade do sono profundo',
-  freq: 'Protocolo de carga', timing: '1–2x/dia por 10–20 dias', route: 'SC',
+  freq: 'Protocolo de carga', timing: '1–2x/dia por 10–20 dias', route: 'Injeção',
   cycle: '10–20 dias', rest: '6–12 meses',
   how: 'Protocolo de carga: 10 dias consecutivos, 2x/dia. Reconstituir em água bacteriostática.',
   ck: true, doseStr: fixedDose('5–10 mg/dia'),
@@ -86,7 +86,7 @@ const EPITALON: Peptide = {
 const THYMOSIN_A1: Peptide = {
   n: 'Timalfasina (Thymosin α1)', m: 'Imunomodulador — resposta imune, antiviral, longevidade',
   e: '🛡️', why: 'Regula o sistema imune e melhora a resposta a infecções',
-  freq: '2x/semana', timing: 'Qualquer horário', route: 'SC',
+  freq: '2x/semana', timing: 'Qualquer horário', route: 'Injeção',
   cycle: '8–12 semanas', rest: '4–6 semanas',
   how: 'Reconstituir com água bacteriostática. Estável 5–7 dias refrigerado.',
   ck: true, doseStr: fixedDose('1,6 mg'),
@@ -95,16 +95,16 @@ const THYMOSIN_A1: Peptide = {
 const GHK_CU: Peptide = {
   n: 'GHK-Cu (Tripeptídeo de cobre)', m: 'Síntese de colágeno, wound healing, antienvelhecimento dérmico',
   e: '✨', why: 'Estimula colágeno, elastina e regeneração celular na pele',
-  freq: 'Diário', timing: 'Noite (uso tópico ou SC)', route: 'Tópico ou SC',
+  freq: 'Diário', timing: 'À noite', route: 'Injeção',
   cycle: '8–16 semanas', rest: '4 semanas',
-  how: 'Tópico: aplicar no rosto após limpeza. SC: reconstituir em água bacteriostática.',
-  ck: true, doseStr: fixedDose('1–2 mg/dia (SC) ou 2–5% (tópico)'),
+  how: 'Reconstituir em água bacteriostática e aplicar no subcutâneo.',
+  ck: true, doseStr: fixedDose('1–2 mg/dia'),
 };
 
 const SEMAX: Peptide = {
   n: 'Semax', m: 'Neuropeptídeo — BDNF, foco, memória, neuroproteção',
   e: '🧠', why: 'Aumenta BDNF e dopamina, melhorando cognição e foco',
-  freq: 'Diário', timing: 'Manhã', route: 'Intranasal',
+  freq: 'Diário', timing: 'Manhã', route: 'Injeção',
   cycle: '2–4 semanas', rest: '2 semanas',
   how: 'Gotas nasais: 1–3 gotas por narina. Preparação de 0,1% mais comum.',
   ck: true, doseStr: fixedDose('200–600 mcg/dia'),
@@ -113,7 +113,7 @@ const SEMAX: Peptide = {
 const SELANK: Peptide = {
   n: 'Selank', m: 'Ansiolítico nootropico — GABA, memória, resistência ao estresse',
   e: '🧘', why: 'Reduz ansiedade sem sedação, melhora memória de trabalho',
-  freq: 'Conforme necessidade', timing: 'Manhã ou ao sentir estresse', route: 'Intranasal',
+  freq: 'Conforme necessidade', timing: 'Manhã ou ao sentir estresse', route: 'Injeção',
   cycle: '2–4 semanas', rest: '2 semanas',
   how: 'Gotas nasais: 2–3 gotas por narina. Solução de 0,15%.',
   ck: false, doseStr: fixedDose('250–500 mcg/dia'),
@@ -122,7 +122,7 @@ const SELANK: Peptide = {
 const DSIP: Peptide = {
   n: 'DSIP (Delta Sleep-Inducing Peptide)', m: 'Regulação do sono, sono delta, normalização circadiana',
   e: '😴', why: 'Aumenta sono delta (profundo) e normaliza ritmo circadiano',
-  freq: '3x/semana', timing: '30 min antes de dormir', route: 'SC',
+  freq: '3x/semana', timing: '30 min antes de dormir', route: 'Injeção',
   cycle: '4–8 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática. Aplicar 30 min antes de dormir.',
   ck: true, doseStr: fixedDose('100–200 mcg'),
@@ -131,9 +131,9 @@ const DSIP: Peptide = {
 const PT141: Peptide = {
   n: 'PT-141 (Bremelanotida)', m: 'Receptor MC4R — libido, disfunção sexual, hormônios',
   e: '⚗️', why: 'Atua no SNC para melhorar libido e função sexual em ambos os sexos',
-  freq: 'Conforme necessidade', timing: '1–4h antes da atividade sexual', route: 'SC ou Intranasal',
+  freq: 'Conforme necessidade', timing: '1–4h antes da atividade sexual', route: 'Injeção',
   cycle: 'Conforme necessidade', rest: 'Não aplicável',
-  how: 'SC: 1–2 mg. Intranasal: 2 mg. Pode causar rubor facial transitório.',
+  how: 'Aplicar 1–2 mg no subcutâneo. Pode causar rubor facial transitório.',
   ck: false, doseStr: fixedDose('1–2 mg'),
 };
 
@@ -141,7 +141,7 @@ const PT141: Peptide = {
 const RETATRUTIDE: Peptide = {
   n: 'Retatrutide', m: 'Triplo agonista GIP+GLP-1+glucagon — emagrecimento potente',
   e: '🔥', why: 'Agonista triplo, potencialmente mais eficaz que o Tirzepatide para perda de gordura',
-  freq: '1x/semana', timing: 'Mesmo dia da semana', route: 'SC',
+  freq: '1x/semana', timing: 'Mesmo dia da semana', route: 'Injeção',
   cycle: '12–24 semanas', rest: 'A critério médico',
   how: 'Dose inicial baixa com titulação gradual. Nunca combinar com outro agonista GLP-1. Supervisão médica.',
   ck: true, doseStr: fixedDose('0,5–2 mg/sem (titular)'),
@@ -149,7 +149,7 @@ const RETATRUTIDE: Peptide = {
 const TESAMORELIN: Peptide = {
   n: 'Tesamorelin', m: 'Análogo de GHRH — reduz gordura visceral e eleva GH',
   e: '🔥', why: 'Reduz gordura visceral e melhora a composição corporal via GH',
-  freq: 'Diário', timing: 'Antes de dormir', route: 'SC',
+  freq: 'Diário', timing: 'Antes de dormir', route: 'Injeção',
   cycle: '12–24 semanas', rest: '4–8 semanas',
   how: 'Reconstituir com água bacteriostática. Aplicar à noite, em jejum.',
   ck: true, doseStr: fixedDose('1–2 mg/dia'),
@@ -157,7 +157,7 @@ const TESAMORELIN: Peptide = {
 const SS31: Peptide = {
   n: 'SS-31 (Elamipretide)', m: 'Peptídeo mitocondrial — energia celular e longevidade',
   e: '⚡', why: 'Protege a mitocôndria, melhora energia e marcadores de envelhecimento',
-  freq: 'Diário', timing: 'Manhã', route: 'SC',
+  freq: 'Diário', timing: 'Manhã', route: 'Injeção',
   cycle: '4–8 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática. Manter refrigerado.',
   ck: true, doseStr: fixedDose('5–10 mg/dia'),
@@ -165,7 +165,7 @@ const SS31: Peptide = {
 const SLUPP332: Peptide = {
   n: 'SLU-PP-332', m: 'Mimético de exercício (agonista ERR) — queima de gordura e resistência',
   e: '🏃', why: 'Ativa vias do exercício, aumentando gasto energético e oxidação de gordura',
-  freq: 'Diário', timing: 'Manhã / pré-treino', route: 'SC',
+  freq: 'Diário', timing: 'Manhã / pré-treino', route: 'Injeção',
   cycle: '6–8 semanas', rest: '4 semanas',
   how: 'Uso de pesquisa. Seguir orientação profissional.',
   ck: false, doseStr: fixedDose('~500 mcg/dia (referência)'),
@@ -173,7 +173,7 @@ const SLUPP332: Peptide = {
 const NADPLUS: Peptide = {
   n: 'NAD+', m: 'Coenzima — energia celular, reparo de DNA e longevidade',
   e: '⚡', why: 'Repõe NAD+ celular, melhorando energia, foco e sinais de envelhecimento',
-  freq: '2–3x/semana', timing: 'Manhã', route: 'SC ou IV',
+  freq: '2–3x/semana', timing: 'Manhã', route: 'Injeção',
   cycle: '4–8 semanas', rest: '4 semanas',
   how: 'Aplicação lenta (pode causar rubor/flush). Reconstituir conforme fabricante.',
   ck: true, doseStr: fixedDose('100–300 mg/dia'),
@@ -181,7 +181,7 @@ const NADPLUS: Peptide = {
 const MOTSC: Peptide = {
   n: 'MOTS-c', m: 'Peptídeo mitocondrial — metabolismo, sensibilidade à insulina e energia',
   e: '⚡', why: 'Melhora metabolismo, sensibilidade à insulina e disposição',
-  freq: '2–3x/semana', timing: 'Manhã', route: 'SC',
+  freq: '2–3x/semana', timing: 'Manhã', route: 'Injeção',
   cycle: '4–8 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática.',
   ck: true, doseStr: fixedDose('5–10 mg/semana'),
@@ -189,7 +189,7 @@ const MOTSC: Peptide = {
 const MELANOTAN: Peptide = {
   n: 'Melanotan II', m: 'Bronzeamento e libido — análogo de α-MSH',
   e: '🌞', why: 'Estimula melanina (bronzeado) e melhora a libido',
-  freq: 'Conforme protocolo', timing: 'Noite', route: 'SC',
+  freq: 'Conforme protocolo', timing: 'Noite', route: 'Injeção',
   cycle: 'Carga + manutenção', rest: 'Conforme necessidade',
   how: 'Dose de carga baixa, aumentar gradualmente. Pode causar náusea e escurecer pintas.',
   ck: true, doseStr: fixedDose('250–500 mcg/dia (carga)'),
@@ -197,7 +197,7 @@ const MELANOTAN: Peptide = {
 const KPV: Peptide = {
   n: 'KPV', m: 'Anti-inflamatório — intestino, pele e inflamação sistêmica',
   e: '🛡️', why: 'Tripeptídeo derivado do α-MSH com forte ação anti-inflamatória',
-  freq: 'Diário', timing: 'Qualquer horário', route: 'SC ou oral',
+  freq: 'Diário', timing: 'Qualquer horário', route: 'Injeção',
   cycle: '4–8 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática.',
   ck: true, doseStr: fixedDose('200–500 mcg/dia'),
@@ -205,7 +205,7 @@ const KPV: Peptide = {
 const KLOW: Peptide = {
   n: 'KLOW (blend)', m: 'Blend GHK-Cu + BPC-157 + TB-500 + KPV — reparo, pele e anti-inflamatório',
   e: '✨', why: 'Combina cicatrização, colágeno e ação anti-inflamatória num só protocolo',
-  freq: 'Diário', timing: 'Manhã', route: 'SC',
+  freq: 'Diário', timing: 'Manhã', route: 'Injeção',
   cycle: '4–8 semanas', rest: '4 semanas',
   how: 'Reconstituir o frasco do blend conforme o fabricante e aplicar 1x/dia.',
   ck: true, doseStr: fixedDose('conforme reconstituição do blend'),
@@ -213,7 +213,7 @@ const KLOW: Peptide = {
 const KISSPEPTIN: Peptide = {
   n: 'Kisspeptin-10', m: 'Hormonal — estimula LH/testosterona, libido e fertilidade',
   e: '⚗️', why: 'Estimula o eixo hormonal (LH), apoiando testosterona, libido e fertilidade',
-  freq: '2–3x/semana', timing: 'Manhã', route: 'SC',
+  freq: '2–3x/semana', timing: 'Manhã', route: 'Injeção',
   cycle: '4–8 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática.',
   ck: true, doseStr: fixedDose('50–100 mcg'),
@@ -221,7 +221,7 @@ const KISSPEPTIN: Peptide = {
 const HGH: Peptide = {
   n: 'HGH (Somatropina)', m: 'Hormônio do crescimento — massa, recuperação e longevidade',
   e: '🏋️', why: 'GH exógeno — favorece massa magra, recuperação e queima de gordura',
-  freq: 'Diário', timing: 'Antes de dormir ou pós-treino', route: 'SC',
+  freq: 'Diário', timing: 'Antes de dormir ou pós-treino', route: 'Injeção',
   cycle: '12–24 semanas', rest: 'A critério médico',
   how: 'Reconstituir e refrigerar. Iniciar em dose baixa. Supervisão médica.',
   ck: true, doseStr: fixedDose('1–4 UI/dia'),
@@ -229,7 +229,7 @@ const HGH: Peptide = {
 const HGHFRAG: Peptide = {
   n: 'HGH Fragment 176-191', m: 'Fragmento lipolítico do GH — queima de gordura',
   e: '🏃', why: 'Estimula a lipólise sem afetar glicemia ou crescimento (como o AOD-9604)',
-  freq: 'Diário', timing: 'Manhã, jejum', route: 'SC',
+  freq: 'Diário', timing: 'Manhã, jejum', route: 'Injeção',
   cycle: '8–12 semanas', rest: '4 semanas',
   how: 'Aplicar em jejum de 2h. Reconstituir com água bacteriostática.',
   ck: true, doseStr: fixedDose('250–500 mcg'),
@@ -237,7 +237,7 @@ const HGHFRAG: Peptide = {
 const GLOW: Peptide = {
   n: 'GLOW (blend)', m: 'Blend GHK-Cu + BPC-157 + TB-500 — pele, recuperação e anti-idade',
   e: '✨', why: 'Estimula colágeno e cicatrização — pele e recuperação num protocolo só',
-  freq: 'Diário', timing: 'Manhã', route: 'SC',
+  freq: 'Diário', timing: 'Manhã', route: 'Injeção',
   cycle: '4–8 semanas', rest: '4 semanas',
   how: 'Reconstituir o frasco do blend conforme o fabricante e aplicar 1x/dia.',
   ck: true, doseStr: fixedDose('conforme reconstituição do blend'),
@@ -245,7 +245,7 @@ const GLOW: Peptide = {
 const FOLLISTATIN: Peptide = {
   n: 'Follistatin-332', m: 'Inibidor de miostatina — crescimento muscular',
   e: '💪', why: 'Bloqueia a miostatina, favorecendo ganho de massa muscular',
-  freq: 'Diário', timing: 'Pós-treino', route: 'SC',
+  freq: 'Diário', timing: 'Pós-treino', route: 'Injeção',
   cycle: '2–4 semanas', rest: '4–6 semanas',
   how: 'Uso avançado. Reconstituir com água bacteriostática.',
   ck: true, doseStr: fixedDose('~100 mcg/dia (referência)'),
@@ -253,23 +253,23 @@ const FOLLISTATIN: Peptide = {
 const CBL514: Peptide = {
   n: 'CBL-514', m: 'Redução de gordura localizada — apoptose de adipócitos',
   e: '🔥', why: 'Injeção localizada que reduz a gordura subcutânea na área aplicada',
-  freq: 'Sessões espaçadas', timing: 'Conforme protocolo', route: 'SC (localizado)',
+  freq: 'Sessões espaçadas', timing: 'Conforme protocolo', route: 'Injeção',
   cycle: 'Séries de sessões', rest: 'Conforme protocolo',
   how: 'Aplicação localizada na área a tratar. Seguir protocolo profissional.',
   ck: false, doseStr: fixedDose('conforme protocolo (localizado)'),
 };
 const AMINO1MQ: Peptide = {
-  n: '5-Amino-1MQ', m: 'Inibidor de NNMT (oral) — metabolismo e queima de gordura',
+  n: '5-Amino-1MQ', m: 'Inibidor de NNMT — metabolismo e queima de gordura',
   e: '💊', why: 'Inibe a NNMT, aumentando o metabolismo e favorecendo a perda de gordura',
-  freq: 'Diário', timing: 'Manhã', route: 'Oral',
+  freq: 'Diário', timing: 'Manhã', route: 'Injeção',
   cycle: '8–12 semanas', rest: '4 semanas',
-  how: 'Cápsula oral. Tomar pela manhã.',
+  how: 'Reconstituir e aplicar no subcutâneo, pela manhã.',
   ck: true, doseStr: fixedDose('50–150 mg/dia'),
 };
 const TB500BPC: Peptide = {
   n: 'TB-500 + BPC-157 (blend)', m: 'Blend de recuperação — reparo tecidual sinérgico',
   e: '🔄', why: 'Une BPC-157 e TB-500 para acelerar a recuperação de lesões e tecidos',
-  freq: 'Diário ou 2x/semana', timing: 'Qualquer horário', route: 'SC',
+  freq: 'Diário ou 2x/semana', timing: 'Qualquer horário', route: 'Injeção',
   cycle: '4–6 semanas', rest: '4 semanas',
   how: 'Reconstituir o frasco do blend conforme o fabricante.',
   ck: true, doseStr: fixedDose('conforme reconstituição do blend'),
@@ -277,7 +277,7 @@ const TB500BPC: Peptide = {
 const SERMORELIN: Peptide = {
   n: 'Sermorelin', m: 'Análogo de GHRH — estimula GH natural, sono, recuperação e composição corporal',
   e: '🌙', why: 'Estimula a hipófise a liberar GH de forma pulsátil e fisiológica, apoiando massa magra, sono e recuperação',
-  freq: 'Diário', timing: 'Antes de dormir, jejum de 2h', route: 'SC',
+  freq: 'Diário', timing: 'Antes de dormir, jejum de 2h', route: 'Injeção',
   cycle: '12–24 semanas', rest: '4 semanas',
   how: 'Reconstituir com água bacteriostática. Aplicar à noite, em jejum.',
   ck: true, doseStr: fixedDose('100–300 mcg'),
@@ -285,7 +285,7 @@ const SERMORELIN: Peptide = {
 const GLUTATHIONE: Peptide = {
   n: 'Glutathione', m: 'Antioxidante mestre — detox, pele e longevidade celular',
   e: '✨', why: 'Principal antioxidante do corpo: protege as células, clareia e uniformiza a pele e apoia a detoxificação',
-  freq: '2–3x/semana', timing: 'Qualquer horário', route: 'SC, IM ou IV',
+  freq: '2–3x/semana', timing: 'Qualquer horário', route: 'Injeção',
   cycle: '4–8 semanas', rest: '4 semanas',
   how: 'Reconstituir conforme o fabricante. Proteger da luz.',
   ck: true, doseStr: fixedDose('600–1500 mg'),
