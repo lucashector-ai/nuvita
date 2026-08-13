@@ -153,6 +153,21 @@ export default function TotemPage() {
       const raw = sessionStorage.getItem(ESTOQUE_KEY);
       if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) setEstoque(arr); }
     } catch { /* */ }
+
+    // Trava o totem no estoque da farmácia: código pela URL (/totem?f=CODIGO),
+    // persistido em localStorage. Assim, só aparece o que a farmácia tem.
+    try {
+      const daUrl = new URLSearchParams(window.location.search).get('f');
+      if (daUrl && daUrl.trim().length >= 6) localStorage.setItem(CODE_KEY, daUrl.trim());
+      const codigo = localStorage.getItem(CODE_KEY) || sessionStorage.getItem(CODE_KEY);
+      if (codigo) {
+        try { sessionStorage.setItem(CODE_KEY, codigo); } catch { /* */ }
+        fetch('/api/farmacia/estoque', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get', codigo }) })
+          .then((r) => r.json())
+          .then((data) => { if (data?.found && Array.isArray(data.peptideos)) { setEstoque(data.peptideos); try { sessionStorage.setItem(ESTOQUE_KEY, JSON.stringify(data.peptideos)); } catch { /* */ } } })
+          .catch(() => { /* usa cache */ });
+      }
+    } catch { /* */ }
   }, []);
 
   const trocarIdioma = (l: Lang) => { setIdioma(l); try { sessionStorage.setItem(IDIOMA_KEY, l); } catch { /* */ } };

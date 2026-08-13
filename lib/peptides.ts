@@ -119,15 +119,6 @@ const SELANK: Peptide = {
   ck: false, doseStr: fixedDose('250–500 mcg/dia'),
 };
 
-const DSIP: Peptide = {
-  n: 'DSIP (Delta Sleep-Inducing Peptide)', m: 'Regulação do sono, sono delta, normalização circadiana',
-  e: '😴', why: 'Aumenta sono delta (profundo) e normaliza ritmo circadiano',
-  freq: '3x/semana', timing: '30 min antes de dormir', route: 'Injeção',
-  cycle: '4–8 semanas', rest: '4 semanas',
-  how: 'Reconstituir com água bacteriostática. Aplicar 30 min antes de dormir.',
-  ck: true, doseStr: fixedDose('100–200 mcg'),
-};
-
 const PT141: Peptide = {
   n: 'PT-141 (Bremelanotida)', m: 'Receptor MC4R — libido, disfunção sexual, hormônios',
   e: '⚗️', why: 'Atua no SNC para melhorar libido e função sexual em ambos os sexos',
@@ -296,7 +287,7 @@ export const PEPTIDES: Record<ObjectiveKey, Peptide[]> = {
   gordura:     [TIRZEPATIDE, RETATRUTIDE, AOD9604, HGHFRAG, TESAMORELIN, MOTSC, SLUPP332, AMINO1MQ, CBL514, IPAMORELIN],
   massa:       [IPAMORELIN, SERMORELIN, IGF1LR3, HGH, FOLLISTATIN, TESAMORELIN, BPC157],
   recuperacao: [TB500BPC, BPC157, TB500, KPV, KLOW, IPAMORELIN, SERMORELIN],
-  sono:        [IPAMORELIN, DSIP, EPITALON, SERMORELIN],
+  sono:        [IPAMORELIN, EPITALON, SERMORELIN],
   pele:        [GLOW, GHK_CU, KLOW, GLUTATHIONE, MELANOTAN, BPC157, EPITALON],
   longevidade: [EPITALON, NADPLUS, SS31, MOTSC, THYMOSIN_A1, GHK_CU, GLUTATHIONE, BPC157, IPAMORELIN],
   cognitivo:   [SEMAX, SELANK, BPC157, IPAMORELIN],

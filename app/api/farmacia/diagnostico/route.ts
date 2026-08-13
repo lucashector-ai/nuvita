@@ -38,7 +38,7 @@ Protocolos por objetivo:
 - MASSA/COMPOSIÇÃO: Ipamorelin ou Sermorelin (secretagogos de GH, pulsáteis e fisiológicos). IGF-1 LR3 para quem treina pesado. Tesamorelin quando há gordura visceral.
 - RECUPERAÇÃO/LESÕES: BPC-157 + TB-500 (stack sinérgico de reparo).
 - PELE/ANTI-IDADE: GHK-Cu (colágeno/elastina). BPC-157 apoia cicatrização.
-- SONO: Ipamorelin, Sermorelin e/ou DSIP.
+- SONO: Ipamorelin, Sermorelin e/ou Epitalon.
 - LONGEVIDADE/ENERGIA: Epitalon (telômeros, sono profundo); Timalfasina (imunidade).
 - COGNIÇÃO/FOCO: Semax; Selank quando há ansiedade.
 - HORMONAL/LIBIDO: PT-141 (conforme necessidade, não diário).
