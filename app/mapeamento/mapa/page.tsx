@@ -138,6 +138,7 @@ function MapaRelatorio() {
         <div style={S.legenda} className="no-print">
           {carregando ? 'Carregando…' : `${comLocal.length} de ${lista.length} com localização no mapa`}
         </div>
+        <Link href="/mapeamento/roteiro" style={S.roteiroLink} className="no-print">🗺️ Ver roteiro organizado por proximidade →</Link>
 
         {/* Ações do relatório */}
         <div style={S.relHead}>
@@ -192,6 +193,7 @@ const S: Record<string, React.CSSProperties> = {
 
   map: { width: '100%', height: 380, borderRadius: 16, overflow: 'hidden', border: '1px solid #E4E4E4', background: '#EAEDF0', zIndex: 0 },
   legenda: { fontSize: 12.5, color: '#98A2B3', textAlign: 'center', marginTop: 8 },
+  roteiroLink: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, padding: '13px', borderRadius: 14, background: '#16A34A', color: '#fff', fontSize: 15, fontWeight: 700, textDecoration: 'none' },
 
   relHead: { display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, margin: '26px 2px 12px', flexWrap: 'wrap' },
   btnGhost: { padding: '11px 15px', borderRadius: 12, background: '#fff', border: '1px solid #D9DCE1', color: '#344054', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer' },
