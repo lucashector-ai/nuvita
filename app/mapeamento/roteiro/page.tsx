@@ -37,7 +37,7 @@ function Roteiro() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/mapeamento');
+        const res = await fetch('/api/mapeamento?slim=1');
         const data = await res.json().catch(() => ({}));
         if (res.ok && data?.ok) setLista(data.farmacias || []);
       } catch { /* */ }

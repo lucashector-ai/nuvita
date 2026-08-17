@@ -34,10 +34,16 @@ export async function GET(req: NextRequest) {
     const rl = rateLimit(`mapa-get:${getClientIp(req)}`, 60, 60_000);
     if (!rl.allowed) return NextResponse.json({ ok: false, error: 'Muitas requisições.' }, { status: 429 });
 
+    // slim → sem a foto (base64), pra listas/mapa carregarem rápido.
+    const slim = req.nextUrl.searchParams.get('slim') === '1';
+    const cols = slim
+      ? 'id, nome, lat, lng, referencia, criado_por, criado_em'
+      : 'id, nome, foto, lat, lng, referencia, criado_por, criado_em';
+
     const admin = getSupabaseAdmin();
     const { data, error } = await admin
       .from(TABELA)
-      .select('id, nome, foto, lat, lng, referencia, criado_por, criado_em')
+      .select(cols)
       .order('criado_em', { ascending: false });
     if (error) throw error;
     return NextResponse.json({ ok: true, farmacias: data || [] });
