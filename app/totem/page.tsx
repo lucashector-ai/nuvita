@@ -95,6 +95,13 @@ function alpha(hex: string, a: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
+// Peptídeos desativados no totem (fora de estoque) — nunca são indicados.
+const TOTEM_FORA = ['AOD-9604', 'MOTS-c'];
+function semForaDeEstoque(rec: Recomendacao | null): Recomendacao | null {
+  if (!rec || !Array.isArray(rec.itens)) return rec;
+  return { ...rec, itens: rec.itens.filter((it) => !TOTEM_FORA.includes(it.peptide.n)) };
+}
+
 
 function montarDadosPdf(r: RespostasFarmacia, rec: Recomendacao, idioma: Lang) {
   const es = idioma === 'es';
@@ -207,8 +214,8 @@ export default function TotemPage() {
     try {
       let res = await diagnosticarComIA(r, estoqueAtual, idioma);
       if (!res || (res.itens.length === 0 && !res.bloqueado)) res = recomendarPeptideos(r, estoqueAtual);
-      return res;
-    } catch { return recomendarPeptideos(r, estoqueAtual); }
+      return semForaDeEstoque(res);
+    } catch { return semForaDeEstoque(recomendarPeptideos(r, estoqueAtual)); }
   };
 
   // Prefetch: começa a gerar já na última etapa, enquanto a pessoa escolhe a
